@@ -5,45 +5,136 @@
     Layout = "_Layout";
 }
 
-@if (TempData["SuccessMessage"] != null)
-{
-    <div class="alert alert-success alert-dismissible fade show" role="alert">
-        @TempData["SuccessMessage"]
-        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-            <span aria-hidden="true">&times;</span>
-        </button>
+<style>
+    body {
+        background-color: #f4f6f9;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    .login-container {
+        min-height: 100vh;
+        display: flex;
+    }
+
+    /* Left side image/branding */
+    .login-left {
+        flex: 1;
+        background: linear-gradient(135deg, #004aad, #007bff);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        flex-direction: column;
+        padding: 40px;
+        text-align: center;
+    }
+
+        .login-left h1 {
+            font-size: 2.2rem;
+            font-weight: bold;
+            margin-bottom: 15px;
+        }
+
+        .login-left p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+            max-width: 400px;
+        }
+
+    /* Right side form */
+    .login-right {
+        flex: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 40px;
+        background-color: white;
+        box-shadow: -5px 0 20px rgba(0, 0, 0, 0.05);
+    }
+
+    .login-card {
+        width: 100%;
+        max-width: 400px;
+    }
+
+        .login-card h2 {
+            font-weight: 600;
+            margin-bottom: 25px;
+        }
+
+    .form-control {
+        padding: 12px;
+        border-radius: 8px;
+        border: 1px solid #ddd;
+    }
+
+    .btn-primary {
+        padding: 12px;
+        border-radius: 8px;
+        font-weight: 600;
+    }
+
+    .login-footer {
+        margin-top: 20px;
+        text-align: center;
+    }
+
+    @@media (max-width: 768px) {
+        .login-container
+
+    {
+        flex-direction: column;
+    }
+
+    .login-left {
+        padding: 60px 20px;
+    }
+
+    }
+</style>
+
+<div class="login-container">
+    <!-- Left Branding Section -->
+    <div class="login-left">
+        <h1>Smart Attendance System</h1>
+        <p>Track, manage, and improve attendance with our professional and easy-to-use platform.</p>
     </div>
-}
 
-<div class="row justify-content-center">
-    <div class="col-md-6">
-        <div class="card mt-5">
-            <div class="card-header text-center">
-                <h2>Login</h2>
-            </div>
-            <div class="card-body">
-                <form asp-action="Login">
-                    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+    <!-- Right Form Section -->
+    <div class="login-right">
+        <div class="login-card">
+            @if (TempData["SuccessMessage"] != null)
+            {
+                <div class="alert alert-success alert-dismissible fade show" role="alert">
+                    @TempData["SuccessMessage"]
+                    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+            }
 
-                    <div class="form-group">
-                        <label asp-for="Email"></label>
-                        <input asp-for="Email" class="form-control" />
-                        <span asp-validation-for="Email" class="text-danger"></span>
-                    </div>
+            <h2>Login</h2>
+            <form asp-action="Login">
+                <div asp-validation-summary="ModelOnly" class="text-danger"></div>
 
-                    <div class="form-group">
-                        <label asp-for="Password"></label>
-                        <input asp-for="Password" class="form-control" />
-                        <span asp-validation-for="Password" class="text-danger"></span>
-                    </div>
+                <div class="form-group mb-3">
+                    <label asp-for="Email" class="fw-bold"></label>
+                    <input asp-for="Email" class="form-control" placeholder="Enter your email" />
+                    <span asp-validation-for="Email" class="text-danger small"></span>
+                </div>
 
-                    <button type="submit" class="btn btn-primary btn-block">Log in</button>
+                <div class="form-group mb-4">
+                    <label asp-for="Password" class="fw-bold"></label>
+                    <input asp-for="Password" class="form-control" type="password" placeholder="Enter your password" />
+                    <span asp-validation-for="Password" class="text-danger small"></span>
+                </div>
 
-                    <div class="text-center mt-3">
-                        <a asp-action="Register">Don't have an account? Register here.</a>
-                    </div>
-                </form>
-            </div>
+                <button type="submit" class="btn btn-primary w-100">Log In</button>
+
+                <div class="login-footer">
+                    <a asp-action="Register" class="text-decoration-none">Don't have an account? <strong>Register here</strong></a>
+                </div>
+            </form>
         </div>
     </div>
 </div>
