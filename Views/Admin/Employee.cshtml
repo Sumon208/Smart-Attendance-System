@@ -1,0 +1,41 @@
+﻿@model IEnumerable<Smart_Attendance_System.Models.Employee>
+
+@{
+    ViewData["Title"] = "Employee Management";
+    Layout = "_AdminLayout";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>Employee Management</h2>
+    <a asp-action="AddEmployee" class="btn btn-primary">Add New Employee</a>
+</div>
+
+<table class="table table-bordered table-hover">
+    <thead class="thead-dark">
+        <tr>
+            <th>Employee ID</th>
+            <th>Name</th>
+            <th>Department</th>
+            <th>Email</th>
+            <th>Salary</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>@item.EmployeeId</td>
+                <td>@item.EmployeeName</td>
+                <td>@item.Department.DepartmentName</td>
+                 @* <td>@item.User?.Email</td> *@
+                <td>@item.Salary?.ToString("C")</td>
+                <td>
+                    <a asp-action="EditEmployee" asp-route-id="@item.EmployeeId" class="btn btn-sm btn-info">Edit</a>
+                    <a asp-action="DeleteEmployee" asp-route-id="@item.EmployeeId" class="btn btn-sm btn-danger">Delete</a>
+                    <a asp-action="EmployeeAttendanceDetails" asp-route-employeeId="@item.EmployeeId" class="btn btn-sm btn-secondary">Attendance</a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

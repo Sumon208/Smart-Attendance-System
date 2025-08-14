@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.11.35219.272
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Smart Attendance System", "Smart Attendance System.csproj", "{F19E8089-D53B-4458-ADFD-593EFA9850DD}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{F19E8089-D53B-4458-ADFD-593EFA9850DD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F19E8089-D53B-4458-ADFD-593EFA9850DD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F19E8089-D53B-4458-ADFD-593EFA9850DD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F19E8089-D53B-4458-ADFD-593EFA9850DD}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {322F760F-07E9-48F6-864F-17A08E22CAD4}
+	EndGlobalSection
+EndGlobal

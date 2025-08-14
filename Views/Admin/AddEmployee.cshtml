@@ -1,0 +1,41 @@
+﻿@model Smart_Attendance_System.Models.Employee
+
+@{
+    ViewData["Title"] = "Add Employee";
+    Layout = "_AdminLayout";
+}
+
+<h2>Add Employee</h2>
+
+<form asp-action="AddEmployee" method="post">
+    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+    <div class="form-group">
+        <label asp-for="EmployeeName"></label>
+        <input asp-for="EmployeeName" class="form-control" />
+        <span asp-validation-for="EmployeeName" class="text-danger"></span>
+    </div>
+
+    <div class="form-group">
+        <label asp-for="EmployeeId"></label>
+        <input asp-for="EmployeeId" class="form-control" />
+        <span asp-validation-for="EmployeeId" class="text-danger"></span>
+    </div>
+
+    <div class="form-group">
+        <label asp-for="DepartmentId"></label>
+        <select asp-for="DepartmentId" class="form-control" asp-items="@(new SelectList(ViewBag.Departments, "DepartmentId", "DepartmentName"))">
+            <option value="">Select Department</option>
+        </select>
+        <span asp-validation-for="DepartmentId" class="text-danger"></span>
+    </div>
+
+    <button type="submit" class="btn btn-success">Add Employee</button>
+    <a asp-action="Employee" class="btn btn-secondary">Cancel</a>
+</form>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

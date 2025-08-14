@@ -1,0 +1,32 @@
+﻿@model IEnumerable<Smart_Attendance_System.Models.Attendance>
+
+@{
+    ViewData["Title"] = "Attendance Report";
+    Layout = "_AdminLayout";
+}
+
+<h2>Attendance Report</h2>
+
+<table class="table table-bordered table-hover">
+    <thead class="thead-dark">
+        <tr>
+            <th>Employee Name</th>
+            <th>Date</th>
+            <th>Check In Time</th>
+            <th>Check Out Time</th>
+            <th>Status</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>@item.Employee.EmployeeName</td>
+                <td>@item.AttendanceDate.ToShortDateString()</td>
+               @*  <td>@item.CheckInTime.ToShortTimeString()</td> *@
+                <td>@item.CheckOutTime?.ToShortTimeString()</td>
+                <td>@item.Status</td>
+            </tr>
+        }
+    </tbody>
+</table>

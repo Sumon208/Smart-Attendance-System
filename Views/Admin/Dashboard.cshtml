@@ -1,0 +1,55 @@
+﻿@model Smart_Attendance_System.Models.ViewModel.AdminDashboardVM
+
+@{
+    ViewData["Title"] = "Admin Dashboard";
+    Layout = "_AdminLayout";
+}
+
+<h2 class="mb-4">Admin Dashboard</h2>
+
+<div class="row">
+    <div class="col-md-3">
+        <div class="card text-white bg-primary mb-3 text-center card-custom">
+            <div class="card-body">
+                <h5 class="card-title"><i class="fas fa-users"></i> Total Employees</h5>
+                <h1 class="card-text">@Model.TotalEmployees</h1>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3">
+        <div class="card text-white bg-info mb-3 text-center card-custom">
+            <div class="card-body">
+                <h5 class="card-title"><i class="fas fa-building"></i> Total Departments</h5>
+                <h1 class="card-text">@Model.TotalDepartments</h1>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3">
+        <div class="card text-white bg-warning mb-3 text-center card-custom">
+            <div class="card-body">
+                <h5 class="card-title"><i class="fas fa-hourglass-half"></i> Leave Pending</h5>
+                <h1 class="card-text">@Model.LeavePending</h1>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3">
+        <div class="card text-white bg-success mb-3 text-center card-custom">
+            <div class="card-body">
+                <h5 class="card-title"><i class="fas fa-check-circle"></i> Leave Approved</h5>
+                <h1 class="card-text">@Model.LeaveApproved</h1>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3">
+        <div class="card text-white bg-danger mb-3 text-center card-custom">
+            <div class="card-body">
+                <h5 class="card-title"><i class="fas fa-times-circle"></i> Leave Rejected</h5>
+                <h1 class="card-text">@Model.LeaveRejected</h1>
+            </div>
+        </div>
+    </div>
+</div>
