@@ -10,5 +10,9 @@ namespace Smart_Attendance_System.Services.Interfaces
         Task<Employee?> GetEmployeeByEmployeeIdAsync(string employeeId);
         Task<bool> RegisterUserAsync(Employee employee, SystemUser systemUser);
         Task<IEnumerable<Department>> GetAllDepartmentsAsync();
+
+        Task<SystemUser?> GetUserByEmployeeIdAsync(int employeeRecordId);
+        Task<SystemUser?> GetUserByEmailWithEmployeeAsync(string email);
+
     }
 }

@@ -79,6 +79,12 @@ namespace Smart_Attendance_System.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<string>("BloodGroup")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("CertificateFilePath")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<DateTime?>("DateOfBirth")
                         .HasColumnType("datetime2");
 
@@ -99,9 +105,14 @@ namespace Smart_Attendance_System.Migrations
                         .HasColumnType("nvarchar(100)");
 
                     b.Property<string>("EmployeePhotoPath")
-                        .HasColumnType("nvarchar(max)");
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
 
                     b.Property<string>("Gender")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("MobileNumber")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Nationality")
@@ -109,6 +120,9 @@ namespace Smart_Attendance_System.Migrations
 
                     b.Property<decimal?>("Salary")
                         .HasColumnType("decimal(18, 2)");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
 
                     b.HasKey("Id");
 
@@ -169,9 +183,6 @@ namespace Smart_Attendance_System.Migrations
                         .HasColumnType("nvarchar(100)");
 
                     b.Property<int?>("EmployeeId")
-                        .HasColumnType("int");
-
-                    b.Property<int?>("EmployeeRecordId")
                         .HasColumnType("int");
 
                     b.Property<string>("PasswordHash")

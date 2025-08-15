@@ -1,0 +1,45 @@
+﻿@model IEnumerable<Smart_Attendance_System.Models.Employee>
+
+@{
+    ViewData["Title"] = "Employee Details";
+    Layout = "_AdminLayout";
+}
+
+<h2 class="mb-4">Employee Details</h2>
+
+<p>
+    <a asp-controller="EmployeeManagement" asp-action="Add" class="btn btn-success">Add New Employee</a>
+</p>
+
+<table class="table table-bordered table-hover">
+    <thead class="thead-dark">
+        <tr>
+            <th>Employee ID</th>
+            <th>Name</th>
+            <th>Department</th>
+            <th>Mobile Number</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>@item.EmployeeId</td>
+                <td>@item.EmployeeName</td>
+                <td>@item.Department?.DepartmentName</td>
+                <td>@item.MobileNumber</td>
+                <td>
+                    <a asp-action="Update" asp-route-id="@item.Id" class="btn btn-sm btn-info">Update</a>
+                    <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-sm btn-danger">Delete</a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

@@ -26,6 +26,10 @@ namespace Smart_Attendance_System.Services.Repositories
                                  .SingleOrDefaultAsync(u => u.Email == email);
             return result;
         }
+        public async Task<SystemUser?> GetUserByEmployeeIdAsync(int employeeRecordId)
+        {
+            return await _context.SystemUsers.SingleOrDefaultAsync(u => u.EmployeeId == employeeRecordId);
+        }
 
         public async Task<Employee?> GetEmployeeByEmployeeIdAsync(string employeeId)
         {
@@ -63,5 +67,16 @@ namespace Smart_Attendance_System.Services.Repositories
         {
             return await _context.Departments.ToListAsync();
         }
+
+        // Services/Repositories/AccountRepository.cs
+
+        public async Task<SystemUser?> GetUserByEmailWithEmployeeAsync(string email)
+        {
+            return await _context.SystemUsers
+                                 .Include(u => u.Employee)
+                                 .SingleOrDefaultAsync(u => u.Email == email);
+        }
+
+        
     }
 }

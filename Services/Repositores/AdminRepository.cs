@@ -102,5 +102,25 @@ namespace Smart_Attendance_System.Services.Repositories
         {
             return await _context.Attendances.Include(a => a.Employee).ToListAsync();
         }
+
+        // AdminRepository.cs
+
+        public async Task<IEnumerable<Employee>> GetPendingEmployeesAsync()
+        {
+            return await _context.Employees
+                                 .Include(e => e.Department)       
+                                 .Where(e => e.Status == EmployeeStatus.Pending)
+                                 .ToListAsync();
+        }
+
+        public async Task UpdateEmployeeStatusAsync(int employeeId, EmployeeStatus status)
+        {
+            var employee = await _context.Employees.FindAsync(employeeId);
+            if (employee != null)
+            {
+                employee.Status = status;
+                await _context.SaveChangesAsync();
+            }
+        }
     }
 }

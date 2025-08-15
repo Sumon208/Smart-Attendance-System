@@ -15,6 +15,9 @@ namespace Smart_Attendance_System.Services.Interfaces
         Task<IEnumerable<Department>> GetAllDepartmentsAsync();
         Task AddDepartmentAsync(Department department);
 
+        Task<IEnumerable<Employee>> GetPendingEmployeesAsync();
+        Task UpdateEmployeeStatusAsync(int employeeId, EmployeeStatus status);
+
         Task<IEnumerable<Leave>> GetAllLeaveApplicationsAsync();
         Task UpdateLeaveStatusAsync(int leaveId, LeaveStatus status);
 

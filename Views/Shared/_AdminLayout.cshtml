@@ -43,9 +43,23 @@
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" asp-controller="Admin" asp-action="Employee">
+                            <a class="nav-link collapsed" data-toggle="collapse" href="#employeeSubmenu" aria-expanded="false" aria-controls="employeeSubmenu">
                                 <i class="fas fa-users mr-2"></i> Employees
                             </a>
+                            <div class="collapse" id="employeeSubmenu">
+                                <ul class="flex-column nav pl-4">
+                                    <li class="nav-item">
+                                        <a class="nav-link" asp-controller="Admin" asp-action="EmployeeAppointment">
+                                            <i class="fas fa-user-clock mr-2"></i> Employee Appointment
+                                        </a>
+                                    </li>
+                                    <li class="nav-item">
+                                        <a class="nav-link" asp-controller="EmployeeManagement" asp-action="Details">
+                                            <i class="fas fa-list-alt mr-2"></i> Total Employees
+                                        </a>
+                                    </li>
+                                </ul>
+                            </div>
                         </li>
                         <li class="nav-item">
                             <a class="nav-link" asp-controller="Admin" asp-action="Department">

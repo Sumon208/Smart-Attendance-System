@@ -22,7 +22,7 @@ namespace Smart_Attendance_System.Models
         public int UserType { get; set; }
 
         public int? EmployeeId { get; set; }
-        [ForeignKey("EmployeeRecordId")]
+        [ForeignKey("EmployeeId")]
         public Employee? Employee { get; set; }
     }
 }
