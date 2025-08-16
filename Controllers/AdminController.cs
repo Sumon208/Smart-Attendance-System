@@ -1,8 +1,10 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Authorization;
-using Smart_Attendance_System.Services.Interfaces;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using Smart_Attendance_System.Data;
 using Smart_Attendance_System.Models;
 using Smart_Attendance_System.Models.ViewModel;
+using Smart_Attendance_System.Services.Interfaces;
 
 namespace Smart_Attendance_System.Controllers
 {
@@ -10,10 +12,11 @@ namespace Smart_Attendance_System.Controllers
     public class AdminController : Controller
     {
         private readonly IAdminRepository _adminRepository;
-
-        public AdminController(IAdminRepository adminRepository)
+        private readonly ApplicationDbContext _context; // Add this
+        public AdminController(IAdminRepository adminRepository, ApplicationDbContext context)
         {
             _adminRepository = adminRepository;
+            _context = context;
         }
 
         // 1. Dashboard Action
@@ -53,6 +56,87 @@ namespace Smart_Attendance_System.Controllers
             await _adminRepository.AddEmployeeAsync(employee);
             return RedirectToAction(nameof(Employee));
         }
+
+        // GET: /Admin/EditEmployee/dev-004
+        // GET: /Admin/EditEmployee/dev-004
+        // GET: /Admin/EditEmployee?employeeId=dev-004
+        // GET: /Admin/EditEmployee/dev-004
+        [HttpGet]
+        public async Task<IActionResult> EditEmployee(string employeeId)
+        {
+            if (string.IsNullOrEmpty(employeeId))
+                return BadRequest("Employee ID is required.");
+
+            var employee = await _adminRepository.GetEmployeeByEmployeeIdAsync(employeeId);
+            if (employee == null)
+                return NotFound("Employee not found.");
+
+            ViewBag.Departments = await _adminRepository.GetAllDepartmentsAsync();
+            return View(employee);
+        }
+
+        // POST: /Admin/EditEmployee
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> EditEmployee([Bind("EmployeeId,EmployeeName,DepartmentId,DateOfBirth,Gender,Salary,Nationality,Description")] Employee model)
+        {
+            if (string.IsNullOrEmpty(model.EmployeeId))
+                return BadRequest("Employee ID is required.");
+
+            if (!ModelState.IsValid)
+            {
+                ViewBag.Departments = await _adminRepository.GetAllDepartmentsAsync();
+                return View(model);
+            }
+
+            var employee = await _adminRepository.GetEmployeeByEmployeeIdAsync(model.EmployeeId);
+            if (employee == null)
+                return NotFound("Employee not found.");
+
+            // Update fields
+            employee.EmployeeName = model.EmployeeName;
+            employee.DepartmentId = model.DepartmentId;
+            employee.DateOfBirth = model.DateOfBirth;
+            employee.Gender = model.Gender;
+            employee.Salary = model.Salary;
+            employee.Nationality = model.Nationality;
+            employee.Description = model.Description;
+
+            await _adminRepository.UpdateEmployeeAsync(employee);
+
+            return RedirectToAction("Employee");
+        }
+
+
+
+        [HttpGet]
+        public async Task<IActionResult> DeleteEmployee(string employeeId)
+        {
+            if (string.IsNullOrEmpty(employeeId))
+                return BadRequest("Employee ID is required.");
+
+            var employee = await _adminRepository.GetEmployeeByEmployeeIdAsync(employeeId);
+            if (employee == null)
+                return NotFound("Employee not found.");
+
+            var relatedUsers = _context.SystemUsers.Where(u => u.EmployeeId == employee.Id);
+            _context.SystemUsers.RemoveRange(relatedUsers);
+
+            await _adminRepository.DeleteEmployeeAsync(employee.Id);
+
+            await _context.SaveChangesAsync();
+
+            TempData["SuccessMessage"] = $"Employee '{employee.EmployeeName}' deleted successfully.";
+
+            return RedirectToAction("Employee");
+        }
+
+
+
+
+
+
+
 
         // 3. Department Management Actions
         [HttpGet]

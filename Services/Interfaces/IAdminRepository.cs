@@ -10,11 +10,11 @@ namespace Smart_Attendance_System.Services.Interfaces
         Task<IEnumerable<Employee>> GetAllEmployeesAsync();
         Task AddEmployeeAsync(Employee employee);
         Task UpdateEmployeeAsync(Employee employee);
-        Task DeleteEmployeeAsync(int employeeId);
+        Task DeleteEmployeeAsync(int id);
 
         Task<IEnumerable<Department>> GetAllDepartmentsAsync();
         Task AddDepartmentAsync(Department department);
-
+        Task<Employee?> GetEmployeeByIdAsync(int id); 
         Task<IEnumerable<Leave>> GetAllLeaveApplicationsAsync();
         Task UpdateLeaveStatusAsync(int leaveId, LeaveStatus status);
 
