@@ -4,7 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using Smart_Attendance_System.Data;
 using Smart_Attendance_System.Models;
 using Smart_Attendance_System.Models.ViewModel;
-using Smart_Attendance_System.Services.Interfaces;
+using Smart_Attendance_System.Services.Repositories;
 
 namespace Smart_Attendance_System.Controllers
 {
@@ -12,11 +12,12 @@ namespace Smart_Attendance_System.Controllers
     public class AdminController : Controller
     {
         private readonly IAdminRepository _adminRepository;
-        private readonly ApplicationDbContext _context; // Add this
-        public AdminController(IAdminRepository adminRepository, ApplicationDbContext context)
+        private readonly IAccountRepository _accountRepository;
+
+        public AdminController(IAdminRepository adminRepository, IAccountRepository accountRepository)
         {
             _adminRepository = adminRepository;
-            _context = context;
+            _accountRepository = accountRepository;
         }
 
         // 1. Dashboard Action
@@ -193,6 +194,60 @@ namespace Smart_Attendance_System.Controllers
         {
             var attendanceDetails = await _adminRepository.GetEmployeeAttendanceAsync(employeeId);
             return View(attendanceDetails);
+        }
+     
+
+        // New action for Employee Appointments
+
+        [HttpGet]
+        public async Task<IActionResult> EmployeeAppointment()
+        {
+            var pendingEmployees = await _adminRepository.GetPendingEmployeesAsync();
+
+            var viewModel = new List<EmployeeAppointmentVM>();
+
+            foreach (var employee in pendingEmployees)
+            {
+                var user = await _accountRepository.GetUserByEmployeeIdAsync(employee.Id);
+                if (user != null)
+                {
+                    viewModel.Add(new EmployeeAppointmentVM
+                    {
+                        EmployeeRecordId = employee.Id,
+                        EmployeeName = employee.EmployeeName,
+                        EmployeeId = employee.EmployeeId,
+                        Email = user.Email,
+                        DepartmentName = employee.Department?.DepartmentName
+                    });
+                }
+            }
+
+            return View(viewModel);
+        }
+
+        // Action to handle approval or rejection
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ApproveEmployee(int employeeId)
+        {
+            await _adminRepository.UpdateEmployeeStatusAsync(employeeId, EmployeeStatus.Approved);
+            return RedirectToAction(nameof(EmployeeAppointment));
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> RejectEmployee(int employeeId)
+        {
+            await _adminRepository.UpdateEmployeeStatusAsync(employeeId, EmployeeStatus.Rejected);
+            return RedirectToAction(nameof(EmployeeAppointment));
+        }
+
+        // Modified Employee action to show Approved employees
+        [HttpGet]
+        public async Task<IActionResult> EmployeeDetails()
+        {
+            var employees = await _adminRepository.GetAllEmployeesAsync(); // Assuming this retrieves all approved employees
+            return View(employees.Where(e => e.Status == EmployeeStatus.Approved));
         }
     }
 }

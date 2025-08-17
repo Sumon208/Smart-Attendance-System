@@ -24,23 +24,67 @@ namespace Smart_Attendance_System.Controllers
             return View();
         }
 
+        //[HttpPost]
+        //[ValidateAntiForgeryToken]
+        //public async Task<IActionResult> Login(LoginViewModel model)
+        //{
+        //    if (ModelState.IsValid)
+        //    {
+        //        var user = await _accountRepository.GetUserByEmailAsync(model.Email);
+
+        //        if (user != null && BCrypt.Net.BCrypt.Verify(model.Password, user.PasswordHash))
+        //        {
+
+        //            var claims = new List<Claim>
+        //            {
+        //                new Claim(ClaimTypes.NameIdentifier, user.EmployeeId.ToString()),
+        //                new Claim(ClaimTypes.Email, user.Email),
+        //                new Claim(ClaimTypes.Role, user.UserType.ToString())
+        //            };
+
+        //            var claimsIdentity = new ClaimsIdentity(claims, "Login");
+        //            await HttpContext.SignInAsync(new ClaimsPrincipal(claimsIdentity));
+
+        //            if (user.UserType == 1) // Admin
+        //            {
+        //                return RedirectToAction("Dashboard", "Admin");
+        //            }
+        //            else // User
+        //            {
+        //                return RedirectToAction("Index", "Home");
+        //            }
+        //        }
+
+        //        ModelState.AddModelError(string.Empty, "Invalid login attempt.");
+        //    }
+        //    return View(model);
+        //}
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Login(LoginViewModel model)
         {
             if (ModelState.IsValid)
             {
-                var user = await _accountRepository.GetUserByEmailAsync(model.Email);
+
+                // Use the new method to get the user and employee in one call
+                var user = await _accountRepository.GetUserByEmailWithEmployeeAsync(model.Email);
 
                 if (user != null && BCrypt.Net.BCrypt.Verify(model.Password, user.PasswordHash))
                 {
-
-                    var claims = new List<Claim>
+                    // First, check the status of regular employees
+                    if (user.UserType == 2 && user.Employee?.Status != EmployeeStatus.Approved)
                     {
+                        ModelState.AddModelError(string.Empty, "You are not a Current Employee of this Institution.");
+                        return View(model);
+                    }
+
+                    // If the user is an Admin or an Approved User, proceed with login
+                    var claims = new List<Claim>
+                      {
                         new Claim(ClaimTypes.NameIdentifier, user.EmployeeId.ToString()),
                         new Claim(ClaimTypes.Email, user.Email),
                         new Claim(ClaimTypes.Role, user.UserType.ToString())
-                    };
+                      };
 
                     var claimsIdentity = new ClaimsIdentity(claims, "Login");
                     await HttpContext.SignInAsync(new ClaimsPrincipal(claimsIdentity));
@@ -179,7 +223,8 @@ namespace Smart_Attendance_System.Controllers
                     Nationality = "N/A",
                     DateOfBirth = DateTime.Now,
                     Salary = 0,
-                    Description = "New User"
+                    Description = "New User",
+                    Status = EmployeeStatus.Pending // The corrected line is here.
                 };
 
                 var newSystemUser = new SystemUser

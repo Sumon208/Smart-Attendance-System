@@ -12,8 +12,8 @@ using Smart_Attendance_System.Data;
 namespace Smart_Attendance_System.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20250813183437_InitialSetup")]
-    partial class InitialSetup
+    [Migration("20250815124409_modified")]
+    partial class modified
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -82,6 +82,12 @@ namespace Smart_Attendance_System.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<string>("BloodGroup")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("CertificateFilePath")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<DateTime?>("DateOfBirth")
                         .HasColumnType("datetime2");
 
@@ -102,9 +108,14 @@ namespace Smart_Attendance_System.Migrations
                         .HasColumnType("nvarchar(100)");
 
                     b.Property<string>("EmployeePhotoPath")
-                        .HasColumnType("nvarchar(max)");
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
 
                     b.Property<string>("Gender")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("MobileNumber")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Nationality")
@@ -112,6 +123,9 @@ namespace Smart_Attendance_System.Migrations
 
                     b.Property<decimal?>("Salary")
                         .HasColumnType("decimal(18, 2)");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
 
                     b.HasKey("Id");
 
@@ -172,9 +186,6 @@ namespace Smart_Attendance_System.Migrations
                         .HasColumnType("nvarchar(100)");
 
                     b.Property<int?>("EmployeeId")
-                        .HasColumnType("int");
-
-                    b.Property<int?>("EmployeeRecordId")
                         .HasColumnType("int");
 
                     b.Property<string>("PasswordHash")
