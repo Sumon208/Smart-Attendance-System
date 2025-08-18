@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace Smart_Attendance_System.Migrations
 {
     /// <inheritdoc />
-    public partial class modified : Migration
+    public partial class I : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
