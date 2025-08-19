@@ -154,9 +154,12 @@ namespace Smart_Attendance_System.Controllers
             if (ModelState.IsValid)
             {
                 await _adminRepository.AddDepartmentAsync(department);
+                TempData["SuccessMessage"] = $"Department '{department.DepartmentName}' has been added successfully!";
                 return RedirectToAction(nameof(Department));
             }
-            return View(department);
+            // If validation fails, redirect back to Department view with error
+            TempData["ErrorMessage"] = "Please provide a valid department name.";
+            return RedirectToAction(nameof(Department));
         }
 
         // 4. Leave Management Actions
