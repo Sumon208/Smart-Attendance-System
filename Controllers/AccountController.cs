@@ -116,66 +116,7 @@ namespace Smart_Attendance_System.Controllers
             return View();
         }
 
-        //[HttpPost]
-        //[ValidateAntiForgeryToken]
-        //public async Task<IActionResult> Register(RegistrationViewModel model)
-        //{
-        //    ViewBag.Departments = new SelectList(await _accountRepository.GetAllDepartmentsAsync(), "DepartmentId", "DepartmentName");
-
-        //    if (ModelState.IsValid)
-        //    {
-        //        if (model.DepartmentId <= 0)
-        //        {
-        //            ModelState.AddModelError("DepartmentId", "Please select a department.");
-        //            return View(model);
-        //        }
-
-        //        var existingUser = await _accountRepository.GetUserByEmailAsync(model.Email);
-        //        if (existingUser != null)
-        //        {
-        //            ModelState.AddModelError("Email", "An account with this email already exists.");
-        //            return View(model);
-        //        }
-
-        //        var existingEmployee = await _accountRepository.GetEmployeeByEmployeeIdAsync(model.EmployeeId);
-        //        if (existingEmployee != null)
-        //        {
-        //            ModelState.AddModelError("EmployeeId", "An employee with this ID already exists.");
-        //            return View(model);
-        //        }
-
-        //        var newEmployee = new Employee
-        //        {
-        //            EmployeeName = model.EmployeeName,
-        //            EmployeeId = model.EmployeeId,
-        //            DepartmentId = model.DepartmentId,
-        //            EmployeePhotoPath = "/images/default.jpg",
-        //            Gender = "N/A",
-        //            Nationality = "N/A",
-        //            DateOfBirth = DateTime.Now,
-        //            Salary = 0,
-        //            Description = "New User"
-        //        };
-
-        //        var newSystemUser = new SystemUser
-        //        {
-        //            Email = model.Email,
-        //            PasswordHash = BCrypt.Net.BCrypt.HashPassword(model.Password),
-        //            UserType = 2,
-        //        };
-
-        //        var result = await _accountRepository.RegisterUserAsync(newEmployee, newSystemUser);
-
-        //        if (result)
-        //        {
-        //            TempData["SuccessMessage"] = "Registration successful! You can now log in.";
-        //            return RedirectToAction("Login");
-        //        }
-
-        //        ModelState.AddModelError(string.Empty, "Registration failed. Please try again.");
-        //    }
-        //    return View(model);
-        //}
+      
 
         [HttpPost]
         [ValidateAntiForgeryToken]
