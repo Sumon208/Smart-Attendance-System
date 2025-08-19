@@ -23,7 +23,7 @@
             <tr>
                 <td>@item.Employee.EmployeeName</td>
                 <td>@item.AttendanceDate.ToShortDateString()</td>
-               @*  <td>@item.CheckInTime.ToShortTimeString()</td> *@
+                <td>@(item.CheckInTime?.ToShortTimeString() ?? "—")</td> 
                 <td>@item.CheckOutTime?.ToShortTimeString()</td>
                 <td>@item.Status</td>
             </tr>

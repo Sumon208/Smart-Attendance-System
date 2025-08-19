@@ -120,7 +120,7 @@
         <div class="card text-white bg-success mb-3 text-center card-custom">
             <div class="card-body">
                 <i class="fas fa-percentage fa-2x mb-2"></i>
-                <h3 class="card-text">@(Model.Presents > 0 ? Math.Round((double)Model.Presents / (Model.Presents + Model.Absents) * 100, 1) : 0)%</h3>
+                                 <h3 class="card-text">@Model.AttendanceRate%</h3>
                 <h6 class="card-title">Attendance Rate</h6>
                 <small>This Month</small>
             </div>
