@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using Smart_Attendance_System.Data;
 using Smart_Attendance_System.Models;
 using Smart_Attendance_System.Models.ViewModel;
+using Smart_Attendance_System.Services.Interfaces;
 using Smart_Attendance_System.Services.Repositories;
 
 namespace Smart_Attendance_System.Controllers
@@ -110,27 +111,27 @@ namespace Smart_Attendance_System.Controllers
 
 
 
-        [HttpGet]
-        public async Task<IActionResult> DeleteEmployee(string employeeId)
-        {
-            if (string.IsNullOrEmpty(employeeId))
-                return BadRequest("Employee ID is required.");
+        //[HttpGet]
+        //public async Task<IActionResult> DeleteEmployee(string employeeId)
+        //{
+        //    if (string.IsNullOrEmpty(employeeId))
+        //        return BadRequest("Employee ID is required.");
 
-            var employee = await _adminRepository.GetEmployeeByEmployeeIdAsync(employeeId);
-            if (employee == null)
-                return NotFound("Employee not found.");
+        //    var employee = await _adminRepository.GetEmployeeByEmployeeIdAsync(employeeId);
+        //    if (employee == null)
+        //        return NotFound("Employee not found.");
 
-            var relatedUsers = _context.SystemUsers.Where(u => u.EmployeeId == employee.Id);
-            _context.SystemUsers.RemoveRange(relatedUsers);
+        //    var relatedUsers = _context.SystemUsers.Where(u => u.EmployeeId == employee.Id);
+        //    _context.SystemUsers.RemoveRange(relatedUsers);
 
-            await _adminRepository.DeleteEmployeeAsync(employee.Id);
+        //    await _adminRepository.DeleteEmployeeAsync(employee.Id);
 
-            await _context.SaveChangesAsync();
+        //    await _context.SaveChangesAsync();
 
-            TempData["SuccessMessage"] = $"Employee '{employee.EmployeeName}' deleted successfully.";
+        //    TempData["SuccessMessage"] = $"Employee '{employee.EmployeeName}' deleted successfully.";
 
-            return RedirectToAction("Employee");
-        }
+        //    return RedirectToAction("Employee");
+        //}
 
 
 
