@@ -48,21 +48,21 @@ namespace Smart_Attendance_System.Services.Repositories
             await _context.SaveChangesAsync();
         }
 
-        public async Task UpdateEmployeeAsync(Employee employee)
-        {
-            _context.Employees.Update(employee);
-            await _context.SaveChangesAsync();
-        }
+        //public async Task UpdateEmployeeAsync(Employee employee)
+        //{
+        //    _context.Employees.Update(employee);
+        //    await _context.SaveChangesAsync();
+        //}
 
-        public async Task DeleteEmployeeAsync(int employeeId)
-        {
-            var employee = await _context.Employees.FindAsync(employeeId);
-            if (employee != null)
-            {
-                _context.Employees.Remove(employee);
-                await _context.SaveChangesAsync();
-            }
-        }
+        //public async Task DeleteEmployeeAsync(int employeeId)
+        //{
+        //    var employee = await _context.Employees.FindAsync(employeeId);
+        //    if (employee != null)
+        //    {
+        //        _context.Employees.Remove(employee);
+        //        await _context.SaveChangesAsync();
+        //    }
+        //}
 
         public async Task<IEnumerable<Department>> GetAllDepartmentsAsync()
         {
@@ -73,6 +73,26 @@ namespace Smart_Attendance_System.Services.Repositories
         {
             await _context.Departments.AddAsync(department);
             await _context.SaveChangesAsync();
+        }
+        public async Task<Employee?> GetEmployeeByIdAsync(int id)
+        {
+            return await _context.Employees.FirstOrDefaultAsync(e => e.Id == id);
+        }
+
+        public async Task UpdateEmployeeAsync(Employee employee)
+        {
+            _context.Employees.Update(employee);
+            await _context.SaveChangesAsync();
+        }
+
+        public async Task DeleteEmployeeAsync(int id)
+        {
+            var employee = await _context.Employees.FindAsync(id);
+            if (employee != null)
+            {
+                _context.Employees.Remove(employee);
+                await _context.SaveChangesAsync();
+            }
         }
 
         public async Task<IEnumerable<Leave>> GetAllLeaveApplicationsAsync()

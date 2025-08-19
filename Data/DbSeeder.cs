@@ -21,7 +21,7 @@ public static class DbSeeder
         // Create a default department
         var department = new Department
         {
-            DepartmentName = "IT"
+            DepartmentName="IT",
         };
         await context.Departments.AddAsync(department);
         await context.SaveChangesAsync();
