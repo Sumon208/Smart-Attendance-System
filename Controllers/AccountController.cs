@@ -76,6 +76,7 @@ namespace Smart_Attendance_System.Controllers
                     {
                         ModelState.AddModelError(string.Empty, "You are not a Current Employee of this Institution.");
                         return View(model);
+                       
                     }
 
                     // If the user is an Admin or an Approved User, proceed with login
