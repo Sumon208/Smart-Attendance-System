@@ -1,0 +1,306 @@
+@model IEnumerable<Smart_Attendance_System.Models.Leave>
+
+@{
+    ViewData["Title"] = "Leave History";
+    Layout = "_EmployeeLayout";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2><i class="fas fa-history text-primary"></i> Leave History</h2>
+    <div>
+        <a asp-action="LeaveApply" class="btn btn-primary">
+            <i class="fas fa-plus mr-2"></i>New Leave Request
+        </a>
+    </div>
+</div>
+
+<!-- Statistics Summary -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card text-white bg-primary text-center card-custom">
+            <div class="card-body">
+                <i class="fas fa-calendar-check fa-2x mb-2"></i>
+                <h3>@(Model?.Count(l => l.Status == LeaveStatus.Approved) ?? 0)</h3>
+                <h6>Approved</h6>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-white bg-warning text-center card-custom">
+            <div class="card-body">
+                <i class="fas fa-hourglass-half fa-2x mb-2"></i>
+                <h3>@(Model?.Count(l => l.Status == LeaveStatus.Pending) ?? 0)</h3>
+                <h6>Pending</h6>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-white bg-danger text-center card-custom">
+            <div class="card-body">
+                <i class="fas fa-times-circle fa-2x mb-2"></i>
+                <h3>@(Model?.Count(l => l.Status == LeaveStatus.Rejected) ?? 0)</h3>
+                <h6>Rejected</h6>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-white bg-info text-center card-custom">
+            <div class="card-body">
+                <i class="fas fa-calendar-alt fa-2x mb-2"></i>
+                <h3>@(Model?.Count() ?? 0)</h3>
+                <h6>Total</h6>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Leave History Table -->
+<div class="card card-custom">
+    <div class="card-header bg-secondary text-white">
+        <h5 class="mb-0"><i class="fas fa-list mr-2"></i>Leave Application History</h5>
+    </div>
+    <div class="card-body">
+        @if (Model != null && Model.Any())
+        {
+            <div class="table-responsive">
+                <table class="table table-hover" id="leaveHistoryTable">
+                    <thead class="thead-light">
+                        <tr>
+                            <th>Leave Type</th>
+                            <th>Start Date</th>
+                            <th>End Date</th>
+                            <th>Duration</th>
+                            <th>Reason</th>
+                            <th>Status</th>
+                            <th>Applied On</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var leave in Model.OrderByDescending(l => l.StartDate))
+                        {
+                            <tr>
+                                <td>
+                                    <span class="badge badge-@GetLeaveTypeBadgeClass(leave.LeaveType)">
+                                        @leave.LeaveType
+                                    </span>
+                                </td>
+                                <td>@leave.StartDate.ToString("MMM dd, yyyy")</td>
+                                <td>@leave.EndDate.ToString("MMM dd, yyyy")</td>
+                                <td>
+                                    @{
+                                        var duration = (leave.EndDate - leave.StartDate).Days + 1;
+                                        var durationText = duration == 1 ? "1 day" : $"{duration} days";
+                                    }
+                                    @durationText
+                                </td>
+                                <td>
+                                    <span class="text-truncate d-inline-block" style="max-width: 200px;" title="@leave.Reason">
+                                        @leave.Reason
+                                    </span>
+                                </td>
+                                <td>
+                                    <span class="badge badge-@GetStatusBadgeClass(leave.Status)">
+                                        @leave.Status
+                                    </span>
+                                </td>
+                                <td>@leave.StartDate.ToString("MMM dd, yyyy")</td>
+                                <td>
+                                    @if (leave.Status == LeaveStatus.Pending)
+                                    {
+                                        <button class="btn btn-sm btn-outline-warning" onclick="cancelLeave(@leave.LeaveId)">
+                                            <i class="fas fa-times"></i> Cancel
+                                        </button>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted">—</span>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+        else
+        {
+            <div class="text-center py-5">
+                <i class="fas fa-calendar-times fa-3x text-muted mb-3"></i>
+                <h5 class="text-muted">No Leave Applications Found</h5>
+                <p class="text-muted">You haven't submitted any leave applications yet.</p>
+                <a asp-action="LeaveApply" class="btn btn-primary">
+                    <i class="fas fa-plus mr-2"></i>Apply for Leave
+                </a>
+            </div>
+        }
+    </div>
+</div>
+
+<!-- Filter and Search Options -->
+<div class="row mt-4">
+    <div class="col-md-6">
+        <div class="card card-custom">
+            <div class="card-header bg-light">
+                <h6 class="mb-0"><i class="fas fa-filter mr-2"></i>Filter Options</h6>
+            </div>
+            <div class="card-body">
+                <div class="form-group">
+                    <label>Status Filter</label>
+                    <select class="form-control" id="statusFilter">
+                        <option value="">All Statuses</option>
+                        <option value="Pending">Pending</option>
+                        <option value="Approved">Approved</option>
+                        <option value="Rejected">Rejected</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Leave Type Filter</label>
+                    <select class="form-control" id="typeFilter">
+                        <option value="">All Types</option>
+                        <option value="Annual">Annual</option>
+                        <option value="Sick">Sick</option>
+                        <option value="Personal">Personal</option>
+                        <option value="Maternity">Maternity</option>
+                        <option value="Paternity">Paternity</option>
+                        <option value="Other">Other</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6">
+        <div class="card card-custom">
+            <div class="card-header bg-light">
+                <h6 class="mb-0"><i class="fas fa-search mr-2"></i>Search</h6>
+            </div>
+            <div class="card-body">
+                <div class="form-group">
+                    <label>Search by Reason</label>
+                    <input type="text" class="form-control" id="searchInput" placeholder="Search in leave reasons...">
+                </div>
+                <div class="form-group">
+                    <label>Date Range</label>
+                    <div class="row">
+                        <div class="col-6">
+                            <input type="date" class="form-control" id="startDateFilter" placeholder="From">
+                        </div>
+                        <div class="col-6">
+                            <input type="date" class="form-control" id="endDateFilter" placeholder="To">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .card-custom {
+        border: none;
+        border-radius: 15px;
+        overflow: hidden;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+    
+    .table th {
+        border-top: none;
+        font-weight: 600;
+        background-color: #f8f9fa;
+    }
+    
+    .badge {
+        font-size: 0.8rem;
+        padding: 0.4rem 0.6rem;
+    }
+    
+    .btn-sm {
+        padding: 0.25rem 0.5rem;
+        font-size: 0.875rem;
+    }
+</style>
+
+<script>
+    $(document).ready(function() {
+        // Initialize DataTable with search and filter functionality
+        var table = $('#leaveHistoryTable').DataTable({
+            pageLength: 10,
+            order: [[1, 'desc']], // Sort by start date descending
+            responsive: true,
+            language: {
+                search: "Search:",
+                lengthMenu: "Show _MENU_ entries per page",
+                info: "Showing _START_ to _END_ of _TOTAL_ entries",
+                paginate: {
+                    first: "First",
+                    last: "Last",
+                    next: "Next",
+                    previous: "Previous"
+                }
+            }
+        });
+        
+        // Status filter
+        $('#statusFilter').change(function() {
+            var status = $(this).val();
+            table.column(5).search(status).draw();
+        });
+        
+        // Type filter
+        $('#typeFilter').change(function() {
+            var type = $(this).val();
+            table.column(0).search(type).draw();
+        });
+        
+        // Search functionality
+        $('#searchInput').keyup(function() {
+            table.search($(this).val()).draw();
+        });
+        
+        // Date range filter
+        $('#startDateFilter, #endDateFilter').change(function() {
+            var startDate = $('#startDateFilter').val();
+            var endDate = $('#endDateFilter').val();
+            
+            if (startDate && endDate) {
+                // Custom date filtering logic can be implemented here
+                table.draw();
+            }
+        });
+    });
+    
+    function cancelLeave(leaveId) {
+        if (confirm('Are you sure you want to cancel this leave request?')) {
+            // TODO: Implement cancel leave functionality
+            alert('Leave cancellation functionality will be implemented.');
+        }
+    }
+</script>
+
+@functions {
+    private string GetStatusBadgeClass(LeaveStatus status)
+    {
+        return status switch
+        {
+            LeaveStatus.Pending => "warning",
+            LeaveStatus.Approved => "success",
+            LeaveStatus.Rejected => "danger",
+            _ => "secondary"
+        };
+    }
+    
+    private string GetLeaveTypeBadgeClass(string leaveType)
+    {
+        return leaveType switch
+        {
+            "Annual" => "primary",
+            "Sick" => "success",
+            "Personal" => "info",
+            "Maternity" => "warning",
+            "Paternity" => "secondary",
+            "Other" => "dark",
+            _ => "secondary"
+        };
+    }
+}
