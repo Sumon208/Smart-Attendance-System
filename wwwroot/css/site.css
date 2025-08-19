@@ -20,3 +20,42 @@ html {
 body {
   margin-bottom: 60px;
 }
+
+
+/* Base button styles for consistency */
+.btn-login, .btn-register {
+    border-radius: 50px; /* pill shape */
+    padding: 10px 28px;
+    font-weight: 600;
+    font-size: 15px;
+    letter-spacing: 0.5px;
+    transition: all 0.3s ease-in-out;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+}
+
+/* Login Button (Professional outline style) */
+.btn-login {
+    background: #fff;
+    color: #0d6efd;
+    border: 2px solid #0d6efd;
+}
+
+    .btn-login:hover {
+        background: #0d6efd;
+        color: #fff;
+        transform: translateY(-3px);
+        box-shadow: 0 6px 16px rgba(13,110,253,0.3);
+    }
+
+/* Register Button (Premium gradient style) */
+.btn-register {
+    background: linear-gradient(135deg, #0d6efd, #00c6ff);
+    color: #fff;
+    border: none;
+}
+
+    .btn-register:hover {
+        background: linear-gradient(135deg, #00c6ff, #0d6efd);
+        transform: translateY(-3px) scale(1.03);
+        box-shadow: 0 6px 18px rgba(0,198,255,0.35);
+    }

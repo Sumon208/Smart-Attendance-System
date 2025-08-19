@@ -79,17 +79,53 @@
         text-align: center;
     }
 
-    @@media (max-width: 768px) {
-        .login-container
-
-    {
+    .social-login {
+        display: flex;
         flex-direction: column;
+        gap: 10px;
+        margin-top: 20px;
     }
 
-    .login-left {
-        padding: 60px 20px;
+    .social-btn {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        padding: 10px;
+        cursor: pointer;
+        transition: 0.3s;
+        font-weight: 500;
     }
 
+        .social-btn img {
+            width: 22px;
+            height: 22px;
+            margin-right: 10px;
+        }
+
+        .social-btn.google {
+            background-color: #1877f2;
+            color: #fff;
+        }
+
+        .social-btn.facebook {
+            background-color: #1877f2;
+            color: #fff;
+        }
+
+        .social-btn:hover {
+            opacity: 0.85;
+        }
+
+    @@media (max-width: 768px) {
+        .login-container {
+            flex-direction: column;
+        }
+
+        .login-left {
+            padding: 60px 20px;
+        }
     }
 </style>
 
@@ -130,6 +166,16 @@
                 </div>
 
                 <button type="submit" class="btn btn-primary w-100">Log In</button>
+
+                <!-- Social Login Buttons -->
+                <div class="social-login">
+                    <a href="/Account/ExternalLogin?provider=Google" class="social-btn google">
+                        <img src="~/Images/google-logo.png" alt="Google Logo" /> Login with Google
+                    </a>
+                    <a href="/Account/ExternalLogin?provider=Facebook" class="social-btn facebook">
+                        <img src="~/Images/facebook-logo.png" alt="Facebook Logo" /> Login with Facebook
+                    </a>
+                </div>
 
                 <div class="login-footer">
                     <a asp-action="Register" class="text-decoration-none">Don't have an account? <strong>Register here</strong></a>
