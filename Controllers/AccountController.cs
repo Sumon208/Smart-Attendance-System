@@ -95,7 +95,7 @@ namespace Smart_Attendance_System.Controllers
                     }
                     else // User
                     {
-                        return RedirectToAction("Index", "Home");
+                        return RedirectToAction("Dashboard", "Employee");
                     }
                 }
 
@@ -192,7 +192,7 @@ namespace Smart_Attendance_System.Controllers
         public async Task<IActionResult> Logout()
         {
             await HttpContext.SignOutAsync();
-            return RedirectToAction("Login", "Account");
+            return RedirectToAction("Index", "Home");
         }
     }
 }
