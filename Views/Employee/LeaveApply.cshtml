@@ -1,0 +1,298 @@
+@model Smart_Attendance_System.Models.Leave
+
+@{
+    ViewData["Title"] = "Leave Application";
+    Layout = "_EmployeeLayout";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2><i class="fas fa-calendar-plus text-primary"></i> Leave Application</h2>
+    <div class="text-muted">
+        <i class="far fa-calendar-alt"></i> @DateTime.Now.ToString("dddd, MMMM dd, yyyy")
+    </div>
+</div>
+
+<!-- Leave Balance Summary -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-info text-white">
+                <h5 class="mb-0"><i class="fas fa-info-circle mr-2"></i>Leave Balance Summary</h5>
+            </div>
+            <div class="card-body">
+                <div class="row text-center">
+                    <div class="col-md-3">
+                        <div class="border-right">
+                            <h3 class="text-success">15</h3>
+                            <small class="text-muted">Annual Leave</small>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="border-right">
+                            <h3 class="text-info">8</h3>
+                            <small class="text-muted">Used</small>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="border-right">
+                            <h3 class="text-warning">2</h3>
+                            <small class="text-muted">Pending</small>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div>
+                            <h3 class="text-primary">7</h3>
+                            <small class="text-muted">Remaining</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Leave Application Form -->
+<div class="row">
+    <div class="col-md-8">
+        <div class="card card-custom">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0"><i class="fas fa-edit mr-2"></i>New Leave Application</h5>
+            </div>
+            <div class="card-body">
+                <form asp-action="SubmitLeave" method="post" id="leaveForm">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label asp-for="LeaveType" class="form-label">Leave Type <span class="text-danger">*</span></label>
+                                <select asp-for="LeaveType" class="form-control" required>
+                                    <option value="">Select Leave Type</option>
+                                    <option value="Annual">Annual Leave</option>
+                                    <option value="Sick">Sick Leave</option>
+                                    <option value="Personal">Personal Leave</option>
+                                    <option value="Maternity">Maternity Leave</option>
+                                    <option value="Paternity">Paternity Leave</option>
+                                    <option value="Other">Other</option>
+                                </select>
+                                <span asp-validation-for="LeaveType" class="text-danger"></span>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label class="form-label">Duration <span class="text-danger">*</span></label>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="durationType" id="fullDay" value="fullDay" checked>
+                                    <label class="form-check-label" for="fullDay">
+                                        Full Day
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="durationType" id="halfDay" value="halfDay">
+                                    <label class="form-check-label" for="halfDay">
+                                        Half Day
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label asp-for="StartDate" class="form-label">Start Date <span class="text-danger">*</span></label>
+                                <input asp-for="StartDate" type="date" class="form-control" required min="@DateTime.Now.ToString("yyyy-MM-dd")" />
+                                <span asp-validation-for="StartDate" class="text-danger"></span>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label asp-for="EndDate" class="form-label">End Date <span class="text-danger">*</span></label>
+                                <input asp-for="EndDate" type="date" class="form-control" required min="@DateTime.Now.ToString("yyyy-MM-dd")" />
+                                <span asp-validation-for="EndDate" class="text-danger"></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label asp-for="Reason" class="form-label">Reason for Leave <span class="text-danger">*</span></label>
+                        <textarea asp-for="Reason" class="form-control" rows="4" placeholder="Please provide a detailed reason for your leave request..." required></textarea>
+                        <span asp-validation-for="Reason" class="text-danger"></span>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Contact During Leave</label>
+                        <input type="text" class="form-control" placeholder="Emergency contact number (optional)" />
+                        <small class="form-text text-muted">Provide a contact number where you can be reached during your leave period.</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Handover Notes</label>
+                        <textarea class="form-control" rows="3" placeholder="Any important work that needs to be handed over or covered during your absence..."></textarea>
+                        <small class="form-text text-muted">Optional: Describe any pending work or handover requirements.</small>
+                    </div>
+
+                    <div class="form-group">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="acknowledge" required>
+                            <label class="form-check-label" for="acknowledge">
+                                I acknowledge that I have read and understood the company's leave policy. I confirm that the information provided is accurate and complete.
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="form-group text-center">
+                        <button type="submit" class="btn btn-primary btn-lg" id="submitBtn">
+                            <i class="fas fa-paper-plane mr-2"></i>Submit Leave Request
+                        </button>
+                        <button type="reset" class="btn btn-secondary btn-lg ml-2">
+                            <i class="fas fa-undo mr-2"></i>Reset Form
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <!-- Leave Policy Information -->
+        <div class="card card-custom mb-3">
+            <div class="card-header bg-warning text-dark">
+                <h6 class="mb-0"><i class="fas fa-exclamation-triangle mr-2"></i>Important Notes</h6>
+            </div>
+            <div class="card-body">
+                <ul class="list-unstyled mb-0">
+                    <li class="mb-2"><i class="fas fa-check text-success mr-2"></i>Submit requests at least 3 days in advance</li>
+                    <li class="mb-2"><i class="fas fa-check text-success mr-2"></i>Maximum 5 consecutive days for personal leave</li>
+                    <li class="mb-2"><i class="fas fa-check text-success mr-2"></i>Medical certificates required for sick leave > 3 days</li>
+                    <li class="mb-2"><i class="fas fa-check text-success mr-2"></i>Leave requests are subject to approval</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="card card-custom">
+            <div class="card-header bg-success text-white">
+                <h6 class="mb-0"><i class="fas fa-bolt mr-2"></i>Quick Actions</h6>
+            </div>
+            <div class="card-body">
+                <a asp-action="LeaveHistory" class="btn btn-outline-info btn-block mb-2">
+                    <i class="fas fa-history mr-2"></i>View Leave History
+                </a>
+                <a asp-action="Dashboard" class="btn btn-outline-primary btn-block">
+                    <i class="fas fa-tachometer-alt mr-2"></i>Back to Dashboard
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Recent Leave Applications -->
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card card-custom">
+            <div class="card-header bg-secondary text-white">
+                <h5 class="mb-0"><i class="fas fa-list mr-2"></i>Recent Leave Applications</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead class="thead-light">
+                            <tr>
+                                <th>Leave Type</th>
+                                <th>Start Date</th>
+                                <th>End Date</th>
+                                <th>Duration</th>
+                                <th>Status</th>
+                                <th>Applied On</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><span class="badge badge-info">Annual</span></td>
+                                <td>Dec 25, 2024</td>
+                                <td>Dec 27, 2024</td>
+                                <td>3 days</td>
+                                <td><span class="badge badge-warning">Pending</span></td>
+                                <td>Dec 20, 2024</td>
+                            </tr>
+                            <tr>
+                                <td><span class="badge badge-success">Sick</span></td>
+                                <td>Dec 15, 2024</td>
+                                <td>Dec 16, 2024</td>
+                                <td>2 days</td>
+                                <td><span class="badge badge-success">Approved</span></td>
+                                <td>Dec 14, 2024</td>
+                            </tr>
+                            <tr>
+                                <td><span class="badge badge-primary">Personal</span></td>
+                                <td>Dec 10, 2024</td>
+                                <td>Dec 10, 2024</td>
+                                <td>1 day</td>
+                                <td><span class="badge badge-danger">Rejected</span></td>
+                                <td>Dec 08, 2024</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .card-custom {
+        border: none;
+        border-radius: 15px;
+        overflow: hidden;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+    
+    .border-right {
+        border-right: 1px solid #dee2e6 !important;
+    }
+    
+    .form-control:focus {
+        border-color: #007bff;
+        box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+    }
+    
+    .btn-lg {
+        padding: 12px 24px;
+        font-size: 1.1rem;
+    }
+</style>
+
+<script>
+    // Form validation and date handling
+    $(document).ready(function() {
+        // Set minimum dates
+        var today = new Date().toISOString().split('T')[0];
+        $('#StartDate').attr('min', today);
+        $('#EndDate').attr('min', today);
+        
+        // Update end date minimum when start date changes
+        $('#StartDate').change(function() {
+            $('#EndDate').attr('min', $(this).val());
+        });
+        
+        // Form submission handling
+        $('#leaveForm').submit(function(e) {
+            var startDate = new Date($('#StartDate').val());
+            var endDate = new Date($('#EndDate').val());
+            
+            if (endDate < startDate) {
+                e.preventDefault();
+                alert('End date cannot be earlier than start date.');
+                return false;
+            }
+            
+            if (!$('#acknowledge').is(':checked')) {
+                e.preventDefault();
+                alert('Please acknowledge the leave policy before submitting.');
+                return false;
+            }
+            
+            // Show loading state
+            $('#submitBtn').prop('disabled', true).html('<i class="fas fa-spinner fa-spin mr-2"></i>Submitting...');
+        });
+    });
+</script>

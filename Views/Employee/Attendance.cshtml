@@ -1,0 +1,259 @@
+@model Smart_Attendance_System.Models.ViewModel.UserAttendanceViewModel
+
+@{
+    ViewData["Title"] = "Attendance";
+    Layout = "_EmployeeLayout";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2><i class="fas fa-clock text-primary"></i> Attendance</h2>
+    <div class="text-muted">
+        <i class="far fa-calendar-alt"></i> @DateTime.Now.ToString("dddd, MMMM dd, yyyy")
+        <span class="mx-2">|</span>
+        <i class="far fa-clock"></i> <span id="currentTime"></span>
+    </div>
+</div>
+
+<!-- Current Status Card -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card border-0 shadow-sm">
+            <div class="card-body text-center py-4">
+                <div class="row align-items-center">
+                    <div class="col-md-4">
+                        <h4 class="text-muted mb-2">Today's Status</h4>
+                        <div class="d-flex align-items-center justify-content-center">
+                            <div class="status-indicator @(Model.IsCheckedIn ? "bg-success" : "bg-secondary") rounded-circle d-inline-block mr-3"></div>
+                            <h3 class="mb-0 @(Model.IsCheckedIn ? "text-success" : "text-secondary")">
+                                @(Model.IsCheckedIn ? "Checked In" : "Not Checked In")
+                            </h3>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="text-center">
+                            <small class="text-muted d-block">Check In Time</small>
+                            <strong class="h4">@(Model.CheckInTime?.ToString("hh:mm tt") ?? "—")</strong>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="text-center">
+                            <small class="text-muted d-block">Check Out Time</small>
+                            <strong class="h4">@(Model.CheckOutTime?.ToString("hh:mm tt") ?? "—")</strong>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Action Buttons -->
+<div class="row mb-4">
+    <div class="col-md-6">
+        <div class="card text-center card-custom">
+            <div class="card-body py-5">
+                <i class="fas fa-sign-in-alt fa-4x text-success mb-3"></i>
+                <h4 class="card-title">Check In</h4>
+                <p class="card-text">Mark your arrival for today's work.</p>
+                @if (!Model.IsCheckedIn)
+                {
+                    <form asp-action="CheckIn" method="post" class="d-inline">
+                        <button type="submit" class="btn btn-success btn-lg" @(Model.IsCheckedIn ? "disabled" : "")>
+                            <i class="fas fa-fingerprint mr-2"></i>Check In Now
+                        </button>
+                    </form>
+                }
+                else
+                {
+                    <button class="btn btn-success btn-lg" disabled>
+                        <i class="fas fa-check mr-2"></i>Already Checked In
+                    </button>
+                }
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6">
+        <div class="card text-center card-custom">
+            <div class="card-body py-5">
+                <i class="fas fa-sign-out-alt fa-4x text-danger mb-3"></i>
+                <h4 class="card-title">Check Out</h4>
+                <p class="card-text">Mark your departure from work.</p>
+                @if (Model.IsCheckedIn && !Model.IsCheckedOut)
+                {
+                    <form asp-action="CheckOut" method="post" class="d-inline">
+                        <button type="submit" class="btn btn-danger btn-lg">
+                            <i class="fas fa-fingerprint mr-2"></i>Check Out Now
+                        </button>
+                    </form>
+                }
+                else if (Model.IsCheckedOut)
+                {
+                    <button class="btn btn-danger btn-lg" disabled>
+                        <i class="fas fa-check mr-2"></i>Already Checked Out
+                    </button>
+                }
+                else
+                {
+                    <button class="btn btn-danger btn-lg" disabled>
+                        <i class="fas fa-info-circle mr-2"></i>Check In First
+                    </button>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Today's Summary -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card card-custom">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0"><i class="fas fa-chart-bar mr-2"></i>Today's Summary</h5>
+            </div>
+            <div class="card-body">
+                <div class="row text-center">
+                    <div class="col-md-3">
+                        <div class="border-right">
+                            <h4 class="text-primary">@(Model.WorkingHours?.ToString("F1") ?? "0.0")</h4>
+                            <small class="text-muted">Working Hours</small>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="border-right">
+                            <h4 class="text-info">@(Model.CheckInTime?.ToString("HH:mm") ?? "—")</h4>
+                            <small class="text-muted">Start Time</small>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="border-right">
+                            <h4 class="text-warning">@(Model.IsLate ? "Yes" : "No")</h4>
+                            <small class="text-muted">Late Arrival</small>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div>
+                            <h4 class="text-success">@(Model.Status ?? "Normal")</h4>
+                            <small class="text-muted">Status</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Recent Attendance History -->
+<div class="row">
+    <div class="col-12">
+        <div class="card card-custom">
+            <div class="card-header bg-info text-white">
+                <h5 class="mb-0"><i class="fas fa-history mr-2"></i>Recent Attendance History</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead class="thead-light">
+                            <tr>
+                                <th>Date</th>
+                                <th>Check In</th>
+                                <th>Check Out</th>
+                                <th>Working Hours</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @if (Model.RecentAttendance != null && Model.RecentAttendance.Any())
+                            {
+                                @foreach (var attendance in Model.RecentAttendance.Take(5))
+                                {
+                                    <tr>
+                                        <td>@attendance.AttendanceDate.ToString("MMM dd, yyyy")</td>
+                                        <td>@(attendance.CheckInTime?.ToString("HH:mm") ?? "—")</td>
+                                        <td>@(attendance.CheckOutTime?.ToString("HH:mm") ?? "—")</td>
+                                        <td>
+                                            @if (attendance.CheckInTime.HasValue && attendance.CheckOutTime.HasValue)
+                                            {
+                                                var hours = (attendance.CheckOutTime.Value - attendance.CheckInTime.Value).TotalHours;
+                                                <span>@hours.ToString("F1") hours</span>
+                                            }
+                                            else
+                                            {
+                                                <span class="text-muted">—</span>
+                                            }
+                                        </td>
+                                        <td>
+                                            <span class="badge badge-@(attendance.Status == "Late" ? "warning" : "success")">
+                                                @attendance.Status
+                                            </span>
+                                        </td>
+                                    </tr>
+                                }
+                            }
+                            else
+                            {
+                                <tr>
+                                    <td colspan="5" class="text-center text-muted">
+                                        <i class="fas fa-info-circle mr-2"></i>No recent attendance records found.
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+                <div class="text-center mt-3">
+                    <a asp-action="AttendanceHistory" class="btn btn-outline-info">
+                        <i class="fas fa-eye mr-2"></i>View Full History
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .status-indicator {
+        width: 20px;
+        height: 20px;
+        animation: pulse 2s infinite;
+    }
+    
+    @@keyframes pulse {
+        0% { transform: scale(1); }
+        50% { transform: scale(1.1); }
+        100% { transform: scale(1); }
+    }
+    
+    .card-custom {
+        border: none;
+        border-radius: 15px;
+        overflow: hidden;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+    
+    .border-right {
+        border-right: 1px solid #dee2e6 !important;
+    }
+    
+    .table th {
+        border-top: none;
+        font-weight: 600;
+    }
+</style>
+
+<script>
+    // Update current time every second
+    function updateTime() {
+        const now = new Date();
+        const timeString = now.toLocaleTimeString('en-US', { 
+            hour12: true, 
+            hour: '2-digit', 
+            minute: '2-digit', 
+            second: '2-digit' 
+        });
+        document.getElementById('currentTime').textContent = timeString;
+    }
+    
+    updateTime();
+    setInterval(updateTime, 1000);
+</script>
