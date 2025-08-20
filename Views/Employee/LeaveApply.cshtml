@@ -5,6 +5,11 @@
     Layout = "_EmployeeLayout";
 }
 
+@if (TempData["ErrorMessage"] != null)
+{
+    <div class="alert alert-danger">@TempData["ErrorMessage"]</div>
+}
+
 <div class="d-flex justify-content-between align-items-center mb-4">
     <h2><i class="fas fa-calendar-plus text-primary"></i> Leave Application</h2>
     <div class="text-muted">

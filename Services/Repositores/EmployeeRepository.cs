@@ -82,6 +82,36 @@ namespace Smart_Attendance_System.Services.Repositories
             }
         }
 
+
+        public async Task AddLeaveAsync(Leave leave)
+        {
+            _context.Leaves.Add(leave);
+            await _context.SaveChangesAsync();
+        }
+
+        public async Task<IEnumerable<Leave>> GetLeavesByEmployeeIdAsync(int employeeId)
+        {
+            return await _context.Leaves
+                .Where(l => l.EmployeeId == employeeId)
+                .OrderByDescending(l => l.StartDate)
+                .ToListAsync();
+        }
+
+        public async Task UpdateLeaveAsync(Leave leave)
+        {
+            _context.Leaves.Update(leave);
+            await _context.SaveChangesAsync();
+        }
+
+        public async Task DeleteLeaveAsync(int leaveId)
+        {
+            var leave = await _context.Leaves.FindAsync(leaveId);
+            if (leave != null)
+            {
+                _context.Leaves.Remove(leave);
+                await _context.SaveChangesAsync();
+            }
+
         // Attendance methods implementation
         public async Task<Attendance?> GetTodayAttendanceAsync(int employeeId)
         {
@@ -124,6 +154,7 @@ namespace Smart_Attendance_System.Services.Repositories
             var today = DateTime.Today;
             return await _context.Attendances
                 .AnyAsync(a => a.EmployeeId == employeeId && a.AttendanceDate == today && a.CheckOutTime.HasValue);
+
         }
     }
 }

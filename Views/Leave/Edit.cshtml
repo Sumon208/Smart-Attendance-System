@@ -1,0 +1,125 @@
+@model Smart_Attendance_System.Models.Leave
+
+@{
+    ViewData["Title"] = "Edit Leave Request";
+    Layout = "_EmployeeLayout";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2><i class="fas fa-edit text-primary"></i> Edit Leave Request</h2>
+    <div class="text-muted">
+        <i class="far fa-calendar-alt"></i> @DateTime.Now.ToString("dddd, MMMM dd, yyyy")
+    </div>
+</div>
+<div class="row">
+    <div class="col-md-8">
+        <div class="card card-custom">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0"><i class="fas fa-edit mr-2"></i>Edit Leave Application</h5>
+            </div>
+            <div class="card-body">
+                <form asp-action="Edit" method="post" id="editLeaveForm">
+                    <input type="hidden" asp-for="LeaveId" />
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label asp-for="LeaveType" class="form-label">Leave Type <span class="text-danger">*</span></label>
+                                <select asp-for="LeaveType" class="form-control" required>
+                                    <option value="">Select Leave Type</option>
+                                    <option value="Annual">Annual Leave</option>
+                                    <option value="Sick">Sick Leave</option>
+                                    <option value="Personal">Personal Leave</option>
+                                    <option value="Maternity">Maternity Leave</option>
+                                    <option value="Paternity">Paternity Leave</option>
+                                    <option value="Other">Other</option>
+                                </select>
+                                <span asp-validation-for="LeaveType" class="text-danger"></span>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label class="form-label">Duration <span class="text-danger">*</span></label>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="durationType" id="fullDay" value="fullDay" checked>
+                                    <label class="form-check-label" for="fullDay">
+                                        Full Day
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="durationType" id="halfDay" value="halfDay">
+                                    <label class="form-check-label" for="halfDay">
+                                        Half Day
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label asp-for="StartDate" class="form-label">Start Date <span class="text-danger">*</span></label>
+                                <input asp-for="StartDate" type="date" class="form-control" required />
+                                <span asp-validation-for="StartDate" class="text-danger"></span>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label asp-for="EndDate" class="form-label">End Date <span class="text-danger">*</span></label>
+                                <input asp-for="EndDate" type="date" class="form-control" required />
+                                <span asp-validation-for="EndDate" class="text-danger"></span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label asp-for="Reason" class="form-label">Reason for Leave <span class="text-danger">*</span></label>
+                        <textarea asp-for="Reason" class="form-control" rows="4" placeholder="Please provide a detailed reason for your leave request..." required></textarea>
+                        <span asp-validation-for="Reason" class="text-danger"></span>
+                    </div>
+                    <div class="form-group text-center">
+                        <button type="submit" class="btn btn-primary btn-lg" id="updateBtn">
+                            <i class="fas fa-save mr-2"></i>Update Leave Request
+                        </button>
+                        <a asp-action="History" class="btn btn-secondary btn-lg ml-2">
+                            <i class="fas fa-arrow-left mr-2"></i>Cancel
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+<style>
+    .card-custom {
+        border: none;
+        border-radius: 15px;
+        overflow: hidden;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+    .btn-lg {
+        padding: 12px 24px;
+        font-size: 1.1rem;
+    }
+</style>
+<script>
+    $(document).ready(function() {
+        // Set minimum dates
+        var today = new Date().toISOString().split('T')[0];
+        $('#StartDate').attr('min', today);
+        $('#EndDate').attr('min', today);
+        // Update end date minimum when start date changes
+        $('#StartDate').change(function() {
+            $('#EndDate').attr('min', $(this).val());
+        });
+        // Form validation
+        $('#editLeaveForm').submit(function(e) {
+            var startDate = new Date($('#StartDate').val());
+            var endDate = new Date($('#EndDate').val());
+            if (endDate < startDate) {
+                e.preventDefault();
+                alert('End date cannot be earlier than start date.');
+                return false;
+            }
+            $('#updateBtn').prop('disabled', true).html('<i class="fas fa-spinner fa-spin mr-2"></i>Updating...');
+        });
+    });
+</script>
