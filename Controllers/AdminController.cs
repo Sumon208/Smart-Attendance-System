@@ -121,12 +121,15 @@ namespace Smart_Attendance_System.Controllers
         //    if (employee == null)
         //        return NotFound("Employee not found.");
 
+
+           
         //    var relatedUsers = _context.SystemUsers.Where(u => u.EmployeeId == employee.Id);
         //    _context.SystemUsers.RemoveRange(relatedUsers);
 
         //    await _adminRepository.DeleteEmployeeAsync(employee.Id);
 
         //    await _context.SaveChangesAsync();
+
 
         //    TempData["SuccessMessage"] = $"Employee '{employee.EmployeeName}' deleted successfully.";
 

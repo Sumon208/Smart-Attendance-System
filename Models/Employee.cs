@@ -52,6 +52,9 @@ namespace Smart_Attendance_System.Models
         public string? MobileNumber { get; set; }
         public string? BloodGroup { get; set; }
         public string? CertificateFilePath { get; set; }
+        public string? Email { get; set; }
+        public string? Address { get; set; }
+        public DateTime? JoiningDate { get; set; }
 
         // Employee status for approval process
         public EmployeeStatus Status { get; set; } = EmployeeStatus.Pending;
