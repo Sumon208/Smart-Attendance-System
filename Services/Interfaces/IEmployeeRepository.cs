@@ -14,6 +14,10 @@ namespace Smart_Attendance_System.Services.Interfaces
         Task AddEmployeeAsync(Employee employee);
         Task UpdateEmployeeAsync(Employee employee);
         Task DeleteEmployeeAsync(int id);
+        Task AddLeaveAsync(Leave leave);
+        Task<IEnumerable<Leave>> GetLeavesByEmployeeIdAsync(int employeeId);
+        Task UpdateLeaveAsync(Leave leave);
+        Task DeleteLeaveAsync(int leaveId);
 
     }
 }

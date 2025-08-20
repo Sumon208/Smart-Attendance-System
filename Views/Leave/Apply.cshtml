@@ -1,0 +1,53 @@
+@model Smart_Attendance_System.Models.Leave
+
+@{
+    ViewData["Title"] = "Leave Application";
+    Layout = "_EmployeeLayout";
+}
+
+@if (TempData["ErrorMessage"] != null)
+{
+    <div class="alert alert-danger">@TempData["ErrorMessage"]</div>
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2><i class="fas fa-calendar-plus text-primary"></i> Leave Application</h2>
+    <div class="text-muted">
+        <i class="far fa-calendar-alt"></i> @DateTime.Now.ToString("dddd, MMMM dd, yyyy")
+    </div>
+</div>
+
+<form asp-action="Submit" method="post" id="leaveForm">
+    <div class="form-group">
+        <label asp-for="LeaveType">Leave Type</label>
+        <select asp-for="LeaveType" class="form-control">
+            <option value="Sick Leave">Sick Leave</option>
+            <option value="Vacation Leave">Vacation Leave</option>
+            <option value="Paid Leave">Paid Leave</option>
+        </select>
+        <span asp-validation-for="LeaveType" class="text-danger"></span>
+    </div>
+
+    <div class="form-group">
+        <label asp-for="StartDate">Start Date</label>
+        <input asp-for="StartDate" class="form-control" type="date" />
+        <span asp-validation-for="StartDate" class="text-danger"></span>
+    </div>
+
+    <div class="form-group">
+        <label asp-for="EndDate">End Date</label>
+        <input asp-for="EndDate" class="form-control" type="date" />
+        <span asp-validation-for="EndDate" class="text-danger"></span>
+    </div>
+
+    <div class="form-group">
+        <label asp-for="Reason">Reason for Leave</label>
+        <textarea asp-for="Reason" class="form-control" rows="4"></textarea>
+        <span asp-validation-for="Reason" class="text-danger"></span>
+    </div>
+
+    <button type="submit" class="btn btn-primary btn-block">Submit Leave Application</button>
+    <a asp-action="History" class="btn btn-outline-info btn-block mb-2">
+        <i class="fas fa-history mr-2"></i>View Leave History
+    </a>
+</form>
