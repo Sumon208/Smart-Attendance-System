@@ -11,7 +11,7 @@ namespace Smart_Attendance_System.Models.ViewModel
         public DateTime? CheckOutTime { get; set; }
         public double? WorkingHours { get; set; }
         public bool IsLate { get; set; }
-        public string Status { get; set; }
+        public required string Status { get; set; }
         public IEnumerable<Attendance> RecentAttendance { get; set; } = new List<Attendance>();
         
         // Additional properties for enhanced functionality

@@ -49,7 +49,7 @@
                 <button type="submit" class="btn btn-primary mr-2">
                     <i class="fas fa-search mr-1"></i>Filter
                 </button>
-                <a href="@Url.Action("AttendanceHistory", "Employee")" class="btn btn-secondary">
+                <a href="@Url.Action("AttendanceHistory", "EmployeeAttendance")" class="btn btn-secondary">
                     <i class="fas fa-times mr-1"></i>Clear
                 </a>
             </div>
@@ -63,8 +63,9 @@
         <div class="card text-white bg-success text-center card-custom">
             <div class="card-body">
                 <i class="fas fa-user-check fa-2x mb-2"></i>
-                <h3>@Model.PresentDays</h3>
+                <h3>@(Model.PresentDays + Model.LateDays)</h3>
                 <h6>Present Days</h6>
+                <small class="text-light">On Time: @Model.PresentDays | Late: @Model.LateDays</small>
             </div>
         </div>
     </div>
@@ -83,6 +84,7 @@
                 <i class="fas fa-clock fa-2x mb-2"></i>
                 <h3>@Model.LateDays</h3>
                 <h6>Late Arrivals</h6>
+                <small class="text-light">Counted as Present</small>
             </div>
         </div>
     </div>
@@ -90,22 +92,39 @@
         <div class="card text-white bg-info text-center card-custom">
             <div class="card-body">
                 <i class="fas fa-percentage fa-2x mb-2"></i>
-                <h3>@Model.AttendanceRate%</h3>
+                <h3>@(Model.PresentDays + Model.LateDays > 0 ? Math.Round((double)(Model.PresentDays + Model.LateDays) / (Model.PresentDays + Model.LateDays + Model.AbsentDays) * 100, 1) : 0)%</h3>
                 <h6>Attendance Rate</h6>
+                <small class="text-light">Present vs Absent</small>
             </div>
         </div>
     </div>
 </div>
 
-<!-- Monthly Overview Chart -->
-<div class="row mb-4">
-    <div class="col-12">
+<!-- Export Options -->
+<div class="row mt-4">
+    <div class="col-md-6 offset-md-3">
         <div class="card card-custom">
-            <div class="card-header bg-primary text-white">
-                <h5 class="mb-0"><i class="fas fa-chart-line mr-2"></i>Monthly Attendance Overview</h5>
+            <div class="card-header bg-light">
+                <h6 class="mb-0"><i class="fas fa-download mr-2"></i>Export Options</h6>
             </div>
             <div class="card-body">
-                <canvas id="attendanceChart" width="400" height="100"></canvas>
+                <div class="form-group">
+                    <label>Date Range</label>
+                    <div class="row">
+                        <div class="col-6">
+                            <input type="date" class="form-control" id="exportStartDate" placeholder="From">
+                        </div>
+                        <div class="col-6">
+                            <input type="date" class="form-control" id="exportEndDate" placeholder="To">
+                        </div>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <a href="@Url.Action("ExportAttendancePDF", "EmployeeAttendance", new { status = Model.Status, dateFrom = Model.DateFrom, dateTo = Model.DateTo })" 
+                       class="btn btn-danger btn-block">
+                        <i class="fas fa-file-pdf mr-2"></i>Export to PDF
+                    </a>
+                </div>
             </div>
         </div>
     </div>
@@ -222,7 +241,7 @@
                         @if (Model.HasPreviousPage)
                         {
                             <li class="page-item">
-                                <a class="page-link" href="@Url.Action("AttendanceHistory", "Employee", new { page = Model.PreviousPage, status = Model.Status, dateFrom = Model.DateFrom, dateTo = Model.DateTo })">
+                                <a class="page-link" href="@Url.Action("AttendanceHistory", "EmployeeAttendance", new { page = Model.PreviousPage, status = Model.Status, dateFrom = Model.DateFrom, dateTo = Model.DateTo })">
                                     <i class="fas fa-chevron-left"></i> Previous
                                 </a>
                             </li>
@@ -238,7 +257,7 @@
                         @for (int i = Model.StartPage; i <= Model.EndPage; i++)
                         {
                             <li class="page-item @(i == Model.CurrentPage ? "active" : "")">
-                                <a class="page-link" href="@Url.Action("AttendanceHistory", "Employee", new { page = i, status = Model.Status, dateFrom = Model.DateFrom, dateTo = Model.DateTo })">@i</a>
+                                <a class="page-link" href="@Url.Action("AttendanceHistory", "EmployeeAttendance", new { page = i, status = Model.Status, dateFrom = Model.DateFrom, dateTo = Model.DateTo })">@i</a>
                             </li>
                         }
                         
@@ -246,7 +265,7 @@
                         @if (Model.HasNextPage)
                         {
                             <li class="page-item">
-                                <a class="page-link" href="@Url.Action("AttendanceHistory", "Employee", new { page = Model.NextPage, status = Model.Status, dateFrom = Model.DateFrom, dateTo = Model.DateTo })">
+                                <a class="page-link" href="@Url.Action("AttendanceHistory", "EmployeeAttendance", new { page = Model.NextPage, status = Model.Status, dateFrom = Model.DateFrom, dateTo = Model.DateTo })">
                                     Next <i class="fas fa-chevron-right"></i>
                                 </a>
                             </li>
@@ -280,72 +299,7 @@
     </div>
 </div>
 
-<!-- Filter and Export Options -->
-<div class="row mt-4">
-    <div class="col-md-6">
-        <div class="card card-custom">
-            <div class="card-header bg-light">
-                <h6 class="mb-0"><i class="fas fa-filter mr-2"></i>Filter Options</h6>
-            </div>
-            <div class="card-body">
-                <div class="form-group">
-                    <label>Status Filter</label>
-                    <select class="form-control" id="statusFilter">
-                        <option value="">All Statuses</option>
-                        <option value="Present">Present</option>
-                        <option value="Absent">Absent</option>
-                        <option value="Late">Late</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label>Month Filter</label>
-                    <select class="form-control" id="monthFilter">
-                        <option value="">All Months</option>
-                        <option value="1">January</option>
-                        <option value="2">February</option>
-                        <option value="3">March</option>
-                        <option value="4">April</option>
-                        <option value="5">May</option>
-                        <option value="6">June</option>
-                        <option value="7">July</option>
-                        <option value="8">August</option>
-                        <option value="9">September</option>
-                        <option value="10">October</option>
-                        <option value="11">November</option>
-                        <option value="12">December</option>
-                    </select>
-                </div>
-            </div>
-        </div>
-    </div>
-    
-    <div class="col-md-6">
-        <div class="card card-custom">
-            <div class="card-header bg-light">
-                <h6 class="mb-0"><i class="fas fa-download mr-2"></i>Export Options</h6>
-            </div>
-            <div class="card-body">
-                <div class="form-group">
-                    <label>Date Range</label>
-                    <div class="row">
-                        <div class="col-6">
-                            <input type="date" class="form-control" id="exportStartDate" placeholder="From">
-                        </div>
-                        <div class="col-6">
-                            <input type="date" class="form-control" id="exportEndDate" placeholder="To">
-                        </div>
-                    </div>
-                </div>
-                <div class="form-group">
-                    <a href="@Url.Action("ExportAttendance", "Employee", new { status = Model.Status, dateFrom = Model.DateFrom, dateTo = Model.DateTo })" 
-                       class="btn btn-success btn-block">
-                        <i class="fas fa-file-csv mr-2"></i>Export to CSV
-                    </a>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
+
 
 <style>
     .card-custom {
@@ -393,26 +347,7 @@
             }
         });
         
-        // Status filter
-        $('#statusFilter').change(function() {
-            var status = $(this).val();
-            table.column(5).search(status).draw();
-        });
-        
-        // Month filter
-        $('#monthFilter').change(function() {
-            var month = $(this).val();
-            if (month) {
-                // Custom month filtering logic
-                $.fn.dataTable.ext.search.push(function(settings, data, dataIndex) {
-                    var date = new Date(data[0]);
-                    return date.getMonth() + 1 == month;
-                });
-            } else {
-                $.fn.dataTable.ext.search.pop();
-            }
-            table.draw();
-        });
+
         
         // Initialize attendance chart
         initializeAttendanceChart();

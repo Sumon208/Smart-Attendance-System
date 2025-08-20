@@ -10,7 +10,7 @@ namespace Smart_Attendance_System.Models
 
         public int EmployeeId { get; set; }
         [ForeignKey("EmployeeId")]
-        public Employee Employee { get; set; }
+        public Employee? Employee { get; set; }
 
         [DataType(DataType.Date)]
         public DateTime AttendanceDate { get; set; }
@@ -21,6 +21,6 @@ namespace Smart_Attendance_System.Models
         [DataType(DataType.Time)]
         public DateTime? CheckOutTime { get; set; }
 
-        public string Status { get; set; }
+        public required string Status { get; set; }
     }
 }

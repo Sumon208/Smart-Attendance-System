@@ -1,103 +1,23 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
+using Smart_Attendance_System.Models;
 using Smart_Attendance_System.Models.ViewModel;
 using Smart_Attendance_System.Services.Interfaces;
-using Smart_Attendance_System.Models;
 using System.Security.Claims;
+using iTextSharp.text;
+using iTextSharp.text.pdf;
 
 namespace Smart_Attendance_System.Controllers
 {
     [Authorize(Roles = "2")] // Restrict access to only Employee users (UserType 2)
-    public class EmployeeController : Controller
+    public class EmployeeAttendanceController : Controller
     {
         private readonly IEmployeeRepository _employeeRepository;
-        private readonly IAccountRepository _accountRepository;
 
-        public EmployeeController(IEmployeeRepository employeeRepository, IAccountRepository accountRepository)
+        public EmployeeAttendanceController(IEmployeeRepository employeeRepository)
         {
             _employeeRepository = employeeRepository;
-            _accountRepository = accountRepository;
         }
-
-        public IActionResult Index()
-        {
-            return RedirectToAction("Dashboard");
-        }
-
-        public async Task<IActionResult> Dashboard()
-        {
-            // Get current employee ID from claims
-            var employeeId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            
-            if (string.IsNullOrEmpty(employeeId))
-            {
-                return RedirectToAction("Login", "Account");
-            }
-
-            var employeeIdInt = int.Parse(employeeId);
-            
-            // Get attendance data for current month
-            var currentMonth = DateTime.Today.Month;
-            var currentYear = DateTime.Today.Year;
-            var monthStart = new DateTime(currentYear, currentMonth, 1);
-            var monthEnd = monthStart.AddMonths(1).AddDays(-1);
-            
-            var monthlyAttendance = await _employeeRepository.GetEmployeeAttendanceHistoryAsync(employeeIdInt, 31);
-            var monthAttendance = monthlyAttendance.Where(a => a.AttendanceDate >= monthStart && a.AttendanceDate <= monthEnd).ToList();
-            
-            // Calculate statistics
-            var presents = monthAttendance.Count(a => a.CheckInTime.HasValue);
-            var absents = monthAttendance.Count(a => !a.CheckInTime.HasValue);
-            var lateArrivals = monthAttendance.Count(a => a.Status == "Late");
-            
-            // Calculate attendance rate based on actual data
-            var totalWorkingDays = monthAttendance.Count;
-            var attendanceRate = totalWorkingDays > 0 ? Math.Round((double)presents / totalWorkingDays * 100, 1) : 0;
-            
-            // Get today's attendance status
-            var todayAttendance = await _employeeRepository.GetTodayAttendanceAsync(employeeIdInt);
-            var isCheckedIn = todayAttendance?.CheckInTime.HasValue ?? false;
-            
-            // Get last check-in and check-out times
-            var lastCheckIn = monthAttendance
-                .Where(a => a.CheckInTime.HasValue)
-                .OrderByDescending(a => a.AttendanceDate)
-                .FirstOrDefault()?.CheckInTime;
-                
-            var lastCheckOut = monthAttendance
-                .Where(a => a.CheckOutTime.HasValue)
-                .OrderByDescending(a => a.AttendanceDate)
-                .FirstOrDefault()?.CheckOutTime;
-
-            // Get leave statistics for current year
-            var currentYearStart = new DateTime(currentYear, 1, 1);
-            var currentYearEnd = new DateTime(currentYear, 12, 31);
-            
-            var leaveHistory = await _employeeRepository.GetEmployeeLeaveHistoryAsync(employeeIdInt);
-            var yearLeaveHistory = leaveHistory.Where(l => l.StartDate >= currentYearStart && l.StartDate <= currentYearEnd).ToList();
-            
-            var leavePending = yearLeaveHistory.Count(l => l.Status == LeaveStatus.Pending);
-            var leaveApproved = yearLeaveHistory.Count(l => l.Status == LeaveStatus.Approved);
-            var leaveRejected = yearLeaveHistory.Count(l => l.Status == LeaveStatus.Rejected);
-
-            var vm = new EmployeeDashboardVM
-            {
-                EmployeeName = User.Identity?.Name ?? "Unknown",
-                Presents = presents,
-                Absents = absents,
-                LateArrivals = lateArrivals,
-                LeavePending = leavePending,
-                LeaveApproved = leaveApproved,
-                LeaveRejected = leaveRejected,
-                AttendanceRate = attendanceRate,
-                IsCheckedIn = isCheckedIn,
-                LastCheckIn = lastCheckIn,
-                LastCheckOut = lastCheckOut
-            };
-
-            return View(vm);
-        }
-
 
         public async Task<IActionResult> Attendance()
         {
@@ -185,7 +105,7 @@ namespace Smart_Attendance_System.Controllers
                 TempData["SuccessMessage"] = message;
                 return RedirectToAction("Attendance");
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 TempData["ErrorMessage"] = "Check-in failed. Please try again.";
                 return RedirectToAction("Attendance");
@@ -233,63 +153,11 @@ namespace Smart_Attendance_System.Controllers
                 TempData["SuccessMessage"] = $"Check-out successful! You worked for {workingHours:F1} hours today. Have a great day!";
                 return RedirectToAction("Attendance");
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 TempData["ErrorMessage"] = "Check-out failed. Please try again.";
                 return RedirectToAction("Attendance");
             }
-        }
-
-        public async Task<IActionResult> LeaveApply()
-        {
-            return View(new Leave());
-        }
-
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> SubmitLeave(Leave leave)
-        {
-            if (!ModelState.IsValid)
-            {
-                var errors = string.Join("; ", ModelState.Values.SelectMany(x => x.Errors).Select(x => x.ErrorMessage));
-                TempData["ErrorMessage"] = "Validation failed: " + errors;
-                return View("LeaveApply", leave);
-            }
-
-            var employeeId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            
-            if (string.IsNullOrEmpty(employeeId))
-            {
-                return RedirectToAction("Login", "Account");
-            }
-
-            try
-            {
-                // 1. Set employee ID
-                leave.EmployeeId = int.Parse(employeeId);
-                // 2. Set status to Pending
-                leave.Status = LeaveStatus.Pending;
-                // 3. Save to database
-                await _employeeRepository.AddLeaveAsync(leave);
-                TempData["SuccessMessage"] = "Leave application submitted successfully! It will be reviewed by your manager.";
-                return RedirectToAction("LeaveHistory");
-            }
-            catch (Exception ex)
-            {
-                TempData["ErrorMessage"] = "Leave application failed. Please try again.";
-                return View("LeaveApply", leave);
-            }
-        }
-
-        public async Task<IActionResult> LeaveHistory()
-        {
-            var employeeId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            if (string.IsNullOrEmpty(employeeId))
-            {
-                return RedirectToAction("Login", "Account");
-            }
-            var leaves = await _employeeRepository.GetLeavesByEmployeeIdAsync(int.Parse(employeeId));
-            return View(leaves);
         }
 
         public async Task<IActionResult> AttendanceHistory(int page = 1, int pageSize = 5, string status = "", string dateFrom = "", string dateTo = "")
@@ -343,7 +211,7 @@ namespace Smart_Attendance_System.Controllers
             
             // Calculate average working hours
             var workingDays = filteredAttendance.Where(a => a.CheckInTime.HasValue && a.CheckOutTime.HasValue);
-            var averageWorkingHours = workingDays.Any() ? workingDays.Average(a => (a.CheckOutTime.Value - a.CheckInTime.Value).TotalHours) : 0;
+            var averageWorkingHours = workingDays.Any() ? workingDays.Average(a => (a.CheckOutTime!.Value - a.CheckInTime!.Value).TotalHours) : 0;
             
             // Create view model for pagination and filtering
             var viewModel = new AttendanceHistoryViewModel
@@ -367,8 +235,9 @@ namespace Smart_Attendance_System.Controllers
             return View(viewModel);
         }
 
-
-        public async Task<IActionResult> Profile()
+        // Export attendance data to PDF
+        [HttpGet]
+        public async Task<IActionResult> ExportAttendancePDF(string status = "", string dateFrom = "", string dateTo = "")
         {
             var employeeId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             
@@ -379,78 +248,8 @@ namespace Smart_Attendance_System.Controllers
 
             var employeeIdInt = int.Parse(employeeId);
             
-            // Get employee profile data
+            // Get employee information
             var employee = await _employeeRepository.GetEmployeeByIdAsync(employeeIdInt);
-            
-            if (employee == null)
-            {
-                TempData["ErrorMessage"] = "Employee not found.";
-                return RedirectToAction("Dashboard");
-            }
-
-            return View(employee);
-        }
-
-
-        public async Task<IActionResult> EditLeave(int id)
-        {
-            var employeeId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
-            if (string.IsNullOrEmpty(employeeId))
-                return RedirectToAction("Login", "Account");
-            var leave = (await _employeeRepository.GetLeavesByEmployeeIdAsync(int.Parse(employeeId))).FirstOrDefault(l => l.LeaveId == id);
-            if (leave == null || leave.Status != LeaveStatus.Pending)
-                return RedirectToAction("LeaveHistory");
-            return View(leave);
-        }
-
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> EditLeave(Leave leave)
-        {
-            var employeeId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
-            if (string.IsNullOrEmpty(employeeId))
-                return RedirectToAction("Login", "Account");
-            // Only allow update if status is Pending and belongs to this employee
-            var existing = (await _employeeRepository.GetLeavesByEmployeeIdAsync(int.Parse(employeeId))).FirstOrDefault(l => l.LeaveId == leave.LeaveId);
-            if (existing == null || existing.Status != LeaveStatus.Pending)
-                return RedirectToAction("LeaveHistory");
-            // Update allowed fields
-            existing.LeaveType = leave.LeaveType;
-            existing.StartDate = leave.StartDate;
-            existing.EndDate = leave.EndDate;
-            existing.Reason = leave.Reason;
-            await _employeeRepository.UpdateLeaveAsync(existing);
-            TempData["SuccessMessage"] = "Leave application updated successfully.";
-            return RedirectToAction("LeaveHistory");
-        }
-
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> DeleteLeave(int id)
-        {
-            var employeeId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
-            if (string.IsNullOrEmpty(employeeId))
-                return RedirectToAction("Login", "Account");
-            var leave = (await _employeeRepository.GetLeavesByEmployeeIdAsync(int.Parse(employeeId))).FirstOrDefault(l => l.LeaveId == id);
-            if (leave == null || leave.Status != LeaveStatus.Pending)
-                return RedirectToAction("LeaveHistory");
-            await _employeeRepository.DeleteLeaveAsync(id);
-            TempData["SuccessMessage"] = "Leave application deleted successfully.";
-            return RedirectToAction("LeaveHistory");
-
-        // Helper method to calculate working hours
-        private double CalculateWorkingHours(DateTime? checkInTime, DateTime? checkOutTime)
-        {
-            if (!checkInTime.HasValue || !checkOutTime.HasValue)
-                return 0;
-
-            var duration = checkOutTime!.Value - checkInTime!.Value;
-            return duration.TotalHours;
-        }
-        
-
-
-            var employeeIdInt = int.Parse(employeeId);
             
             // Get filtered attendance data
             var allAttendance = await _employeeRepository.GetEmployeeAttendanceHistoryAsync(employeeIdInt, 365);
@@ -473,31 +272,166 @@ namespace Smart_Attendance_System.Controllers
             
             var attendanceList = filteredAttendance.OrderByDescending(a => a.AttendanceDate).ToList();
             
-            // Generate CSV content
-            var csvContent = "Date,Day,Check In,Check Out,Working Hours,Status\n";
+            // Calculate statistics
+            var presentDays = attendanceList.Count(a => a.Status == "Present");
+            var lateDays = attendanceList.Count(a => a.Status == "Late");
+            var absentDays = attendanceList.Count(a => a.Status == "Absent");
+            var totalDays = attendanceList.Count();
+            var attendanceRate = (presentDays + lateDays + absentDays) > 0 ? Math.Round((double)(presentDays + lateDays) / (presentDays + lateDays + absentDays) * 100, 1) : 0;
             
-            foreach (var attendance in attendanceList)
+            // Generate PDF
+            using (var memoryStream = new MemoryStream())
             {
-                var checkIn = attendance.CheckInTime?.ToString("HH:mm") ?? "—";
-                var checkOut = attendance.CheckOutTime?.ToString("HH:mm") ?? "—";
-                var workingHours = attendance.CheckInTime.HasValue && attendance.CheckOutTime.HasValue 
-                    ? (attendance.CheckOutTime.Value - attendance.CheckInTime.Value).TotalHours.ToString("F1") 
-                    : "—";
-                
-                csvContent += $"{attendance.AttendanceDate:yyyy-MM-dd}," +
-                             $"{attendance.AttendanceDate:dddd}," +
-                             $"{checkIn}," +
-                             $"{checkOut}," +
-                             $"{workingHours}," +
-                             $"{attendance.Status}\n";
-            }
-            
-            var fileName = $"attendance_export_{DateTime.Now:yyyyMMdd_HHmmss}.csv";
-            
-            return File(System.Text.Encoding.UTF8.GetBytes(csvContent), "text/csv", fileName);
+                var document = new Document(PageSize.A4, 50, 50, 50, 50);
+                var writer = PdfWriter.GetInstance(document, memoryStream);
+                document.Open();
 
+                // Title and Header
+                var titleFont = FontFactory.GetFont(FontFactory.HELVETICA_BOLD, 18, new BaseColor(64, 64, 64));
+                var headerFont = FontFactory.GetFont(FontFactory.HELVETICA_BOLD, 14, new BaseColor(0, 0, 0));
+                var normalFont = FontFactory.GetFont(FontFactory.HELVETICA, 10, new BaseColor(0, 0, 0));
+                var smallFont = FontFactory.GetFont(FontFactory.HELVETICA, 8, new BaseColor(128, 128, 128));
+
+                // Company Header
+                var headerTable = new PdfPTable(2);
+                headerTable.WidthPercentage = 100;
+                headerTable.SetWidths(new float[] { 70f, 30f });
+
+                var titleCell = new PdfPCell(new Phrase("Smart Attendance System", titleFont));
+                titleCell.Border = Rectangle.NO_BORDER;
+                titleCell.HorizontalAlignment = Element.ALIGN_LEFT;
+                headerTable.AddCell(titleCell);
+
+                var dateCell = new PdfPCell(new Phrase($"Generated: {DateTime.Now:yyyy-MM-dd HH:mm}", smallFont));
+                dateCell.Border = Rectangle.NO_BORDER;
+                dateCell.HorizontalAlignment = Element.ALIGN_RIGHT;
+                headerTable.AddCell(dateCell);
+
+                document.Add(headerTable);
+                document.Add(new Paragraph("\n"));
+
+                // Report Title
+                var reportTitle = new Paragraph("ATTENDANCE REPORT", headerFont);
+                reportTitle.Alignment = Element.ALIGN_CENTER;
+                document.Add(reportTitle);
+                document.Add(new Paragraph("\n"));
+
+                // Employee Information
+                var empInfoTable = new PdfPTable(2);
+                empInfoTable.WidthPercentage = 100;
+                empInfoTable.SetWidths(new float[] { 30f, 70f });
+
+                empInfoTable.AddCell(new PdfPCell(new Phrase("Employee Name:", normalFont)) { Border = Rectangle.NO_BORDER });
+                empInfoTable.AddCell(new PdfPCell(new Phrase($"{employee?.EmployeeName}", normalFont)) { Border = Rectangle.NO_BORDER });
+                
+                empInfoTable.AddCell(new PdfPCell(new Phrase("Employee ID:", normalFont)) { Border = Rectangle.NO_BORDER });
+                empInfoTable.AddCell(new PdfPCell(new Phrase(employeeId, normalFont)) { Border = Rectangle.NO_BORDER });
+                
+                empInfoTable.AddCell(new PdfPCell(new Phrase("Report Period:", normalFont)) { Border = Rectangle.NO_BORDER });
+                var periodText = !string.IsNullOrEmpty(dateFrom) && !string.IsNullOrEmpty(dateTo) 
+                    ? $"{dateFrom} to {dateTo}" 
+                    : "All Available Records";
+                empInfoTable.AddCell(new PdfPCell(new Phrase(periodText, normalFont)) { Border = Rectangle.NO_BORDER });
+
+                document.Add(empInfoTable);
+                document.Add(new Paragraph("\n"));
+
+                // Statistics Summary
+                var statsTitle = new Paragraph("ATTENDANCE SUMMARY", headerFont);
+                statsTitle.Alignment = Element.ALIGN_LEFT;
+                document.Add(statsTitle);
+
+                var statsTable = new PdfPTable(4);
+                statsTable.WidthPercentage = 100;
+                statsTable.SetWidths(new float[] { 25f, 25f, 25f, 25f });
+
+                // Header row
+                var lightGray = new BaseColor(211, 211, 211);
+                statsTable.AddCell(new PdfPCell(new Phrase("Present Days", headerFont)) { BackgroundColor = lightGray, HorizontalAlignment = Element.ALIGN_CENTER });
+                statsTable.AddCell(new PdfPCell(new Phrase("Late Days", headerFont)) { BackgroundColor = lightGray, HorizontalAlignment = Element.ALIGN_CENTER });
+                statsTable.AddCell(new PdfPCell(new Phrase("Absent Days", headerFont)) { BackgroundColor = lightGray, HorizontalAlignment = Element.ALIGN_CENTER });
+                statsTable.AddCell(new PdfPCell(new Phrase("Attendance Rate", headerFont)) { BackgroundColor = lightGray, HorizontalAlignment = Element.ALIGN_CENTER });
+
+                // Data row
+                statsTable.AddCell(new PdfPCell(new Phrase($"{presentDays + lateDays}", normalFont)) { HorizontalAlignment = Element.ALIGN_CENTER });
+                statsTable.AddCell(new PdfPCell(new Phrase($"{lateDays}", normalFont)) { HorizontalAlignment = Element.ALIGN_CENTER });
+                statsTable.AddCell(new PdfPCell(new Phrase($"{absentDays}", normalFont)) { HorizontalAlignment = Element.ALIGN_CENTER });
+                statsTable.AddCell(new PdfPCell(new Phrase($"{attendanceRate}%", normalFont)) { HorizontalAlignment = Element.ALIGN_CENTER });
+
+                document.Add(statsTable);
+                document.Add(new Paragraph("\n"));
+
+                // Attendance Details
+                if (attendanceList.Any())
+                {
+                    var detailsTitle = new Paragraph("ATTENDANCE DETAILS", headerFont);
+                    detailsTitle.Alignment = Element.ALIGN_LEFT;
+                    document.Add(detailsTitle);
+
+                    var table = new PdfPTable(6);
+                    table.WidthPercentage = 100;
+                    table.SetWidths(new float[] { 15f, 12f, 15f, 15f, 15f, 15f });
+
+                    // Header
+                    table.AddCell(new PdfPCell(new Phrase("Date", headerFont)) { BackgroundColor = lightGray, HorizontalAlignment = Element.ALIGN_CENTER });
+                    table.AddCell(new PdfPCell(new Phrase("Day", headerFont)) { BackgroundColor = lightGray, HorizontalAlignment = Element.ALIGN_CENTER });
+                    table.AddCell(new PdfPCell(new Phrase("Check In", headerFont)) { BackgroundColor = lightGray, HorizontalAlignment = Element.ALIGN_CENTER });
+                    table.AddCell(new PdfPCell(new Phrase("Check Out", headerFont)) { BackgroundColor = lightGray, HorizontalAlignment = Element.ALIGN_CENTER });
+                    table.AddCell(new PdfPCell(new Phrase("Working Hours", headerFont)) { BackgroundColor = lightGray, HorizontalAlignment = Element.ALIGN_CENTER });
+                    table.AddCell(new PdfPCell(new Phrase("Status", headerFont)) { BackgroundColor = lightGray, HorizontalAlignment = Element.ALIGN_CENTER });
+
+                    foreach (var attendance in attendanceList)
+                    {
+                        var checkIn = attendance.CheckInTime?.ToString("HH:mm") ?? "—";
+                        var checkOut = attendance.CheckOutTime?.ToString("HH:mm") ?? "—";
+                        var workingHours = attendance.CheckInTime.HasValue && attendance.CheckOutTime.HasValue 
+                            ? $"{(attendance.CheckOutTime!.Value - attendance.CheckInTime!.Value).TotalHours:F1}h" 
+                            : "—";
+
+                        table.AddCell(new PdfPCell(new Phrase(attendance.AttendanceDate.ToString("yyyy-MM-dd"), normalFont)) { HorizontalAlignment = Element.ALIGN_CENTER });
+                        table.AddCell(new PdfPCell(new Phrase(attendance.AttendanceDate.ToString("ddd"), normalFont)) { HorizontalAlignment = Element.ALIGN_CENTER });
+                        table.AddCell(new PdfPCell(new Phrase(checkIn, normalFont)) { HorizontalAlignment = Element.ALIGN_CENTER });
+                        table.AddCell(new PdfPCell(new Phrase(checkOut, normalFont)) { HorizontalAlignment = Element.ALIGN_CENTER });
+                        table.AddCell(new PdfPCell(new Phrase(workingHours, normalFont)) { HorizontalAlignment = Element.ALIGN_CENTER });
+                        
+                        var statusColor = attendance.Status switch
+                        {
+                            "Present" => new BaseColor(144, 238, 144),  // Light green
+                            "Late" => new BaseColor(255, 165, 0),       // Orange
+                            "Absent" => new BaseColor(255, 182, 193),   // Light red
+                            _ => new BaseColor(211, 211, 211)           // Light gray
+                        };
+                        table.AddCell(new PdfPCell(new Phrase(attendance.Status, normalFont)) { HorizontalAlignment = Element.ALIGN_CENTER, BackgroundColor = statusColor });
+                    }
+
+                    document.Add(table);
+                }
+                else
+                {
+                    document.Add(new Paragraph("No attendance records found for the specified criteria.", normalFont));
+                }
+
+                // Footer
+                document.Add(new Paragraph("\n"));
+                var footer = new Paragraph("This report was generated automatically by Smart Attendance System.", smallFont);
+                footer.Alignment = Element.ALIGN_CENTER;
+                document.Add(footer);
+
+                document.Close();
+                
+                var fileName = $"attendance_report_{DateTime.Now:yyyyMMdd_HHmmss}.pdf";
+                return File(memoryStream.ToArray(), "application/pdf", fileName);
+            }
         }
 
+        // Helper method to calculate working hours
+        private double CalculateWorkingHours(DateTime? checkInTime, DateTime? checkOutTime)
+        {
+            if (!checkInTime.HasValue || !checkOutTime.HasValue)
+                return 0;
 
+            var duration = checkOutTime!.Value - checkInTime!.Value;
+            return duration.TotalHours;
+        }
     }
 }

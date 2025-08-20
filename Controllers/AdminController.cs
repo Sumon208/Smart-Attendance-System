@@ -210,7 +210,7 @@ namespace Smart_Attendance_System.Controllers
                         EmployeeName = employee.EmployeeName,
                         EmployeeId = employee.EmployeeId,
                         Email = user.Email,
-                        DepartmentName = employee.Department?.DepartmentName
+                        DepartmentName = employee.Department?.DepartmentName ?? "N/A"
                     });
                 }
             }

@@ -53,7 +53,7 @@ namespace Smart_Attendance_System.Services.Repositories
                                  .ToListAsync();
         }
 
-        public async Task<Employee> GetEmployeeByIdAsync(int id)
+        public async Task<Employee?> GetEmployeeByIdAsync(int id)
         {
             return await _context.Employees
                                  .Include(e => e.Department)
@@ -155,6 +155,156 @@ namespace Smart_Attendance_System.Services.Repositories
             return await _context.Attendances
                 .AnyAsync(a => a.EmployeeId == employeeId && a.AttendanceDate == today && a.CheckOutTime.HasValue);
 
+        }
+
+        // Leave methods implementation
+        public async Task<Leave> CreateLeaveAsync(Leave leave)
+        {
+            try
+            {
+                System.Diagnostics.Debug.WriteLine($"CreateLeaveAsync called with: EmployeeId={leave.EmployeeId}, Type={leave.LeaveType}, Start={leave.StartDate}, End={leave.EndDate}, Reason={leave.Reason}");
+                
+                // Test database connection first
+                if (!await _context.Database.CanConnectAsync())
+                {
+                    throw new InvalidOperationException("Cannot connect to database");
+                }
+                
+                // Check if the database exists
+                if (!await _context.Database.EnsureCreatedAsync())
+                {
+                    System.Diagnostics.Debug.WriteLine("Database creation attempted");
+                }
+                
+                // Ensure the leave has a valid status
+                if (leave.Status == 0) // Default enum value
+                {
+                    leave.Status = LeaveStatus.Pending;
+                }
+                
+                // Validate required fields
+                if (string.IsNullOrEmpty(leave.LeaveType))
+                {
+                    throw new ArgumentException("Leave type is required");
+                }
+                
+                if (string.IsNullOrEmpty(leave.Reason))
+                {
+                    throw new ArgumentException("Reason is required");
+                }
+                
+                if (leave.EmployeeId <= 0)
+                {
+                    throw new ArgumentException("Valid employee ID is required");
+                }
+                
+                // Verify employee exists
+                var employee = await _context.Employees.FindAsync(leave.EmployeeId);
+                if (employee == null)
+                {
+                    throw new ArgumentException($"Employee with ID {leave.EmployeeId} not found");
+                }
+                
+                System.Diagnostics.Debug.WriteLine("Validation passed, adding to context");
+                
+                // Add the leave to context
+                _context.Leaves.Add(leave);
+                
+                System.Diagnostics.Debug.WriteLine("Leave added to context, saving changes");
+                
+                // Save changes with explicit transaction
+                using var transaction = await _context.Database.BeginTransactionAsync();
+                try
+                {
+                    var result = await _context.SaveChangesAsync();
+                    System.Diagnostics.Debug.WriteLine($"SaveChanges result: {result} rows affected");
+                    
+                    if (result > 0)
+                    {
+                        // Commit the transaction
+                        await transaction.CommitAsync();
+                        
+                        // Refresh the entity to get the generated ID
+                        await _context.Entry(leave).ReloadAsync();
+                        System.Diagnostics.Debug.WriteLine($"Leave saved successfully with ID: {leave.LeaveId}");
+                        return leave;
+                    }
+                    else
+                    {
+                        await transaction.RollbackAsync();
+                        throw new InvalidOperationException("Failed to save leave to database");
+                    }
+                }
+                catch (Exception ex)
+                {
+                    await transaction.RollbackAsync();
+                    System.Diagnostics.Debug.WriteLine($"Transaction failed: {ex.Message}");
+                    throw;
+                }
+            }
+            catch (Exception ex)
+            {
+                // Log the error
+                System.Diagnostics.Debug.WriteLine($"Error in CreateLeaveAsync: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"StackTrace: {ex.StackTrace}");
+                throw;
+            }
+        }
+
+        public async Task<IEnumerable<Leave>> GetEmployeeLeaveHistoryAsync(int employeeId)
+        {
+            return await _context.Leaves
+                .Where(l => l.EmployeeId == employeeId)
+                .OrderByDescending(l => l.StartDate)
+                .ToListAsync();
+        }
+
+        public async Task<Leave?> GetLeaveByIdAsync(int leaveId)
+        {
+            return await _context.Leaves
+                .Include(l => l.Employee)
+                .FirstOrDefaultAsync(l => l.LeaveId == leaveId);
+        }
+
+        public async Task UpdateLeaveAsync(Leave leave)
+        {
+            _context.Leaves.Update(leave);
+            await _context.SaveChangesAsync();
+        }
+
+        public async Task DeleteLeaveAsync(int leaveId)
+        {
+            var leave = await _context.Leaves.FindAsync(leaveId);
+            if (leave != null)
+            {
+                _context.Leaves.Remove(leave);
+                await _context.SaveChangesAsync();
+            }
+        }
+
+        public async Task<int> GetEmployeeLeaveBalanceAsync(int employeeId, string leaveType)
+        {
+            // Default leave balances (this could be moved to a configuration table)
+            var defaultBalances = new Dictionary<string, int>
+            {
+                { "Annual", 15 },
+                { "Sick", 10 },
+                { "Personal", 5 },
+                { "Maternity", 90 },
+                { "Paternity", 10 },
+                { "Other", 3 }
+            };
+
+            var defaultBalance = defaultBalances.ContainsKey(leaveType) ? defaultBalances[leaveType] : 0;
+            
+            // Get used leaves of this type
+            var usedLeaves = await _context.Leaves
+                .Where(l => l.EmployeeId == employeeId && 
+                           l.LeaveType == leaveType && 
+                           l.Status == LeaveStatus.Approved)
+                .SumAsync(l => (l.EndDate - l.StartDate).Days + 1);
+
+            return Math.Max(0, defaultBalance - (int)usedLeaves);
         }
     }
 }

@@ -28,26 +28,26 @@
                 <div class="row text-center">
                     <div class="col-md-3">
                         <div class="border-right">
-                            <h3 class="text-success">15</h3>
+                            <h3 class="text-success">@ViewBag.AnnualBalance</h3>
                             <small class="text-muted">Annual Leave</small>
                         </div>
                     </div>
                     <div class="col-md-3">
                         <div class="border-right">
-                            <h3 class="text-info">8</h3>
-                            <small class="text-muted">Used</small>
+                            <h3 class="text-info">@ViewBag.SickBalance</h3>
+                            <small class="text-muted">Sick Leave</small>
                         </div>
                     </div>
                     <div class="col-md-3">
                         <div class="border-right">
-                            <h3 class="text-warning">2</h3>
+                            <h3 class="text-warning">@ViewBag.PendingLeavesCount</h3>
                             <small class="text-muted">Pending</small>
                         </div>
                     </div>
                     <div class="col-md-3">
                         <div>
-                            <h3 class="text-primary">7</h3>
-                            <small class="text-muted">Remaining</small>
+                            <h3 class="text-primary">@ViewBag.PersonalBalance</h3>
+                            <small class="text-muted">Personal Leave</small>
                         </div>
                     </div>
                 </div>
@@ -64,7 +64,8 @@
                 <h5 class="mb-0"><i class="fas fa-edit mr-2"></i>New Leave Application</h5>
             </div>
             <div class="card-body">
-                <form asp-action="SubmitLeave" method="post" id="leaveForm">
+                <form asp-controller="Leave" asp-action="SubmitLeave" method="post" id="leaveForm">
+                    @Html.AntiForgeryToken()
                     <div class="row">
                         <div class="col-md-6">
                             <div class="form-group">
@@ -137,7 +138,7 @@
 
                     <div class="form-group">
                         <div class="form-check">
-                            <input class="form-check-input" type="checkbox" id="acknowledge" required>
+                            <input class="form-check-input" type="checkbox" id="acknowledge">
                             <label class="form-check-label" for="acknowledge">
                                 I acknowledge that I have read and understood the company's leave policy. I confirm that the information provided is accurate and complete.
                             </label>
@@ -152,6 +153,14 @@
                             <i class="fas fa-undo mr-2"></i>Reset Form
                         </button>
                     </div>
+                    
+                    <!-- Debug Information (remove in production) -->
+                    @if (ViewBag.DebugInfo != null)
+                    {
+                        <div class="alert alert-info mt-3">
+                            <strong>Debug Info:</strong> @ViewBag.DebugInfo
+                        </div>
+                    }
                 </form>
             </div>
         </div>
@@ -179,12 +188,18 @@
                 <h6 class="mb-0"><i class="fas fa-bolt mr-2"></i>Quick Actions</h6>
             </div>
             <div class="card-body">
-                <a asp-action="LeaveHistory" class="btn btn-outline-info btn-block mb-2">
+                <a asp-controller="Leave" asp-action="LeaveHistory" class="btn btn-outline-info btn-block mb-2">
                     <i class="fas fa-history mr-2"></i>View Leave History
                 </a>
-                <a asp-action="Dashboard" class="btn btn-outline-primary btn-block">
+                <a asp-action="Dashboard" class="btn btn-outline-primary btn-block mb-2">
                     <i class="fas fa-tachometer-alt mr-2"></i>Back to Dashboard
                 </a>
+                <button type="button" class="btn btn-outline-warning btn-block" onclick="testDatabase()">
+                    <i class="fas fa-database mr-2"></i>Test Database
+                </button>
+                <button type="button" class="btn btn-outline-info btn-block" onclick="testSchema()">
+                    <i class="fas fa-table mr-2"></i>Test Schema
+                </button>
             </div>
         </div>
     </div>
@@ -211,30 +226,30 @@
                             </tr>
                         </thead>
                         <tbody>
-                            <tr>
-                                <td><span class="badge badge-info">Annual</span></td>
-                                <td>Dec 25, 2024</td>
-                                <td>Dec 27, 2024</td>
-                                <td>3 days</td>
-                                <td><span class="badge badge-warning">Pending</span></td>
-                                <td>Dec 20, 2024</td>
-                            </tr>
-                            <tr>
-                                <td><span class="badge badge-success">Sick</span></td>
-                                <td>Dec 15, 2024</td>
-                                <td>Dec 16, 2024</td>
-                                <td>2 days</td>
-                                <td><span class="badge badge-success">Approved</span></td>
-                                <td>Dec 14, 2024</td>
-                            </tr>
-                            <tr>
-                                <td><span class="badge badge-primary">Personal</span></td>
-                                <td>Dec 10, 2024</td>
-                                <td>Dec 10, 2024</td>
-                                <td>1 day</td>
-                                <td><span class="badge badge-danger">Rejected</span></td>
-                                <td>Dec 08, 2024</td>
-                            </tr>
+                            @if (ViewBag.RecentLeaves != null && ViewBag.RecentLeaves.Count > 0)
+                            {
+                                @foreach (var leave in ViewBag.RecentLeaves)
+                                {
+                                    <tr>
+                                        <td><span class="badge badge-info">@leave.LeaveType</span></td>
+                                        <td>@leave.StartDate.ToString("MMM dd, yyyy")</td>
+                                        <td>@leave.EndDate.ToString("MMM dd, yyyy")</td>
+                                        <td>@((leave.EndDate - leave.StartDate).Days + 1) days</td>
+                                        <td>
+                                            <span class="badge @(leave.Status == LeaveStatus.Approved ? "badge-success" : leave.Status == LeaveStatus.Rejected ? "badge-danger" : "badge-warning")">
+                                                @leave.Status
+                                            </span>
+                                        </td>
+                                        <td>@leave.StartDate.ToString("MMM dd, yyyy")</td>
+                                    </tr>
+                                }
+                            }
+                            else
+                            {
+                                <tr>
+                                    <td colspan="6" class="text-center text-muted">No leave applications found.</td>
+                                </tr>
+                            }
                         </tbody>
                     </table>
                 </div>
@@ -279,7 +294,7 @@
             $('#EndDate').attr('min', $(this).val());
         });
         
-        // Form submission handling
+        // Form submission handling - simplified to avoid interference
         $('#leaveForm').submit(function(e) {
             var startDate = new Date($('#StartDate').val());
             var endDate = new Date($('#EndDate').val());
@@ -290,14 +305,49 @@
                 return false;
             }
             
-            if (!$('#acknowledge').is(':checked')) {
-                e.preventDefault();
-                alert('Please acknowledge the leave policy before submitting.');
-                return false;
-            }
-            
             // Show loading state
             $('#submitBtn').prop('disabled', true).html('<i class="fas fa-spinner fa-spin mr-2"></i>Submitting...');
         });
     });
+    
+    // Test database connectivity
+    function testDatabase() {
+        $.ajax({
+            url: '@Url.Action("TestDatabase", "Employee")',
+            type: 'GET',
+            success: function(response) {
+                if (response.success) {
+                    alert('Database test successful!\n' + 
+                          'Employee: ' + response.employeeName + '\n' +
+                          'Annual Balance: ' + response.annualBalance + ' days');
+                } else {
+                    alert('Database test failed: ' + response.message);
+                }
+            },
+            error: function() {
+                alert('Database test failed: Unable to connect to server');
+            }
+        });
+    }
+    
+    // Test database schema
+    function testSchema() {
+        $.ajax({
+            url: '@Url.Action("TestSchema", "Employee")',
+            type: 'GET',
+            success: function(response) {
+                if (response.success) {
+                    alert('Schema test successful!\n' + 
+                          'Message: ' + response.message + '\n' +
+                          'Existing Leaves: ' + response.existingLeavesCount + '\n' +
+                          'Test Leave ID: ' + response.testLeaveId);
+                } else {
+                    alert('Schema test failed: ' + response.message);
+                }
+            },
+            error: function() {
+                alert('Schema test failed: Unable to connect to server');
+            }
+        });
+    }
 </script>

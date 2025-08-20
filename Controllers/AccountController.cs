@@ -82,7 +82,7 @@ namespace Smart_Attendance_System.Controllers
                     // If the user is an Admin or an Approved User, proceed with login
                     var claims = new List<Claim>
                       {
-                        new Claim(ClaimTypes.NameIdentifier, user.EmployeeId.ToString()),
+                        new Claim(ClaimTypes.NameIdentifier, user.EmployeeId?.ToString() ?? "0"),
                         new Claim(ClaimTypes.Email, user.Email),
                         new Claim(ClaimTypes.Role, user.UserType.ToString())
                       };

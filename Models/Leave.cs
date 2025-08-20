@@ -18,20 +18,22 @@ namespace Smart_Attendance_System.Models
 
         public int EmployeeId { get; set; }
         [ForeignKey("EmployeeId")]
-        [BindNever]
         public Employee? Employee { get; set; }
 
-        public string LeaveType { get; set; }
+        [Required(ErrorMessage = "Leave type is required")]
+        public string LeaveType { get; set; } = string.Empty;
 
+        [Required(ErrorMessage = "Start date is required")]
         [DataType(DataType.Date)]
         public DateTime StartDate { get; set; }
 
+        [Required(ErrorMessage = "End date is required")]
         [DataType(DataType.Date)]
         public DateTime EndDate { get; set; }
 
-        public string Reason { get; set; }
+        [Required(ErrorMessage = "Reason for leave is required")]
+        public string Reason { get; set; } = string.Empty;
 
-        public LeaveStatus Status { get; set; } // Modified to use the enum
-
+        public LeaveStatus Status { get; set; } = LeaveStatus.Pending;
     }
 }

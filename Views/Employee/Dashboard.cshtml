@@ -6,8 +6,8 @@
 }
 
 <div class="d-flex justify-content-between align-items-center mb-4">
-    <h2><i class="fas fa-tachometer-alt text-primary"></i> Employee Dashboard</h2>
-    <div class="text-muted">
+    <h2 class="mb-2 mb-md-0"><i class="fas fa-tachometer-alt text-primary"></i> Employee Dashboard</h2>
+    <div class="text-muted text-center text-md-right">
         <i class="far fa-calendar-alt"></i> @DateTime.Now.ToString("dddd, MMMM dd, yyyy")
     </div>
 </div>
@@ -18,7 +18,7 @@
         <div class="card border-0 shadow-sm">
             <div class="card-body text-center py-4">
                 <div class="row align-items-center">
-                    <div class="col-md-6">
+                    <div class="col-lg-6 col-md-12 mb-3 mb-lg-0">
                         <h4 class="text-muted mb-2">Current Status</h4>
                         <div class="d-flex align-items-center justify-content-center">
                             <div class="status-indicator @(Model.IsCheckedIn ? "bg-success" : "bg-secondary") rounded-circle d-inline-block mr-3"></div>
@@ -27,13 +27,13 @@
                             </h3>
                         </div>
                     </div>
-                    <div class="col-md-6">
+                    <div class="col-lg-6 col-md-12">
                         <div class="row text-center">
-                            <div class="col-6">
+                            <div class="col-6 col-sm-6">
                                 <small class="text-muted d-block">Last Check In</small>
                                 <strong>@(Model.LastCheckIn?.ToString("hh:mm tt") ?? "—")</strong>
                             </div>
-                            <div class="col-6">
+                            <div class="col-6 col-sm-6">
                                 <small class="text-muted d-block">Last Check Out</small>
                                 <strong>@(Model.LastCheckOut?.ToString("hh:mm tt") ?? "—")</strong>
                             </div>
@@ -47,45 +47,45 @@
 
 <!-- Statistics Cards -->
 <div class="row mb-4">
-    <div class="col-md-3">
-        <div class="card text-white bg-primary mb-3 text-center card-custom">
-            <div class="card-body">
+    <div class="col-xl-3 col-lg-4 col-md-6 col-sm-6 mb-3">
+        <div class="card text-white bg-primary text-center card-custom h-100">
+            <div class="card-body d-flex flex-column justify-content-center">
                 <i class="fas fa-user-check fa-2x mb-2"></i>
-                <h3 class="card-text">@Model.Presents</h3>
-                <h6 class="card-title">Present Days</h6>
+                <h3 class="card-text mb-1">@Model.Presents</h3>
+                <h6 class="card-title mb-1">Present Days</h6>
                 <small>This Month</small>
             </div>
         </div>
     </div>
 
-    <div class="col-md-3">
-        <div class="card text-white bg-danger mb-3 text-center card-custom">
-            <div class="card-body">
+    <div class="col-xl-3 col-lg-4 col-md-6 col-sm-6 mb-3">
+        <div class="card text-white bg-danger text-center card-custom h-100">
+            <div class="card-body d-flex flex-column justify-content-center">
                 <i class="fas fa-user-times fa-2x mb-2"></i>
-                <h3 class="card-text">@Model.Absents</h3>
-                <h6 class="card-title">Absent Days</h6>
+                <h3 class="card-text mb-1">@Model.Absents</h3>
+                <h6 class="card-title mb-1">Absent Days</h6>
                 <small>This Month</small>
             </div>
         </div>
     </div>
 
-    <div class="col-md-3">
-        <div class="card text-white bg-warning mb-3 text-center card-custom">
-            <div class="card-body">
+    <div class="col-xl-3 col-lg-4 col-md-6 col-sm-6 mb-3">
+        <div class="card text-white bg-warning text-center card-custom h-100">
+            <div class="card-body d-flex flex-column justify-content-center">
                 <i class="fas fa-clock fa-2x mb-2"></i>
-                <h3 class="card-text">@Model.LateArrivals</h3>
-                <h6 class="card-title">Late Arrivals</h6>
+                <h3 class="card-text mb-1">@Model.LateArrivals</h3>
+                <h6 class="card-title mb-1">Late Arrivals</h6>
                 <small>This Month</small>
             </div>
         </div>
     </div>
 
-    <div class="col-md-3">
-        <div class="card text-white bg-info mb-3 text-center card-custom">
-            <div class="card-body">
+    <div class="col-xl-3 col-lg-4 col-md-6 col-sm-6 mb-3">
+        <div class="card text-white bg-info text-center card-custom h-100">
+            <div class="card-body d-flex flex-column justify-content-center">
                 <i class="fas fa-calendar-check fa-2x mb-2"></i>
-                <h3 class="card-text">@Model.LeaveApproved</h3>
-                <h6 class="card-title">Leave Approved</h6>
+                <h3 class="card-text mb-1">@Model.LeaveApproved</h3>
+                <h6 class="card-title mb-1">Leave Approved</h6>
                 <small>This Year</small>
             </div>
         </div>
@@ -94,34 +94,34 @@
 
 <!-- Leave Status Row -->
 <div class="row mb-4">
-    <div class="col-md-4">
-        <div class="card text-white bg-secondary mb-3 text-center card-custom">
-            <div class="card-body">
+    <div class="col-lg-4 col-md-6 col-sm-6 mb-3">
+        <div class="card text-white bg-secondary text-center card-custom h-100">
+            <div class="card-body d-flex flex-column justify-content-center">
                 <i class="fas fa-hourglass fa-2x mb-2"></i>
-                <h3 class="card-text">@Model.LeavePending</h3>
-                <h6 class="card-title">Leave Pending</h6>
+                <h3 class="card-text mb-1">@Model.LeavePending</h3>
+                <h6 class="card-title mb-1">Leave Pending</h6>
                 <small>Awaiting Approval</small>
             </div>
         </div>
     </div>
 
-    <div class="col-md-4">
-        <div class="card text-white bg-dark mb-3 text-center card-custom">
-            <div class="card-body">
+    <div class="col-lg-4 col-md-6 col-sm-6 mb-3">
+        <div class="card text-white bg-dark text-center card-custom h-100">
+            <div class="card-body d-flex flex-column justify-content-center">
                 <i class="fas fa-times-circle fa-2x mb-2"></i>
-                <h3 class="card-text">@Model.LeaveRejected</h3>
-                <h6 class="card-title">Leave Rejected</h6>
+                <h3 class="card-text mb-1">@Model.LeaveRejected</h3>
+                <h6 class="card-title mb-1">Leave Rejected</h6>
                 <small>This Year</small>
             </div>
         </div>
     </div>
 
-    <div class="col-md-4">
-        <div class="card text-white bg-success mb-3 text-center card-custom">
-            <div class="card-body">
+    <div class="col-lg-4 col-md-6 col-sm-6 mb-3">
+        <div class="card text-white bg-success text-center card-custom h-100">
+            <div class="card-body d-flex flex-column justify-content-center">
                 <i class="fas fa-percentage fa-2x mb-2"></i>
-                                 <h3 class="card-text">@Model.AttendanceRate%</h3>
-                <h6 class="card-title">Attendance Rate</h6>
+                <h3 class="card-text mb-1">@Model.AttendanceRate%</h3>
+                <h6 class="card-title mb-1">Attendance Rate</h6>
                 <small>This Month</small>
             </div>
         </div>
@@ -130,26 +130,30 @@
 
 <!-- Quick Actions -->
 <div class="row">
-    <div class="col-md-6">
-        <div class="card mb-3 card-custom">
-            <div class="card-body text-center">
-                <i class="fas fa-clock fa-3x text-primary mb-3"></i>
-                <h5 class="card-title">Mark Attendance</h5>
-                <p class="card-text">Check in or check out for today's work.</p>
-                <a class="btn btn-primary btn-lg" asp-controller="Employee" asp-action="Attendance">
+    <div class="col-lg-6 col-md-12 mb-3">
+        <div class="card card-custom h-100">
+            <div class="card-body text-center d-flex flex-column justify-content-between">
+                <div>
+                    <i class="fas fa-clock fa-3x text-primary mb-3"></i>
+                    <h5 class="card-title">Mark Attendance</h5>
+                    <p class="card-text">Check in or check out for today's work.</p>
+                </div>
+                <a class="btn btn-primary btn-lg mt-auto" asp-controller="EmployeeAttendance" asp-action="Attendance">
                     <i class="fas fa-fingerprint mr-2"></i>Go to Attendance
                 </a>
             </div>
         </div>
     </div>
 
-    <div class="col-md-6">
-        <div class="card mb-3 card-custom">
-            <div class="card-body text-center">
-                <i class="fas fa-calendar-plus fa-3x text-info mb-3"></i>
-                <h5 class="card-title">Apply for Leave</h5>
-                <p class="card-text">Submit a new leave request or view status.</p>
-                <a class="btn btn-info btn-lg" asp-controller="Employee" asp-action="LeaveApply">
+    <div class="col-lg-6 col-md-12 mb-3">
+        <div class="card card-custom h-100">
+            <div class="card-body text-center d-flex flex-column justify-content-between">
+                <div>
+                    <i class="fas fa-calendar-plus fa-3x text-info mb-3"></i>
+                    <h5 class="card-title">Apply for Leave</h5>
+                    <p class="card-text">Submit a new leave request or view status.</p>
+                </div>
+                <a class="btn btn-info btn-lg mt-auto" asp-controller="Leave" asp-action="LeaveApply">
                     <i class="fas fa-edit mr-2"></i>Apply for Leave
                 </a>
             </div>
@@ -174,9 +178,89 @@
         border: none;
         border-radius: 15px;
         overflow: hidden;
+        transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+    }
+    
+    .card-custom:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
     }
     
     .card-custom .card-body {
         padding: 1.5rem;
+    }
+    
+    /* Responsive adjustments */
+    @@media (max-width: 768px) {
+        .card-custom .card-body {
+            padding: 1rem;
+        }
+        
+        .card-custom h3 {
+            font-size: 1.5rem;
+        }
+        
+        .card-custom h6 {
+            font-size: 0.9rem;
+        }
+        
+        .card-custom small {
+            font-size: 0.75rem;
+        }
+        
+        .btn-lg {
+            padding: 0.5rem 1rem;
+            font-size: 0.9rem;
+        }
+    }
+    
+    @@media (max-width: 576px) {
+        .card-custom .card-body {
+            padding: 0.75rem;
+        }
+        
+        .card-custom h3 {
+            font-size: 1.25rem;
+        }
+        
+        .card-custom h6 {
+            font-size: 0.8rem;
+        }
+        
+        .card-custom small {
+            font-size: 0.7rem;
+        }
+        
+        .btn-lg {
+            padding: 0.375rem 0.75rem;
+            font-size: 0.8rem;
+        }
+        
+        .status-indicator {
+            width: 16px;
+            height: 16px;
+        }
+        
+        h2 {
+            font-size: 1.5rem;
+        }
+        
+        h4 {
+            font-size: 1.1rem;
+        }
+    }
+    
+    /* Ensure equal height cards */
+    .h-100 {
+        height: 100% !important;
+    }
+    
+    /* Flexbox utilities for better alignment */
+    .d-flex.flex-column.justify-content-center {
+        min-height: 120px;
+    }
+    
+    .d-flex.flex-column.justify-content-between {
+        min-height: 200px;
     }
 </style>
