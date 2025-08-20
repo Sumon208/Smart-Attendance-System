@@ -1,5 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations.Schema;
 using System.ComponentModel.DataAnnotations;
+using Microsoft.AspNetCore.Mvc.ModelBinding;
 
 namespace Smart_Attendance_System.Models
 {
@@ -17,7 +18,8 @@ namespace Smart_Attendance_System.Models
 
         public int EmployeeId { get; set; }
         [ForeignKey("EmployeeId")]
-        public Employee Employee { get; set; }
+        [BindNever]
+        public Employee? Employee { get; set; }
 
         public string LeaveType { get; set; }
 

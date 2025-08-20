@@ -1,0 +1,109 @@
+@model Smart_Attendance_System.Models.Department
+
+@{
+    ViewData["Title"] = "Create Department";
+    Layout = "_AdminLayout";
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-md-8 offset-md-2">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0"><i class="fas fa-plus-circle"></i> Create New Department</h4>
+                </div>
+                <div class="card-body">
+                    <form asp-action="Create" method="post" id="createDepartmentForm">
+                        <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
+                        
+                        <div class="form-group mb-3">
+                            <label asp-for="DepartmentName" class="form-label fw-bold">Department Name</label>
+                            <input asp-for="DepartmentName" class="form-control form-control-lg" 
+                                   placeholder="Enter department name" 
+                                   required maxlength="100" minlength="2" 
+                                   pattern="[A-Za-z\s]+" 
+                                   title="Please enter a valid department name (letters and spaces only)" />
+                            <div class="form-text">
+                                <i class="fas fa-info-circle"></i> Enter a unique department name (2-100 characters, letters and spaces only)
+                            </div>
+                            <span asp-validation-for="DepartmentName" class="text-danger"></span>
+                        </div>
+
+                        <div class="form-group d-flex gap-2">
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                <i class="fas fa-save"></i> Create Department
+                            </button>
+                            <a asp-action="Index" class="btn btn-secondary btn-lg">
+                                <i class="fas fa-arrow-left"></i> Back to List
+                            </a>
+                            <button type="reset" class="btn btn-outline-secondary btn-lg">
+                                <i class="fas fa-undo"></i> Clear Form
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function() {
+            // Form validation enhancement
+            $('#DepartmentName').on('input', function() {
+                var value = $(this).val();
+                var isValid = value.length >= 2 && value.length <= 100 && /^[A-Za-z\s]+$/.test(value);
+                
+                if (isValid) {
+                    $(this).removeClass('is-invalid').addClass('is-valid');
+                    $(this).next('.form-text').removeClass('text-danger').addClass('text-success');
+                } else {
+                    $(this).removeClass('is-valid').addClass('is-invalid');
+                    $(this).next('.form-text').removeClass('text-success').addClass('text-danger');
+                }
+            });
+
+            // Real-time name existence check
+            var nameCheckTimer;
+            $('#DepartmentName').on('input', function() {
+                clearTimeout(nameCheckTimer);
+                var departmentName = $(this).val().trim();
+                
+                if (departmentName.length >= 2) {
+                    nameCheckTimer = setTimeout(function() {
+                        checkDepartmentNameExists(departmentName);
+                    }, 500);
+                }
+            });
+
+            function checkDepartmentNameExists(name) {
+                $.post('@Url.Action("CheckNameExists", "Department")', { departmentName: name })
+                    .done(function(data) {
+                        if (data.exists) {
+                            $('#DepartmentName').addClass('is-invalid');
+                            if (!$('#nameExistsError').length) {
+                                $('#DepartmentName').after('<div id="nameExistsError" class="text-danger mt-1"><i class="fas fa-exclamation-triangle"></i> This department name already exists.</div>');
+                            }
+                        } else {
+                            $('#DepartmentName').removeClass('is-invalid');
+                            $('#nameExistsError').remove();
+                        }
+                    });
+            }
+
+            // Form submission enhancement
+            $('#createDepartmentForm').on('submit', function(e) {
+                var departmentName = $('#DepartmentName').val().trim();
+                if (departmentName.length < 2) {
+                    e.preventDefault();
+                    alert('Please enter a valid department name (minimum 2 characters)');
+                    $('#DepartmentName').focus();
+                    return false;
+                }
+            });
+        });
+    </script>
+}
+
+

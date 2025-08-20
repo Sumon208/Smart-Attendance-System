@@ -239,6 +239,8 @@ namespace Smart_Attendance_System.Controllers
         {
             if (!ModelState.IsValid)
             {
+                var errors = string.Join("; ", ModelState.Values.SelectMany(x => x.Errors).Select(x => x.ErrorMessage));
+                TempData["ErrorMessage"] = "Validation failed: " + errors;
                 return View("LeaveApply", leave);
             }
 
@@ -251,11 +253,12 @@ namespace Smart_Attendance_System.Controllers
 
             try
             {
-                // TODO: Implement actual leave submission logic
                 // 1. Set employee ID
+                leave.EmployeeId = int.Parse(employeeId);
                 // 2. Set status to Pending
+                leave.Status = LeaveStatus.Pending;
                 // 3. Save to database
-                
+                await _employeeRepository.AddLeaveAsync(leave);
                 TempData["SuccessMessage"] = "Leave application submitted successfully! It will be reviewed by your manager.";
                 return RedirectToAction("LeaveHistory");
             }
@@ -269,15 +272,11 @@ namespace Smart_Attendance_System.Controllers
         public async Task<IActionResult> LeaveHistory()
         {
             var employeeId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            
             if (string.IsNullOrEmpty(employeeId))
             {
                 return RedirectToAction("Login", "Account");
             }
-
-            // TODO: Implement actual leave history retrieval
-            var leaves = new List<Leave>();
-
+            var leaves = await _employeeRepository.GetLeavesByEmployeeIdAsync(int.Parse(employeeId));
             return View(leaves);
         }
 
@@ -379,6 +378,53 @@ namespace Smart_Attendance_System.Controllers
             return View(employee);
         }
 
+
+        public async Task<IActionResult> EditLeave(int id)
+        {
+            var employeeId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(employeeId))
+                return RedirectToAction("Login", "Account");
+            var leave = (await _employeeRepository.GetLeavesByEmployeeIdAsync(int.Parse(employeeId))).FirstOrDefault(l => l.LeaveId == id);
+            if (leave == null || leave.Status != LeaveStatus.Pending)
+                return RedirectToAction("LeaveHistory");
+            return View(leave);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> EditLeave(Leave leave)
+        {
+            var employeeId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(employeeId))
+                return RedirectToAction("Login", "Account");
+            // Only allow update if status is Pending and belongs to this employee
+            var existing = (await _employeeRepository.GetLeavesByEmployeeIdAsync(int.Parse(employeeId))).FirstOrDefault(l => l.LeaveId == leave.LeaveId);
+            if (existing == null || existing.Status != LeaveStatus.Pending)
+                return RedirectToAction("LeaveHistory");
+            // Update allowed fields
+            existing.LeaveType = leave.LeaveType;
+            existing.StartDate = leave.StartDate;
+            existing.EndDate = leave.EndDate;
+            existing.Reason = leave.Reason;
+            await _employeeRepository.UpdateLeaveAsync(existing);
+            TempData["SuccessMessage"] = "Leave application updated successfully.";
+            return RedirectToAction("LeaveHistory");
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DeleteLeave(int id)
+        {
+            var employeeId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(employeeId))
+                return RedirectToAction("Login", "Account");
+            var leave = (await _employeeRepository.GetLeavesByEmployeeIdAsync(int.Parse(employeeId))).FirstOrDefault(l => l.LeaveId == id);
+            if (leave == null || leave.Status != LeaveStatus.Pending)
+                return RedirectToAction("LeaveHistory");
+            await _employeeRepository.DeleteLeaveAsync(id);
+            TempData["SuccessMessage"] = "Leave application deleted successfully.";
+            return RedirectToAction("LeaveHistory");
+
         // Helper method to calculate working hours
         private double CalculateWorkingHours(DateTime? checkInTime, DateTime? checkOutTime)
         {
@@ -445,6 +491,7 @@ namespace Smart_Attendance_System.Controllers
             var fileName = $"attendance_export_{DateTime.Now:yyyyMMdd_HHmmss}.csv";
             
             return File(System.Text.Encoding.UTF8.GetBytes(csvContent), "text/csv", fileName);
+
         }
     }
 }
