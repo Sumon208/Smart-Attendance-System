@@ -3,6 +3,7 @@ using Smart_Attendance_System.Data;
 using Smart_Attendance_System.Services.Interfaces;
 using Smart_Attendance_System.Services.Repositories;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Smart_Attendance_System.Services;
 
 namespace Smart_Attendance_System
 {
@@ -37,6 +38,9 @@ namespace Smart_Attendance_System
             builder.Services.AddScoped<IAccountRepository, AccountRepository>();
             builder.Services.AddScoped<IAdminRepository, AdminRepository>();
             builder.Services.AddScoped<IEmployeeRepository, EmployeeRepository>();
+            
+            // Register Department Service
+            builder.Services.AddScoped<IDepartmentService, DepartmentService>();
 
             var app = builder.Build();
 

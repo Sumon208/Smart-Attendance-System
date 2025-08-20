@@ -4,6 +4,7 @@ using Smart_Attendance_System.Services.Interfaces;
 using Smart_Attendance_System.Models;
 using Smart_Attendance_System.Models.ViewModel;
 using Smart_Attendance_System.Services.Repositories;
+using Smart_Attendance_System.Services;
 
 namespace Smart_Attendance_System.Controllers
 {
@@ -57,24 +58,11 @@ namespace Smart_Attendance_System.Controllers
             return RedirectToAction(nameof(Employee));
         }
 
-        // 3. Department Management Actions
+        // 3. Department Management Actions - Now handled by DepartmentController
         [HttpGet]
-        public async Task<IActionResult> Department()
+        public IActionResult Department()
         {
-            var departments = await _adminRepository.GetAllDepartmentsAsync();
-            return View(departments);
-        }
-
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> AddDepartment(Department department)
-        {
-            if (ModelState.IsValid)
-            {
-                await _adminRepository.AddDepartmentAsync(department);
-                return RedirectToAction(nameof(Department));
-            }
-            return View(department);
+            return RedirectToAction("Index", "Department");
         }
 
         // 4. Leave Management Actions
