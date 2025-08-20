@@ -95,6 +95,21 @@ namespace Smart_Attendance_System.Services.Repositories
             }
         }
 
+        public async Task DeleteEmployeeWithRelatedDataAsync(int employeeId)
+        {
+            var employee = await _context.Employees.FindAsync(employeeId);
+            if (employee != null)
+            {
+                // Delete related SystemUsers first
+                var relatedUsers = _context.SystemUsers.Where(u => u.EmployeeId == employee.Id);
+                _context.SystemUsers.RemoveRange(relatedUsers);
+
+                // Delete the employee
+                _context.Employees.Remove(employee);
+                await _context.SaveChangesAsync();
+            }
+        }
+
         public async Task<IEnumerable<Leave>> GetAllLeaveApplicationsAsync()
         {
             return await _context.Leaves.Include(l => l.Employee).ToListAsync();

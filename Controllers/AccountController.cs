@@ -94,9 +94,13 @@ namespace Smart_Attendance_System.Controllers
                     {
                         return RedirectToAction("Dashboard", "Admin");
                     }
-                    else // User
+                    else if (user.UserType == 2) //User
                     {
                         return RedirectToAction("Dashboard", "Employee");
+                    }
+                    else
+                    {
+                        return RedirectToAction("Index", "Home");
                     }
                 }
 

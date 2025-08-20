@@ -6,6 +6,7 @@ using Smart_Attendance_System.Models;
 using Smart_Attendance_System.Models.ViewModel;
 using Smart_Attendance_System.Services.Interfaces;
 using Smart_Attendance_System.Services.Repositories;
+using Smart_Attendance_System.Services;
 
 namespace Smart_Attendance_System.Controllers
 {
@@ -121,12 +122,15 @@ namespace Smart_Attendance_System.Controllers
         //    if (employee == null)
         //        return NotFound("Employee not found.");
 
+
+           
         //    var relatedUsers = _context.SystemUsers.Where(u => u.EmployeeId == employee.Id);
         //    _context.SystemUsers.RemoveRange(relatedUsers);
 
         //    await _adminRepository.DeleteEmployeeAsync(employee.Id);
 
         //    await _context.SaveChangesAsync();
+
 
         //    TempData["SuccessMessage"] = $"Employee '{employee.EmployeeName}' deleted successfully.";
 
@@ -141,26 +145,11 @@ namespace Smart_Attendance_System.Controllers
 
 
         // 3. Department Management Actions
+        // 3. Department Management Actions - Now handled by DepartmentController
         [HttpGet]
-        public async Task<IActionResult> Department()
+        public IActionResult Department()
         {
-            var departments = await _adminRepository.GetAllDepartmentsAsync();
-            return View(departments);
-        }
-
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> AddDepartment(Department department)
-        {
-            if (ModelState.IsValid)
-            {
-                await _adminRepository.AddDepartmentAsync(department);
-                TempData["SuccessMessage"] = $"Department '{department.DepartmentName}' has been added successfully!";
-                return RedirectToAction(nameof(Department));
-            }
-            // If validation fails, redirect back to Department view with error
-            TempData["ErrorMessage"] = "Please provide a valid department name.";
-            return RedirectToAction(nameof(Department));
+            return RedirectToAction("Index", "Department");
         }
 
         // 4. Leave Management Actions
