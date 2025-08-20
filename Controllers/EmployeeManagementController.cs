@@ -21,16 +21,15 @@ namespace Smart_Attendance_System.Controllers
         }
 
         // Employee Details Action
-        [HttpGet]
-        public async Task<IActionResult> Details()
+        public async Task<IActionResult> Index()
         {
-            var approvedEmployees = await _employeeRepository.GetApprovedEmployeesAsync();
-            return View(approvedEmployees);
+            var employees = await _employeeRepository.GetAllEmployeesAsync();
+            return View(employees);
         }
 
-        // Employee Update Actions
+        //Employee Details(View + Update)
         [HttpGet]
-        public async Task<IActionResult> Update(int id)
+        public async Task<IActionResult> Details(int id)
         {
             var employee = await _employeeRepository.GetEmployeeByIdAsync(id);
             if (employee == null)
@@ -42,7 +41,7 @@ namespace Smart_Attendance_System.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Update(int id, Employee employee)
+        public async Task<IActionResult> Details(int id, Employee employee)
         {
             if (id != employee.Id)
             {
@@ -52,47 +51,20 @@ namespace Smart_Attendance_System.Controllers
             if (ModelState.IsValid)
             {
                 await _employeeRepository.UpdateEmployeeAsync(employee);
-                return RedirectToAction(nameof(Details));
+                return RedirectToAction(nameof(Details), new { id = employee.Id });
             }
             return View(employee);
         }
 
-        // Employee Delete Action
-        [HttpPost, ActionName("Delete")]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> DeleteConfirmed(int id)
+        // Delete
+        [HttpPost]
+        public async Task<IActionResult> Delete(int id)
         {
             await _employeeRepository.DeleteEmployeeAsync(id);
-            return RedirectToAction(nameof(Details));
+            return RedirectToAction(nameof(Index));
         }
 
-        // New Action for Add Employee functionality
-        [HttpGet]
-        public async Task<IActionResult> Add()
-        {
-            ViewBag.Departments = await _adminRepository.GetAllDepartmentsAsync();
-            return View();
-        }
 
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Add(Employee employee)
-        {
-            if (ModelState.IsValid)
-            {
-                var existingEmployee = await _employeeRepository.GetEmployeeByEmployeeIdAsync(employee.EmployeeId);
-                if (existingEmployee != null)
-                {
-                    ModelState.AddModelError("EmployeeId", "An employee with this ID already exists.");
-                    ViewBag.Departments = await _adminRepository.GetAllDepartmentsAsync();
-                    return View(employee);
-                }
 
-                await _employeeRepository.AddEmployeeAsync(employee);
-                return RedirectToAction(nameof(Details));
-            }
-            ViewBag.Departments = await _adminRepository.GetAllDepartmentsAsync();
-            return View(employee);
-        }
     }
 }

@@ -1,0 +1,182 @@
+@model Smart_Attendance_System.Models.ViewModel.EmployeeDashboardVM
+
+@{
+    ViewData["Title"] = "Employee Dashboard";
+    Layout = "_EmployeeLayout";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2><i class="fas fa-tachometer-alt text-primary"></i> Employee Dashboard</h2>
+    <div class="text-muted">
+        <i class="far fa-calendar-alt"></i> @DateTime.Now.ToString("dddd, MMMM dd, yyyy")
+    </div>
+</div>
+
+<!-- Current Status Card -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card border-0 shadow-sm">
+            <div class="card-body text-center py-4">
+                <div class="row align-items-center">
+                    <div class="col-md-6">
+                        <h4 class="text-muted mb-2">Current Status</h4>
+                        <div class="d-flex align-items-center justify-content-center">
+                            <div class="status-indicator @(Model.IsCheckedIn ? "bg-success" : "bg-secondary") rounded-circle d-inline-block mr-3"></div>
+                            <h3 class="mb-0 @(Model.IsCheckedIn ? "text-success" : "text-secondary")">
+                                @(Model.IsCheckedIn ? "Checked In" : "Checked Out")
+                            </h3>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="row text-center">
+                            <div class="col-6">
+                                <small class="text-muted d-block">Last Check In</small>
+                                <strong>@(Model.LastCheckIn?.ToString("hh:mm tt") ?? "—")</strong>
+                            </div>
+                            <div class="col-6">
+                                <small class="text-muted d-block">Last Check Out</small>
+                                <strong>@(Model.LastCheckOut?.ToString("hh:mm tt") ?? "—")</strong>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Statistics Cards -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card text-white bg-primary mb-3 text-center card-custom">
+            <div class="card-body">
+                <i class="fas fa-user-check fa-2x mb-2"></i>
+                <h3 class="card-text">@Model.Presents</h3>
+                <h6 class="card-title">Present Days</h6>
+                <small>This Month</small>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3">
+        <div class="card text-white bg-danger mb-3 text-center card-custom">
+            <div class="card-body">
+                <i class="fas fa-user-times fa-2x mb-2"></i>
+                <h3 class="card-text">@Model.Absents</h3>
+                <h6 class="card-title">Absent Days</h6>
+                <small>This Month</small>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3">
+        <div class="card text-white bg-warning mb-3 text-center card-custom">
+            <div class="card-body">
+                <i class="fas fa-clock fa-2x mb-2"></i>
+                <h3 class="card-text">@Model.LateArrivals</h3>
+                <h6 class="card-title">Late Arrivals</h6>
+                <small>This Month</small>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3">
+        <div class="card text-white bg-info mb-3 text-center card-custom">
+            <div class="card-body">
+                <i class="fas fa-calendar-check fa-2x mb-2"></i>
+                <h3 class="card-text">@Model.LeaveApproved</h3>
+                <h6 class="card-title">Leave Approved</h6>
+                <small>This Year</small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Leave Status Row -->
+<div class="row mb-4">
+    <div class="col-md-4">
+        <div class="card text-white bg-secondary mb-3 text-center card-custom">
+            <div class="card-body">
+                <i class="fas fa-hourglass fa-2x mb-2"></i>
+                <h3 class="card-text">@Model.LeavePending</h3>
+                <h6 class="card-title">Leave Pending</h6>
+                <small>Awaiting Approval</small>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card text-white bg-dark mb-3 text-center card-custom">
+            <div class="card-body">
+                <i class="fas fa-times-circle fa-2x mb-2"></i>
+                <h3 class="card-text">@Model.LeaveRejected</h3>
+                <h6 class="card-title">Leave Rejected</h6>
+                <small>This Year</small>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card text-white bg-success mb-3 text-center card-custom">
+            <div class="card-body">
+                <i class="fas fa-percentage fa-2x mb-2"></i>
+                                 <h3 class="card-text">@Model.AttendanceRate%</h3>
+                <h6 class="card-title">Attendance Rate</h6>
+                <small>This Month</small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Quick Actions -->
+<div class="row">
+    <div class="col-md-6">
+        <div class="card mb-3 card-custom">
+            <div class="card-body text-center">
+                <i class="fas fa-clock fa-3x text-primary mb-3"></i>
+                <h5 class="card-title">Mark Attendance</h5>
+                <p class="card-text">Check in or check out for today's work.</p>
+                <a class="btn btn-primary btn-lg" asp-controller="Employee" asp-action="Attendance">
+                    <i class="fas fa-fingerprint mr-2"></i>Go to Attendance
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6">
+        <div class="card mb-3 card-custom">
+            <div class="card-body text-center">
+                <i class="fas fa-calendar-plus fa-3x text-info mb-3"></i>
+                <h5 class="card-title">Apply for Leave</h5>
+                <p class="card-text">Submit a new leave request or view status.</p>
+                <a class="btn btn-info btn-lg" asp-controller="Employee" asp-action="LeaveApply">
+                    <i class="fas fa-edit mr-2"></i>Apply for Leave
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .status-indicator {
+        width: 20px;
+        height: 20px;
+        animation: pulse 2s infinite;
+    }
+    
+    @@keyframes pulse {
+        0% { transform: scale(1); }
+        50% { transform: scale(1.1); }
+        100% { transform: scale(1); }
+    }
+    
+    .card-custom {
+        border: none;
+        border-radius: 15px;
+        overflow: hidden;
+    }
+    
+    .card-custom .card-body {
+        padding: 1.5rem;
+    }
+</style>
