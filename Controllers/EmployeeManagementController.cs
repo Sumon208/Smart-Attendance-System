@@ -27,17 +27,17 @@ namespace Smart_Attendance_System.Controllers
             return View(employees);
         }
 
-        // Employee Details (View + Update)
-        //[HttpGet]
-        //public async Task<IActionResult> Details(int id)
-        //{
-        //    var employee = await _employeeRepository.GetEmployeeByIdAsync(id);
-        //    if (employee == null)
-        //    {
-        //        return NotFound();
-        //    }
-        //    return View(employee);
-        //}
+        //Employee Details(View + Update)
+        [HttpGet]
+        public async Task<IActionResult> Details(int id)
+        {
+            var employee = await _employeeRepository.GetEmployeeByIdAsync(id);
+            if (employee == null)
+            {
+                return NotFound();
+            }
+            return View(employee);
+        }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
