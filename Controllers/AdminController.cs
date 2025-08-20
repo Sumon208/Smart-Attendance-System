@@ -111,22 +111,30 @@ namespace Smart_Attendance_System.Controllers
 
 
 
-        [HttpGet]
-        public async Task<IActionResult> DeleteEmployee(string employeeId)
-        {
-            if (string.IsNullOrEmpty(employeeId))
-                return BadRequest("Employee ID is required.");
+        //[HttpGet]
+        //public async Task<IActionResult> DeleteEmployee(string employeeId)
+        //{
+        //    if (string.IsNullOrEmpty(employeeId))
+        //        return BadRequest("Employee ID is required.");
 
-            var employee = await _adminRepository.GetEmployeeByEmployeeIdAsync(employeeId);
-            if (employee == null)
-                return NotFound("Employee not found.");
+        //    var employee = await _adminRepository.GetEmployeeByEmployeeIdAsync(employeeId);
+        //    if (employee == null)
+        //        return NotFound("Employee not found.");
 
-            await _adminRepository.DeleteEmployeeWithRelatedDataAsync(employee.Id);
 
-            TempData["SuccessMessage"] = $"Employee '{employee.EmployeeName}' deleted successfully.";
+           
+        //    var relatedUsers = _context.SystemUsers.Where(u => u.EmployeeId == employee.Id);
+        //    _context.SystemUsers.RemoveRange(relatedUsers);
 
-            return RedirectToAction("Employee");
-        }
+        //    await _adminRepository.DeleteEmployeeAsync(employee.Id);
+
+        //    await _context.SaveChangesAsync();
+
+
+        //    TempData["SuccessMessage"] = $"Employee '{employee.EmployeeName}' deleted successfully.";
+
+        //    return RedirectToAction("Employee");
+        //}
 
 
 
