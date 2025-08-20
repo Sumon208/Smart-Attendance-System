@@ -18,15 +18,15 @@ namespace Smart_Attendance_System.Models
 
         [Required]
         [StringLength(50)]
-        public string EmployeeId { get; set; }
+        public required string EmployeeId { get; set; }
 
         [Required]
         [StringLength(100)]
-        public string EmployeeName { get; set; }
+        public required string EmployeeName { get; set; }
 
         [Required]
         [StringLength(500)]
-        public string EmployeePhotoPath { get; set; }
+        public required string EmployeePhotoPath { get; set; }
 
         [DataType(DataType.Date)]
         public DateTime? DateOfBirth { get; set; }

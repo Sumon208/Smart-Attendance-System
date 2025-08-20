@@ -69,15 +69,26 @@ namespace Smart_Attendance_System.Controllers
                 .OrderByDescending(a => a.AttendanceDate)
                 .FirstOrDefault()?.CheckOutTime;
 
+            // Get leave statistics for current year
+            var currentYearStart = new DateTime(currentYear, 1, 1);
+            var currentYearEnd = new DateTime(currentYear, 12, 31);
+            
+            var leaveHistory = await _employeeRepository.GetEmployeeLeaveHistoryAsync(employeeIdInt);
+            var yearLeaveHistory = leaveHistory.Where(l => l.StartDate >= currentYearStart && l.StartDate <= currentYearEnd).ToList();
+            
+            var leavePending = yearLeaveHistory.Count(l => l.Status == LeaveStatus.Pending);
+            var leaveApproved = yearLeaveHistory.Count(l => l.Status == LeaveStatus.Approved);
+            var leaveRejected = yearLeaveHistory.Count(l => l.Status == LeaveStatus.Rejected);
+
             var vm = new EmployeeDashboardVM
             {
-                EmployeeName = User.Identity?.Name,
+                EmployeeName = User.Identity?.Name ?? "Unknown",
                 Presents = presents,
                 Absents = absents,
                 LateArrivals = lateArrivals,
-                LeavePending = 1, // TODO: Implement leave counting
-                LeaveApproved = 5, // TODO: Implement leave counting
-                LeaveRejected = 0, // TODO: Implement leave counting
+                LeavePending = leavePending,
+                LeaveApproved = leaveApproved,
+                LeaveRejected = leaveRejected,
                 AttendanceRate = attendanceRate,
                 IsCheckedIn = isCheckedIn,
                 LastCheckIn = lastCheckIn,
@@ -87,274 +98,6 @@ namespace Smart_Attendance_System.Controllers
             return View(vm);
         }
 
-        public async Task<IActionResult> Attendance()
-        {
-            // Get current employee ID from claims
-            var employeeId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            
-            if (string.IsNullOrEmpty(employeeId))
-            {
-                return RedirectToAction("Login", "Account");
-            }
-
-            var employeeIdInt = int.Parse(employeeId);
-            
-            // Get today's attendance
-            var todayAttendance = await _employeeRepository.GetTodayAttendanceAsync(employeeIdInt);
-            
-            // Get recent attendance history
-            var recentAttendance = await _employeeRepository.GetEmployeeAttendanceHistoryAsync(employeeIdInt, 7);
-            
-            var vm = new UserAttendanceViewModel
-            {
-                EmployeeId = employeeIdInt,
-                IsCheckedIn = todayAttendance?.CheckInTime.HasValue ?? false,
-                IsCheckedOut = todayAttendance?.CheckOutTime.HasValue ?? false,
-                CheckInTime = todayAttendance?.CheckInTime,
-                CheckOutTime = todayAttendance?.CheckOutTime,
-                WorkingHours = CalculateWorkingHours(todayAttendance?.CheckInTime, todayAttendance?.CheckOutTime),
-                IsLate = todayAttendance?.Status == "Late",
-                Status = todayAttendance?.Status ?? "Normal",
-                RecentAttendance = recentAttendance.ToList()
-            };
-
-            return View(vm);
-        }
-
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> CheckIn()
-        {
-            var employeeId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            
-            if (string.IsNullOrEmpty(employeeId))
-            {
-                return RedirectToAction("Login", "Account");
-            }
-
-            try
-            {
-                var employeeIdInt = int.Parse(employeeId);
-                
-                // Check if already checked in today
-                var todayAttendance = await _employeeRepository.GetTodayAttendanceAsync(employeeIdInt);
-                
-                if (todayAttendance != null && todayAttendance.CheckInTime.HasValue)
-                {
-                    TempData["ErrorMessage"] = "You have already checked in today.";
-                    return RedirectToAction("Attendance");
-                }
-
-                var currentTime = DateTime.Now;
-                var isLate = currentTime.TimeOfDay > new TimeSpan(9, 30, 0); // After 9:30 AM
-                
-                if (todayAttendance == null)
-                {
-                    // Create new attendance record
-                    var newAttendance = new Attendance
-                    {
-                        EmployeeId = employeeIdInt,
-                        AttendanceDate = DateTime.Today,
-                        CheckInTime = currentTime,
-                        Status = isLate ? "Late" : "Present"
-                    };
-                    
-                    await _employeeRepository.CreateAttendanceAsync(newAttendance);
-                }
-                else
-                {
-                    // Update existing record
-                    todayAttendance.CheckInTime = currentTime;
-                    todayAttendance.Status = isLate ? "Late" : "Present";
-                    await _employeeRepository.UpdateAttendanceAsync(todayAttendance);
-                }
-                
-                var message = isLate ? "Check-in successful! You arrived late today." : "Check-in successful! Welcome to work.";
-                TempData["SuccessMessage"] = message;
-                return RedirectToAction("Attendance");
-            }
-            catch (Exception ex)
-            {
-                TempData["ErrorMessage"] = "Check-in failed. Please try again.";
-                return RedirectToAction("Attendance");
-            }
-        }
-
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> CheckOut()
-        {
-            var employeeId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            
-            if (string.IsNullOrEmpty(employeeId))
-            {
-                return RedirectToAction("Login", "Account");
-            }
-
-            try
-            {
-                var employeeIdInt = int.Parse(employeeId);
-                
-                // Check if checked in today
-                var todayAttendance = await _employeeRepository.GetTodayAttendanceAsync(employeeIdInt);
-                
-                if (todayAttendance == null || !todayAttendance.CheckInTime.HasValue)
-                {
-                    TempData["ErrorMessage"] = "You must check in before checking out.";
-                    return RedirectToAction("Attendance");
-                }
-                
-                if (todayAttendance.CheckOutTime.HasValue)
-                {
-                    TempData["ErrorMessage"] = "You have already checked out today.";
-                    return RedirectToAction("Attendance");
-                }
-
-                var currentTime = DateTime.Now;
-                todayAttendance.CheckOutTime = currentTime;
-                
-                // Calculate working hours
-                var workingHours = (currentTime - todayAttendance.CheckInTime.Value).TotalHours;
-                
-                await _employeeRepository.UpdateAttendanceAsync(todayAttendance);
-                
-                TempData["SuccessMessage"] = $"Check-out successful! You worked for {workingHours:F1} hours today. Have a great day!";
-                return RedirectToAction("Attendance");
-            }
-            catch (Exception ex)
-            {
-                TempData["ErrorMessage"] = "Check-out failed. Please try again.";
-                return RedirectToAction("Attendance");
-            }
-        }
-
-        public async Task<IActionResult> LeaveApply()
-        {
-            return View(new Leave());
-        }
-
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> SubmitLeave(Leave leave)
-        {
-            if (!ModelState.IsValid)
-            {
-                return View("LeaveApply", leave);
-            }
-
-            var employeeId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            
-            if (string.IsNullOrEmpty(employeeId))
-            {
-                return RedirectToAction("Login", "Account");
-            }
-
-            try
-            {
-                // TODO: Implement actual leave submission logic
-                // 1. Set employee ID
-                // 2. Set status to Pending
-                // 3. Save to database
-                
-                TempData["SuccessMessage"] = "Leave application submitted successfully! It will be reviewed by your manager.";
-                return RedirectToAction("LeaveHistory");
-            }
-            catch (Exception ex)
-            {
-                TempData["ErrorMessage"] = "Leave application failed. Please try again.";
-                return View("LeaveApply", leave);
-            }
-        }
-
-        public async Task<IActionResult> LeaveHistory()
-        {
-            var employeeId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            
-            if (string.IsNullOrEmpty(employeeId))
-            {
-                return RedirectToAction("Login", "Account");
-            }
-
-            // TODO: Implement actual leave history retrieval
-            var leaves = new List<Leave>();
-
-            return View(leaves);
-        }
-
-        public async Task<IActionResult> AttendanceHistory(int page = 1, int pageSize = 5, string status = "", string dateFrom = "", string dateTo = "")
-        {
-            var employeeId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            
-            if (string.IsNullOrEmpty(employeeId))
-            {
-                return RedirectToAction("Login", "Account");
-            }
-
-            var employeeIdInt = int.Parse(employeeId);
-            
-            // Get all attendance history for filtering
-            var allAttendance = await _employeeRepository.GetEmployeeAttendanceHistoryAsync(employeeIdInt, 365);
-            
-            // Apply filters
-            var filteredAttendance = allAttendance.AsQueryable();
-            
-            if (!string.IsNullOrEmpty(status) && status != "All")
-            {
-                filteredAttendance = filteredAttendance.Where(a => a.Status == status);
-            }
-            
-            if (!string.IsNullOrEmpty(dateFrom) && DateTime.TryParse(dateFrom, out var fromDate))
-            {
-                filteredAttendance = filteredAttendance.Where(a => a.AttendanceDate >= fromDate);
-            }
-            
-            if (!string.IsNullOrEmpty(dateTo) && DateTime.TryParse(dateTo, out var toDate))
-            {
-                filteredAttendance = filteredAttendance.Where(a => a.AttendanceDate <= toDate);
-            }
-            
-            // Calculate statistics
-            var totalRecords = filteredAttendance.Count();
-            var totalPages = (int)Math.Ceiling((double)totalRecords / pageSize);
-            
-            // Apply pagination
-            var paginatedAttendance = filteredAttendance
-                .OrderByDescending(a => a.AttendanceDate)
-                .Skip((page - 1) * pageSize)
-                .Take(pageSize)
-                .ToList();
-            
-            // Calculate statistics for the filtered data
-            var presentDays = filteredAttendance.Count(a => a.Status == "Present");
-            var absentDays = filteredAttendance.Count(a => a.Status == "Absent");
-            var lateDays = filteredAttendance.Count(a => a.Status == "Late");
-            var attendanceRate = totalRecords > 0 ? Math.Round((double)presentDays / totalRecords * 100, 1) : 0;
-            
-            // Calculate average working hours
-            var workingDays = filteredAttendance.Where(a => a.CheckInTime.HasValue && a.CheckOutTime.HasValue);
-            var averageWorkingHours = workingDays.Any() ? workingDays.Average(a => (a.CheckOutTime.Value - a.CheckInTime.Value).TotalHours) : 0;
-            
-            // Create view model for pagination and filtering
-            var viewModel = new AttendanceHistoryViewModel
-            {
-                Attendances = paginatedAttendance,
-                CurrentPage = page,
-                PageSize = pageSize,
-                TotalPages = totalPages,
-                TotalRecords = totalRecords,
-                Status = status,
-                DateFrom = dateFrom,
-                DateTo = dateTo,
-                StatusOptions = new List<string> { "All", "Present", "Late", "Absent" },
-                PresentDays = presentDays,
-                AbsentDays = absentDays,
-                LateDays = lateDays,
-                AttendanceRate = attendanceRate,
-                AverageWorkingHours = Math.Round(averageWorkingHours, 1)
-            };
-
-            return View(viewModel);
-        }
 
         public async Task<IActionResult> Profile()
         {
@@ -385,66 +128,11 @@ namespace Smart_Attendance_System.Controllers
             if (!checkInTime.HasValue || !checkOutTime.HasValue)
                 return 0;
 
-            var duration = checkOutTime.Value - checkInTime.Value;
+            var duration = checkOutTime!.Value - checkInTime!.Value;
             return duration.TotalHours;
         }
         
-        // Export attendance data to CSV
-        [HttpGet]
-        public async Task<IActionResult> ExportAttendance(string status = "", string dateFrom = "", string dateTo = "")
-        {
-            var employeeId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            
-            if (string.IsNullOrEmpty(employeeId))
-            {
-                return RedirectToAction("Login", "Account");
-            }
 
-            var employeeIdInt = int.Parse(employeeId);
-            
-            // Get filtered attendance data
-            var allAttendance = await _employeeRepository.GetEmployeeAttendanceHistoryAsync(employeeIdInt, 365);
-            var filteredAttendance = allAttendance.AsQueryable();
-            
-            if (!string.IsNullOrEmpty(status) && status != "All")
-            {
-                filteredAttendance = filteredAttendance.Where(a => a.Status == status);
-            }
-            
-            if (!string.IsNullOrEmpty(dateFrom) && DateTime.TryParse(dateFrom, out var fromDate))
-            {
-                filteredAttendance = filteredAttendance.Where(a => a.AttendanceDate >= fromDate);
-            }
-            
-            if (!string.IsNullOrEmpty(dateTo) && DateTime.TryParse(dateTo, out var toDate))
-            {
-                filteredAttendance = filteredAttendance.Where(a => a.AttendanceDate <= toDate);
-            }
-            
-            var attendanceList = filteredAttendance.OrderByDescending(a => a.AttendanceDate).ToList();
-            
-            // Generate CSV content
-            var csvContent = "Date,Day,Check In,Check Out,Working Hours,Status\n";
-            
-            foreach (var attendance in attendanceList)
-            {
-                var checkIn = attendance.CheckInTime?.ToString("HH:mm") ?? "—";
-                var checkOut = attendance.CheckOutTime?.ToString("HH:mm") ?? "—";
-                var workingHours = attendance.CheckInTime.HasValue && attendance.CheckOutTime.HasValue 
-                    ? (attendance.CheckOutTime.Value - attendance.CheckInTime.Value).TotalHours.ToString("F1") 
-                    : "—";
-                
-                csvContent += $"{attendance.AttendanceDate:yyyy-MM-dd}," +
-                             $"{attendance.AttendanceDate:dddd}," +
-                             $"{checkIn}," +
-                             $"{checkOut}," +
-                             $"{workingHours}," +
-                             $"{attendance.Status}\n";
-            }
-            
-            var fileName = $"attendance_export_{DateTime.Now:yyyyMMdd_HHmmss}.csv";
-            
-            return File(System.Text.Encoding.UTF8.GetBytes(csvContent), "text/csv", fileName);
-        }
+
     }
 }
