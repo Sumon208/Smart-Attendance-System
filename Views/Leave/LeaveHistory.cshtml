@@ -108,19 +108,10 @@
                                 <td>
                                     @if (leave.Status == LeaveStatus.Pending)
                                     {
-
-                                        <a asp-action="EditLeave" asp-route-id="@leave.LeaveId" class="btn btn-sm btn-outline-primary mr-1">
-                                            <i class="fas fa-edit"></i> Edit
-                                        </a>
-                                        <form asp-action="DeleteLeave" asp-route-id="@leave.LeaveId" method="post" style="display:inline;">
-                                            <button type="submit" class="btn btn-sm btn-outline-danger" onclick="return confirm('Are you sure you want to delete this leave request?');">
-                                                <i class="fas fa-trash"></i> Delete
-
                                         <form asp-action="CancelLeave" method="post" style="display: inline;">
                                             <input type="hidden" name="leaveId" value="@leave.LeaveId" />
                                             <button type="submit" class="btn btn-sm btn-outline-warning" onclick="return confirm('Are you sure you want to cancel this leave request?')">
                                                 <i class="fas fa-times"></i> Cancel
-
                                             </button>
                                         </form>
                                     }
@@ -149,7 +140,66 @@
     </div>
 </div>
 
-
+<!-- Filter and Search Options -->
+@*@{
+      <div class="row mt-4">
+    <div class="col-md-6">
+        <div class="card card-custom">
+            <div class="card-header bg-light">
+                <h6 class="mb-0"><i class="fas fa-filter mr-2"></i>Filter Options</h6>
+            </div>
+            <div class="card-body">
+                <div class="form-group">
+                    <label>Status Filter</label>
+                    <select class="form-control" id="statusFilter">
+                        <option value="">All Statuses</option>
+                        <option value="Pending">Pending</option>
+                        <option value="Approved">Approved</option>
+                        <option value="Rejected">Rejected</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Leave Type Filter</label>
+                    <select class="form-control" id="typeFilter">
+                        <option value="">All Types</option>
+                        <option value="Annual">Annual</option>
+                        <option value="Sick">Sick</option>
+                        <option value="Personal">Personal</option>
+                        <option value="Maternity">Maternity</option>
+                        <option value="Paternity">Paternity</option>
+                        <option value="Other">Other</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6">
+        <div class="card card-custom">
+            <div class="card-header bg-light">
+                <h6 class="mb-0"><i class="fas fa-search mr-2"></i>Search</h6>
+            </div>
+            <div class="card-body">
+                <div class="form-group">
+                    <label>Search by Reason</label>
+                    <input type="text" class="form-control" id="searchInput" placeholder="Search in leave reasons...">
+                </div>
+                <div class="form-group">
+                    <label>Date Range</label>
+                    <div class="row">
+                        <div class="col-6">
+                            <input type="date" class="form-control" id="startDateFilter" placeholder="From">
+                        </div>
+                        <div class="col-6">
+                            <input type="date" class="form-control" id="endDateFilter" placeholder="To">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+}*@
 
 <style>
     .card-custom {

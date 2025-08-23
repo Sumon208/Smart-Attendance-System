@@ -13,14 +13,6 @@ namespace Smart_Attendance_System.Services.Interfaces
         Task<Employee?> GetEmployeeByIdAsync(int id);
         Task AddEmployeeAsync(Employee employee);
         Task UpdateEmployeeAsync(Employee employee);
-
-        Task DeleteEmployeeAsync(int id);
-        Task AddLeaveAsync(Leave leave);
-        Task<IEnumerable<Leave>> GetLeavesByEmployeeIdAsync(int employeeId);
-        Task UpdateLeaveAsync(Leave leave);
-        Task DeleteLeaveAsync(int leaveId);
-
-
         Task DeleteEmployeeAsync(int employeeId);
         
         // Attendance methods
@@ -30,8 +22,7 @@ namespace Smart_Attendance_System.Services.Interfaces
         Task<IEnumerable<Attendance>> GetEmployeeAttendanceHistoryAsync(int employeeId, int days = 30);
         Task<bool> IsEmployeeCheckedInTodayAsync(int employeeId);
         Task<bool> IsEmployeeCheckedOutTodayAsync(int employeeId);
-
-
+        
         // Leave methods
         Task<Leave> CreateLeaveAsync(Leave leave);
         Task<IEnumerable<Leave>> GetEmployeeLeaveHistoryAsync(int employeeId);
@@ -39,6 +30,5 @@ namespace Smart_Attendance_System.Services.Interfaces
         Task UpdateLeaveAsync(Leave leave);
         Task DeleteLeaveAsync(int leaveId);
         Task<int> GetEmployeeLeaveBalanceAsync(int employeeId, string leaveType);
-
     }
 }
