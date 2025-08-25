@@ -98,7 +98,7 @@ namespace Smart_Attendance_System.Services.Repositories
         public async Task DeleteEmployeeWithRelatedDataAsync(int employeeId)
         {
             var employee = await _context.Employees.FindAsync(employeeId);
-            if (employee != null)
+            if (employee != null && employee.Id > 0)
             {
                 // Delete related SystemUsers first
                 var relatedUsers = _context.SystemUsers.Where(u => u.EmployeeId == employee.Id);
@@ -112,7 +112,10 @@ namespace Smart_Attendance_System.Services.Repositories
 
         public async Task<IEnumerable<Leave>> GetAllLeaveApplicationsAsync()
         {
-            return await _context.Leaves.Include(l => l.Employee).ToListAsync();
+            return await _context.Leaves
+                .Include(l => l.Employee)
+                .ThenInclude(e => e.Department)
+                .ToListAsync();
         }
 
         public async Task UpdateLeaveStatusAsync(int leaveId, LeaveStatus status)
