@@ -11,13 +11,15 @@ namespace Smart_Attendance_System.Controllers
     {
         private readonly IEmployeeRepository _employeeRepository;
         private readonly IAdminRepository _adminRepository;
+        private readonly IAttendanceRepository _attendanceRepository;
         private readonly IWebHostEnvironment _hostEnvironment;
 
-        public EmployeeManagementController(IEmployeeRepository employeeRepository, IAdminRepository adminRepository, IWebHostEnvironment hostEnvironment)
+        public EmployeeManagementController(IEmployeeRepository employeeRepository, IAdminRepository adminRepository, IWebHostEnvironment hostEnvironment,IAttendanceRepository attendanceRepository)
         {
             _employeeRepository = employeeRepository;
             _adminRepository = adminRepository;
             _hostEnvironment = hostEnvironment;
+            _attendanceRepository = attendanceRepository;
         }
 
         // Employee Details Action
@@ -31,7 +33,7 @@ namespace Smart_Attendance_System.Controllers
         [HttpGet]
         public async Task<IActionResult> Details(int id)
         {
-            var employee = await _employeeRepository.GetEmployeeByIdAsync(id);
+            var employee = await _attendanceRepository.GetEmployeeByIdAsync(id);
             if (employee == null)
             {
                 return NotFound();

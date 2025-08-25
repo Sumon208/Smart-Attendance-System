@@ -4,6 +4,7 @@ using Smart_Attendance_System.Models.ViewModel;
 using Smart_Attendance_System.Services.Interfaces;
 using Smart_Attendance_System.Models;
 using System.Security.Claims;
+using Smart_Attendance_System.Services.Repositores;
 
 namespace Smart_Attendance_System.Controllers
 {
@@ -11,12 +12,14 @@ namespace Smart_Attendance_System.Controllers
     public class EmployeeController : Controller
     {
         private readonly IEmployeeRepository _employeeRepository;
+        private readonly IAttendanceRepository _attendancerepository;
         private readonly IAccountRepository _accountRepository;
 
-        public EmployeeController(IEmployeeRepository employeeRepository, IAccountRepository accountRepository)
+        public EmployeeController(IEmployeeRepository employeeRepository, IAccountRepository accountRepository,IAttendanceRepository attendanceRepository)
         {
             _employeeRepository = employeeRepository;
             _accountRepository = accountRepository;
+            _attendancerepository = attendanceRepository;
         }
 
         public IActionResult Index()
@@ -42,7 +45,7 @@ namespace Smart_Attendance_System.Controllers
             var monthStart = new DateTime(currentYear, currentMonth, 1);
             var monthEnd = monthStart.AddMonths(1).AddDays(-1);
             
-            var monthlyAttendance = await _employeeRepository.GetEmployeeAttendanceHistoryAsync(employeeIdInt, 31);
+            var monthlyAttendance = await _attendancerepository.GetEmployeeAttendanceHistoryAsync(employeeIdInt, 31);
             var monthAttendance = monthlyAttendance.Where(a => a.AttendanceDate >= monthStart && a.AttendanceDate <= monthEnd).ToList();
             
             // Calculate statistics
@@ -55,7 +58,7 @@ namespace Smart_Attendance_System.Controllers
             var attendanceRate = totalWorkingDays > 0 ? Math.Round((double)presents / totalWorkingDays * 100, 1) : 0;
             
             // Get today's attendance status
-            var todayAttendance = await _employeeRepository.GetTodayAttendanceAsync(employeeIdInt);
+            var todayAttendance = await _attendancerepository.GetTodayAttendanceAsync(employeeIdInt);
             var isCheckedIn = todayAttendance?.CheckInTime.HasValue ?? false;
             
             // Get last check-in and check-out times
@@ -111,7 +114,7 @@ namespace Smart_Attendance_System.Controllers
             var employeeIdInt = int.Parse(employeeId);
             
             // Get employee profile data
-            var employee = await _employeeRepository.GetEmployeeByIdAsync(employeeIdInt);
+            var employee = await _attendancerepository.GetEmployeeByIdAsync(employeeIdInt);
             
             if (employee == null)
             {

@@ -10,13 +10,14 @@ using iTextSharp.text.pdf;
 namespace Smart_Attendance_System.Controllers
 {
     [Authorize(Roles = "2")] // Restrict access to only Employee users (UserType 2)
-    public class EmployeeAttendanceController : Controller
+    public class AttendanceController : Controller
     {
-        private readonly IEmployeeRepository _employeeRepository;
 
-        public EmployeeAttendanceController(IEmployeeRepository employeeRepository)
+        private readonly IAttendanceRepository _attendancerepository;
+
+        public AttendanceController(IAttendanceRepository attendancerepository)
         {
-            _employeeRepository = employeeRepository;
+            _attendancerepository = attendancerepository;
         }
 
         public async Task<IActionResult> Attendance()
@@ -32,10 +33,10 @@ namespace Smart_Attendance_System.Controllers
             var employeeIdInt = int.Parse(employeeId);
             
             // Get today's attendance
-            var todayAttendance = await _employeeRepository.GetTodayAttendanceAsync(employeeIdInt);
+            var todayAttendance = await _attendancerepository.GetTodayAttendanceAsync(employeeIdInt);
             
             // Get recent attendance history
-            var recentAttendance = await _employeeRepository.GetEmployeeAttendanceHistoryAsync(employeeIdInt, 7);
+            var recentAttendance = await _attendancerepository.GetEmployeeAttendanceHistoryAsync(employeeIdInt, 7);
             
             var vm = new UserAttendanceViewModel
             {
@@ -49,7 +50,7 @@ namespace Smart_Attendance_System.Controllers
                 Status = todayAttendance?.Status ?? "Normal",
                 RecentAttendance = recentAttendance.ToList()
             };
-
+            
             return View(vm);
         }
 
@@ -69,7 +70,7 @@ namespace Smart_Attendance_System.Controllers
                 var employeeIdInt = int.Parse(employeeId);
                 
                 // Check if already checked in today
-                var todayAttendance = await _employeeRepository.GetTodayAttendanceAsync(employeeIdInt);
+                var todayAttendance = await _attendancerepository.GetTodayAttendanceAsync(employeeIdInt);
                 
                 if (todayAttendance != null && todayAttendance.CheckInTime.HasValue)
                 {
@@ -91,14 +92,14 @@ namespace Smart_Attendance_System.Controllers
                         Status = isLate ? "Late" : "Present"
                     };
                     
-                    await _employeeRepository.CreateAttendanceAsync(newAttendance);
+                    await _attendancerepository.CreateAttendanceAsync(newAttendance);
                 }
                 else
                 {
                     // Update existing record
                     todayAttendance.CheckInTime = currentTime;
                     todayAttendance.Status = isLate ? "Late" : "Present";
-                    await _employeeRepository.UpdateAttendanceAsync(todayAttendance);
+                    await _attendancerepository.UpdateAttendanceAsync(todayAttendance);
                 }
                 
                 var message = isLate ? "Check-in successful! You arrived late today." : "Check-in successful! Welcome to work.";
@@ -128,7 +129,7 @@ namespace Smart_Attendance_System.Controllers
                 var employeeIdInt = int.Parse(employeeId);
                 
                 // Check if checked in today
-                var todayAttendance = await _employeeRepository.GetTodayAttendanceAsync(employeeIdInt);
+                var todayAttendance = await _attendancerepository.GetTodayAttendanceAsync(employeeIdInt);
                 
                 if (todayAttendance == null || !todayAttendance.CheckInTime.HasValue)
                 {
@@ -148,7 +149,7 @@ namespace Smart_Attendance_System.Controllers
                 // Calculate working hours
                 var workingHours = (currentTime - todayAttendance.CheckInTime.Value).TotalHours;
                 
-                await _employeeRepository.UpdateAttendanceAsync(todayAttendance);
+                await _attendancerepository.UpdateAttendanceAsync(todayAttendance);
                 
                 TempData["SuccessMessage"] = $"Check-out successful! You worked for {workingHours:F1} hours today. Have a great day!";
                 return RedirectToAction("Attendance");
@@ -172,7 +173,7 @@ namespace Smart_Attendance_System.Controllers
             var employeeIdInt = int.Parse(employeeId);
             
             // Get all attendance history for filtering
-            var allAttendance = await _employeeRepository.GetEmployeeAttendanceHistoryAsync(employeeIdInt, 365);
+            var allAttendance = await _attendancerepository.GetEmployeeAttendanceHistoryAsync(employeeIdInt, 365);
             
             // Apply filters
             var filteredAttendance = allAttendance.AsQueryable();
@@ -249,10 +250,10 @@ namespace Smart_Attendance_System.Controllers
             var employeeIdInt = int.Parse(employeeId);
             
             // Get employee information
-            var employee = await _employeeRepository.GetEmployeeByIdAsync(employeeIdInt);
+            var employee = await _attendancerepository.GetEmployeeByIdAsync(employeeIdInt);
             
             // Get filtered attendance data
-            var allAttendance = await _employeeRepository.GetEmployeeAttendanceHistoryAsync(employeeIdInt, 365);
+            var allAttendance = await _attendancerepository.GetEmployeeAttendanceHistoryAsync(employeeIdInt, 365);
             var filteredAttendance = allAttendance.AsQueryable();
             
             if (!string.IsNullOrEmpty(status) && status != "All")

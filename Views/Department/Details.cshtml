@@ -1,0 +1,62 @@
+@model Smart_Attendance_System.Models.Department
+
+@{
+    ViewData["Title"] = "Department Details";
+    Layout = "_AdminLayout";
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-md-8 offset-md-2">
+            <div class="card">
+                <div class="card-header bg-info text-white">
+                    <h4 class="mb-0"><i class="fas fa-building"></i> Department Details</h4>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <dl class="row">
+                                <dt class="col-sm-4 fw-bold">Department ID:</dt>
+                                <dd class="col-sm-8">@Model.DepartmentId</dd>
+                            </dl>
+                        </div>
+                        <div class="col-md-6">
+                            <dl class="row">
+                                <dt class="col-sm-4 fw-bold">Department Name:</dt>
+                                <dd class="col-sm-8">@Model.DepartmentName</dd>
+                            </dl>
+                        </div>
+                    </div>
+
+                    <div class="row mt-3">
+                        <div class="col-12">
+                            <dl class="row">
+                                <dt class="col-sm-2 fw-bold">Created Date:</dt>
+                                <dd class="col-sm-10">@DateTime.Now.ToString("MMMM dd, yyyy")</dd>
+                            </dl>
+                        </div>
+                    </div>
+
+                    <div class="row mt-4">
+                        <div class="col-12">
+                            <h5 class="text-muted">Quick Actions</h5>
+                            <div class="d-flex gap-2 flex-wrap">
+                                <a asp-action="Edit" asp-route-id="@Model.DepartmentId" class="btn btn-warning">
+                                    <i class="fas fa-edit"></i> Edit Department
+                                </a>
+                                <a asp-action="Delete" asp-route-id="@Model.DepartmentId" class="btn btn-danger">
+                                    <i class="fas fa-trash"></i> Delete Department
+                                </a>
+                                <a asp-action="Index" class="btn btn-secondary">
+                                    <i class="fas fa-arrow-left"></i> Back to List
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+

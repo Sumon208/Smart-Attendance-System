@@ -49,7 +49,7 @@
                 <button type="submit" class="btn btn-primary mr-2">
                     <i class="fas fa-search mr-1"></i>Filter
                 </button>
-                <a href="@Url.Action("AttendanceHistory", "EmployeeAttendance")" class="btn btn-secondary">
+                <a href="@Url.Action("AttendanceHistory", "Attendance")" class="btn btn-secondary">
                     <i class="fas fa-times mr-1"></i>Clear
                 </a>
             </div>
@@ -120,7 +120,7 @@
                     </div>
                 </div>
                 <div class="form-group">
-                    <a href="@Url.Action("ExportAttendancePDF", "EmployeeAttendance", new { status = Model.Status, dateFrom = Model.DateFrom, dateTo = Model.DateTo })" 
+                    <a href="@Url.Action("ExportAttendancePDF", "Attendance", new { status = Model.Status, dateFrom = Model.DateFrom, dateTo = Model.DateTo })" 
                        class="btn btn-danger btn-block">
                         <i class="fas fa-file-pdf mr-2"></i>Export to PDF
                     </a>
@@ -241,7 +241,7 @@
                         @if (Model.HasPreviousPage)
                         {
                             <li class="page-item">
-                                <a class="page-link" href="@Url.Action("AttendanceHistory", "EmployeeAttendance", new { page = Model.PreviousPage, status = Model.Status, dateFrom = Model.DateFrom, dateTo = Model.DateTo })">
+                                <a class="page-link" href="@Url.Action("AttendanceHistory", "Attendance", new { page = Model.PreviousPage, status = Model.Status, dateFrom = Model.DateFrom, dateTo = Model.DateTo })">
                                     <i class="fas fa-chevron-left"></i> Previous
                                 </a>
                             </li>
@@ -265,7 +265,7 @@
                         @if (Model.HasNextPage)
                         {
                             <li class="page-item">
-                                <a class="page-link" href="@Url.Action("AttendanceHistory", "EmployeeAttendance", new { page = Model.NextPage, status = Model.Status, dateFrom = Model.DateFrom, dateTo = Model.DateTo })">
+                                <a class="page-link" href="@Url.Action("AttendanceHistory", "Attendance", new { page = Model.NextPage, status = Model.Status, dateFrom = Model.DateFrom, dateTo = Model.DateTo })">
                                     Next <i class="fas fa-chevron-right"></i>
                                 </a>
                             </li>
