@@ -5,7 +5,7 @@ namespace Smart_Attendance_System.Models
     public class Department
     {
         [Key]
-public int DepartmentId { get; set; }
+        public int DepartmentId { get; set; }
 
         [Required]
         [StringLength(100)]
