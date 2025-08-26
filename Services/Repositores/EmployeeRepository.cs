@@ -236,12 +236,12 @@ namespace Smart_Attendance_System.Services.Repositories
         {
             try
             {
-                // DB থেকে পুরানো Employee নিয়ে আসো
+              
                 var existingEmployee = await GetEmployeeByIdAsync(employee.Id);
                 if (existingEmployee == null)
                     return false;
 
-                // যদি EmployeeId duplicate হয় (optional)
+             
                 var isDuplicate = await _context.Employees
                     .AnyAsync(e => e.EmployeeId.ToLower() == employee.EmployeeId.ToLower()
                                 && e.Id != employee.Id);

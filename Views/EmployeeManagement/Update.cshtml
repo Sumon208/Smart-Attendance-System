@@ -68,12 +68,13 @@
                             <span asp-validation-for="JoiningDate" class="text-danger"></span>
                         </div>
                         <div class="col-md-6">
-                            <label asp-for="DepartmentId" class="form-label"></label>
-                            <select asp-for="DepartmentId" class="form-select" asp-items="ViewBag.Departments">
+                            <label asp-for="Department" class="form-label"></label>
+                            <select asp-for="DepartmentId" class="form-select" asp-items="ViewBag.Department">
                                 <option value="">Select Department</option>
                             </select>
                             <span asp-validation-for="DepartmentId" class="text-danger"></span>
                         </div>
+
                     </div>
 
                     <div class="row g-3 mt-3">
