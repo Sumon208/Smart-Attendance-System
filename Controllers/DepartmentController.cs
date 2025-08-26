@@ -8,24 +8,25 @@ namespace Smart_Attendance_System.Controllers
     [Authorize(Roles = "1")] // Restrict access to only users with UserType 1 (Admin)
     public class DepartmentController : Controller
     {
-        private readonly IDepartmentService _departmentService;
+        private readonly IDepartmentRepository _department;
 
-        public DepartmentController(IDepartmentService departmentService)
+        public DepartmentController(IDepartmentRepository departmentService)
         {
-            _departmentService = departmentService;
+            _department = departmentService;
         }
 
         // GET: Department
         public async Task<IActionResult> Index()
         {
-            var departments = await _departmentService.GetAllDepartmentsAsync();
-            return View(departments);
+          //  var departments = await _departmentService.GetAllDepartmentsAsync();
+           var dept=await _department.GetDepartmentsAsync();
+            return View(dept);
         }
 
         // GET: Department/Details/5
         public async Task<IActionResult> Details(int id)
         {
-            var department = await _departmentService.GetDepartmentByIdAsync(id);
+            var department = await _department.GetDepartmentByIdASync(id);
             if (department == null)
             {
                 TempData["ErrorMessage"] = "Department not found.";
@@ -47,7 +48,7 @@ namespace Smart_Attendance_System.Controllers
         {
             try
             {
-                System.Diagnostics.Debug.WriteLine($"Received DepartmentName: {DepartmentName}");
+                Console.WriteLine($"Received DepartmentName: {DepartmentName}");
                 
                 if (string.IsNullOrWhiteSpace(DepartmentName))
                 {
@@ -56,9 +57,9 @@ namespace Smart_Attendance_System.Controllers
                 }
 
                 var department = new Department { DepartmentName = DepartmentName };
-                System.Diagnostics.Debug.WriteLine($"Created department object: {department.DepartmentName}");
+                Console.WriteLine($"Created department object: {department.DepartmentName}");
                 
-                var result = await _departmentService.AddDepartmentAsync(department);
+                var result = await _department.AddDepartmentAsync(department);
                 
                 if (result)
                 {
@@ -83,7 +84,7 @@ namespace Smart_Attendance_System.Controllers
         // GET: Department/Edit/5
         public async Task<IActionResult> Edit(int id)
         {
-            var department = await _departmentService.GetDepartmentByIdAsync(id);
+            var department = await _department.GetDepartmentByIdASync(id);
             if (department == null)
             {
                 TempData["ErrorMessage"] = "Department not found.";
@@ -95,7 +96,7 @@ namespace Smart_Attendance_System.Controllers
         // POST: Department/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("DepartmentId,DepartmentName")] Department department)
+        public async Task<IActionResult> Edit(int id, Department department)
         {
             if (id != department.DepartmentId)
             {
@@ -103,57 +104,56 @@ namespace Smart_Attendance_System.Controllers
                 return RedirectToAction(nameof(Index));
             }
 
-            if (ModelState.IsValid)
+            if (!ModelState.IsValid)
             {
-                var result = await _departmentService.UpdateDepartmentAsync(department);
-                if (result)
-                {
-                    TempData["SuccessMessage"] = $"Department '{department.DepartmentName}' has been updated successfully!";
-                    return RedirectToAction(nameof(Index));
-                }
-                else
-                {
-                    TempData["ErrorMessage"] = "Failed to update department. Name might already exist.";
-                    return View(department);
-                }
+                return View(department);
             }
+
+            var result = await _department.UpdateDepartmentAsync(department);
+
+            if (result)
+            {
+                TempData["SuccessMessage"] = $"Department '{department.DepartmentName}' has been updated successfully!";
+                return RedirectToAction(nameof(Index));
+            }
+
+            TempData["ErrorMessage"] = "Failed to update department. Name might already exist.";
             return View(department);
         }
 
+
         // GET: Department/Delete/5
-        public async Task<IActionResult> Delete(int id)
-        {
-            var department = await _departmentService.GetDepartmentByIdAsync(id);
-            if (department == null)
-            {
-                TempData["ErrorMessage"] = "Department not found.";
-                return RedirectToAction(nameof(Index));
-            }
-            return View(department);
-        }
+        //public async Task<IActionResult> Delete(int id)
+        //{
+        //    var department = await _department.DeleteDepartmentASync(id);
+        //    if (department == null)
+        //    {
+        //        TempData["ErrorMessage"] = "Department not found.";
+        //        return RedirectToAction(nameof(Index));
+        //    }
+        //    return View(department);
+        //}
 
         // POST: Department/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> DeleteConfirmed(int id)
+        public async Task<IActionResult> Delete(int id)
         {
-            var result = await _departmentService.DeleteDepartmentAsync(id);
+            var result = await _department.DeleteDepartmentASync(id);
             if (result)
-            {
                 TempData["SuccessMessage"] = "Department has been deleted successfully!";
-            }
             else
-            {
                 TempData["ErrorMessage"] = "Cannot delete department. It may have employees or doesn't exist.";
-            }
+
             return RedirectToAction(nameof(Index));
         }
 
-        // AJAX: Check if department name exists
+
+
         [HttpPost]
         public async Task<IActionResult> CheckNameExists(string departmentName)
         {
-            var exists = await _departmentService.IsDepartmentNameExistsAsync(departmentName);
+            var exists = await _department.IsDepartmentNameExistsAsync(departmentName);
             return Json(new { exists = exists });
         }
     }

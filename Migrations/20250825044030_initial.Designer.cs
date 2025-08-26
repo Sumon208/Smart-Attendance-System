@@ -12,8 +12,8 @@ using Smart_Attendance_System.Data;
 namespace Smart_Attendance_System.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20250819063623_ss")]
-    partial class ss
+    [Migration("20250825044030_initial")]
+    partial class initial
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)

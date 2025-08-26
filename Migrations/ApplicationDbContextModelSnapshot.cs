@@ -118,13 +118,8 @@ namespace Smart_Attendance_System.Migrations
                     b.Property<string>("Gender")
                         .HasColumnType("nvarchar(max)");
 
-
-                    b.Property<DateTime?>("JoiningDate")
-                        .HasColumnType("datetime2");
-
                     b.Property<string>("JoiningDate")
                         .HasColumnType("nvarchar(max)");
-
 
                     b.Property<string>("MobileNumber")
                         .HasColumnType("nvarchar(max)");

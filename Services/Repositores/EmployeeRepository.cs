@@ -227,5 +227,88 @@ namespace Smart_Attendance_System.Services.Repositories
 
             return Math.Max(0, defaultBalance - (int)usedLeaves);
         }
+        public async Task<Employee?> GetEmployeeByIdAsync(int id)
+        {
+            return await _context.Employees
+                                 .FirstOrDefaultAsync(e => e.Id == id);
+        }
+        public async Task<bool> UpdateEmployeeAsyn(Employee employee)
+        {
+            try
+            {
+                // DB থেকে পুরানো Employee নিয়ে আসো
+                var existingEmployee = await GetEmployeeByIdAsync(employee.Id);
+                if (existingEmployee == null)
+                    return false;
+
+                // যদি EmployeeId duplicate হয় (optional)
+                var isDuplicate = await _context.Employees
+                    .AnyAsync(e => e.EmployeeId.ToLower() == employee.EmployeeId.ToLower()
+                                && e.Id != employee.Id);
+                if (isDuplicate)
+                    return false;
+
+                // Basic fields update
+                existingEmployee.EmployeeId = employee.EmployeeId;
+                existingEmployee.EmployeeName = employee.EmployeeName;
+                existingEmployee.DateOfBirth = employee.DateOfBirth;
+                existingEmployee.Gender = employee.Gender;
+                existingEmployee.Email = employee.Email;
+                existingEmployee.Address = employee.Address;
+                existingEmployee.JoiningDate = employee.JoiningDate;
+                existingEmployee.DepartmentId = employee.DepartmentId;
+                existingEmployee.Salary = employee.Salary;
+                existingEmployee.Nationality = employee.Nationality;
+                existingEmployee.Description = employee.Description;
+                existingEmployee.MobileNumber = employee.MobileNumber;
+                existingEmployee.BloodGroup = employee.BloodGroup;
+
+                // Photo upload
+                if (employee.EmployeePhotoFile != null && employee.EmployeePhotoFile.Length > 0)
+                {
+                    var photoFileName = Guid.NewGuid() + Path.GetExtension(employee.EmployeePhotoFile.FileName);
+                    var photoPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/uploads/photos", photoFileName);
+
+                    using (var stream = new FileStream(photoPath, FileMode.Create))
+                    {
+                        await employee.EmployeePhotoFile.CopyToAsync(stream);
+                    }
+
+                    existingEmployee.EmployeePhotoPath = "/uploads/photos/" + photoFileName;
+                }
+
+                // Certificate upload
+                if (employee.CertificateFile != null && employee.CertificateFile.Length > 0)
+                {
+                    var allowedExtensions = new[] { ".pdf", ".jpg", ".jpeg", ".png", ".gif" };
+                    var ext = Path.GetExtension(employee.CertificateFile.FileName).ToLower();
+
+                    if (!allowedExtensions.Contains(ext))
+                        return false;
+
+                    var certFileName = Guid.NewGuid() + ext;
+                    var certPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/uploads/certificates", certFileName);
+
+                    using (var stream = new FileStream(certPath, FileMode.Create))
+                    {
+                        await employee.CertificateFile.CopyToAsync(stream);
+                    }
+
+                    existingEmployee.CertificateFilePath = "/uploads/certificates/" + certFileName;
+                }
+                else
+                {
+                    return false; // certificate required
+                }
+
+                await _context.SaveChangesAsync();
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
     }
 }
