@@ -111,15 +111,13 @@ namespace Smart_Attendance_System.Migrations
                         .HasColumnType("nvarchar(100)");
 
                     b.Property<string>("EmployeePhotoPath")
-                        .IsRequired()
-                        .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Gender")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("JoiningDate")
-                        .HasColumnType("nvarchar(max)");
+                    b.Property<DateTime?>("JoiningDate")
+                        .HasColumnType("datetime2");
 
                     b.Property<string>("MobileNumber")
                         .HasColumnType("nvarchar(max)");
