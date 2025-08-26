@@ -1,0 +1,154 @@
+﻿@model Smart_Attendance_System.Models.Employee
+@{
+    ViewData["Title"] = "Edit Employee";
+    Layout = "_AdminLayout";
+}
+
+<h2 class="mb-4">Edit Employee</h2>
+
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <form asp-action="Update" asp-controller="EmployeeManagement" method="post" enctype="multipart/form-data">
+                    <input type="hidden" asp-for="Id" />
+
+                    <div class="mb-3">
+                        <label asp-for="EmployeeId" class="form-label"></label>
+                        <input asp-for="EmployeeId" class="form-control" />
+                        <span asp-validation-for="EmployeeId" class="text-danger"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="EmployeeName" class="form-label"></label>
+                        <input asp-for="EmployeeName" class="form-control" />
+                        <span asp-validation-for="EmployeeName" class="text-danger"></span>
+                    </div>
+
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label asp-for="DateOfBirth" class="form-label"></label>
+                            <input asp-for="DateOfBirth" type="date" class="form-control" />
+                            <span asp-validation-for="DateOfBirth" class="text-danger"></span>
+                        </div>
+                        <div class="col-md-6">
+                            <label asp-for="Gender" class="form-label"></label>
+                            <select asp-for="Gender" class="form-select">
+                                <option value="">Select Gender</option>
+                                <option value="Male" selected="@Model.Gender == " Male"">Male</option>
+                                <option value="Female" selected="@Model.Gender == " Female"">Female</option>
+                                <option value="Other" selected="@Model.Gender == " Other"">Other</option>
+                            </select>
+                            <span asp-validation-for="Gender" class="text-danger"></span>
+                        </div>
+                    </div>
+
+                    <div class="mb-3 mt-3">
+                        <label asp-for="Email" class="form-label"></label>
+                        <input asp-for="Email" type="email" class="form-control" />
+                        <span asp-validation-for="Email" class="text-danger"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="MobileNumber" class="form-label"></label>
+                        <input asp-for="MobileNumber" class="form-control" />
+                        <span asp-validation-for="MobileNumber" class="text-danger"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="Address" class="form-label"></label>
+                        <textarea asp-for="Address" class="form-control" rows="2"></textarea>
+                        <span asp-validation-for="Address" class="text-danger"></span>
+                    </div>
+
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label asp-for="JoiningDate" class="form-label"></label>
+                            <input asp-for="JoiningDate" type="date" class="form-control" />
+                            <span asp-validation-for="JoiningDate" class="text-danger"></span>
+                        </div>
+                        <div class="col-md-6">
+                            <label asp-for="DepartmentId" class="form-label"></label>
+                            <select asp-for="DepartmentId" class="form-select" asp-items="ViewBag.Departments">
+                                <option value="">Select Department</option>
+                            </select>
+                            <span asp-validation-for="DepartmentId" class="text-danger"></span>
+                        </div>
+                    </div>
+
+                    <div class="row g-3 mt-3">
+                        <div class="col-md-6">
+                            <label asp-for="Salary" class="form-label"></label>
+                            <input asp-for="Salary" type="number" step="0.01" class="form-control" />
+                            <span asp-validation-for="Salary" class="text-danger"></span>
+                        </div>
+                        <div class="col-md-6">
+                            <label asp-for="Nationality" class="form-label"></label>
+                            <input asp-for="Nationality" class="form-control" />
+                            <span asp-validation-for="Nationality" class="text-danger"></span>
+                        </div>
+                    </div>
+
+                    <div class="row g-3 mt-3">
+                        <div class="col-md-6">
+                            <label asp-for="BloodGroup" class="form-label"></label>
+                            <input asp-for="BloodGroup" class="form-control" />
+                            <span asp-validation-for="BloodGroup" class="text-danger"></span>
+                        </div>
+                        <div class="col-md-6">
+                            <label asp-for="Description" class="form-label"></label>
+                            <textarea asp-for="Description" class="form-control" rows="2"></textarea>
+                            <span asp-validation-for="Description" class="text-danger"></span>
+                        </div>
+                    </div>
+
+                    <hr class="my-4" />
+
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Current Photo</label>
+                            <div class="mb-2">
+                                @if (!string.IsNullOrEmpty(Model.EmployeePhotoPath))
+                                {
+                                    <img src="@Model.EmployeePhotoPath" id="photoPreview" alt="Employee Photo" class="img-thumbnail" width="150" />
+                                }
+                            </div>
+                            <input asp-for="EmployeePhotoFile" type="file" class="form-control" accept="image/*" onchange="previewPhoto(event)" />
+                            <span asp-validation-for="EmployeePhotoFile" class="text-danger"></span>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label">Current Certificate</label>
+                            <div class="mb-2">
+                                @if (!string.IsNullOrEmpty(Model.CertificateFilePath))
+                                {
+                                    <a href="@Model.CertificateFilePath" target="_blank" class="btn btn-outline-secondary btn-sm">View Certificate</a>
+                                }
+                            </div>
+                            <input asp-for="CertificateFile" type="file" class="form-control" accept=".pdf,image/*" />
+                            <span asp-validation-for="CertificateFile" class="text-danger"></span>
+                        </div>
+                    </div>
+
+                    <div class="mt-4 d-flex justify-content-between">
+                        <button type="submit" class="btn btn-primary px-4">Update</button>
+                        <a asp-action="Index" class="btn btn-secondary px-4">Cancel</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        function previewPhoto(event) {
+            var output = document.getElementById('photoPreview');
+            output.src = URL.createObjectURL(event.target.files[0]);
+            output.onload = function () {
+                URL.revokeObjectURL(output.src)
+            }
+        }
+    </script>
+}

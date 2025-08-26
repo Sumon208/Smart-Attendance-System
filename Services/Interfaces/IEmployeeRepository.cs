@@ -22,6 +22,10 @@ namespace Smart_Attendance_System.Services.Interfaces
         Task<Leave?> GetLeaveByIdAsync(int leaveId);
         Task UpdateLeaveAsync(Leave leave);
         Task DeleteLeaveAsync(int leaveId);
+        Task<Employee?> GetEmployeeByIdAsync(int id);
+
+
         Task<int> GetEmployeeLeaveBalanceAsync(int employeeId, string leaveType);
+        Task<bool> UpdateEmployeeAsyn(Employee employee);
     }
 }

@@ -24,9 +24,8 @@ namespace Smart_Attendance_System.Models
         [StringLength(100)]
         public required string EmployeeName { get; set; }
 
-        [Required]
-        [StringLength(500)]
-        public required string EmployeePhotoPath { get; set; }
+        [NotMapped]
+        public IFormFile? EmployeePhotoFile { get; set; }
 
         [DataType(DataType.Date)]
         public DateTime? DateOfBirth { get; set; }
@@ -47,12 +46,14 @@ namespace Smart_Attendance_System.Models
         public string? Nationality { get; set; }
 
         public string? Description { get; set; }
-
+        public string? EmployeePhotoPath { get; set; }
+        public string? CertificateFilePath { get; set; }
         // New properties
         public string? MobileNumber { get; set; }
         public string? BloodGroup { get; set; }
-        public string? CertificateFilePath { get; set; }
-       
+        [NotMapped]
+        public IFormFile? CertificateFile { get; set; }
+
 
         // Employee status for approval process
         public EmployeeStatus Status { get; set; } = EmployeeStatus.Pending;
