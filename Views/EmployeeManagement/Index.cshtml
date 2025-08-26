@@ -5,14 +5,14 @@
     Layout = "_AdminLayout";
 }
 
-<h2>Employee List</h2>
+<h2 class="mb-4">Employee List</h2>
 
 <p>
-    <a asp-action="Add" class="btn btn-success">Add New Employee</a>
+    <a asp-action="Add" class="btn btn-success mb-3">Add New Employee</a>
 </p>
 
-<table class="table table-bordered">
-    <thead>
+<table class="table table-bordered table-hover">
+    <thead class="table-light">
         <tr>
             <th>Employee ID</th>
             <th>Name</th>
@@ -27,16 +27,247 @@
                 <td>@item.EmployeeId</td>
                 <td>@item.EmployeeName</td>
                 <td>@item.Department?.DepartmentName</td>
-
                 <td>
-                    <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-sm btn-primary">View</a>
+                    <button class="btn btn-sm btn-primary viewBtn"
+                            data-id="@item.Id"
+                            data-photo="@item.EmployeePhotoPath"
+                            data-empid="@item.EmployeeId"
+                            data-name="@item.EmployeeName"
+                            data-department="@item.Department?.DepartmentName"
+                            data-email="@item.Email"
+                            data-mobile="@item.MobileNumber"
+                            data-joining="@item.JoiningDate"
+                            data-dob="@(item.DateOfBirth?.ToString("yyyy-MM-dd") ?? "")"
+                            data-gender="@item.Gender"
+                            data-nationality="@item.Nationality"
+                            data-blood="@item.BloodGroup"
+                            data-salary="@item.Salary"
+                            data-description="@Html.Raw(item.Description?.Replace("\"", "&quot;"))"
+                            data-address="@Html.Raw(item.Address?.Replace("\"", "&quot;"))"
+                            data-certificate="@item.CertificateFilePath">
+                        View
+                    </button>
                     <a asp-action="Update" asp-route-id="@item.Id" class="btn btn-sm btn-info">Update</a>
                     <form asp-action="Delete" asp-route-id="@item.Id" method="post" style="display:inline">
-                        <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Are you sure you want to delete this employee?');">Delete</button>
+                        <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Are you sure?');">Delete</button>
                     </form>
+                    <button type="button" class="btn btn-sm btn-success downloadRowBtn"
+                            data-photo="@item.EmployeePhotoPath"
+                            data-empid="@item.EmployeeId"
+                            data-name="@item.EmployeeName"
+                            data-department="@item.Department?.DepartmentName"
+                            data-email="@item.Email"
+                            data-mobile="@item.MobileNumber"
+                            data-joining="@item.JoiningDate"
+                            data-dob="@(item.DateOfBirth?.ToString("yyyy-MM-dd") ?? "")"
+                            data-gender="@item.Gender"
+                            data-nationality="@item.Nationality"
+                            data-blood="@item.BloodGroup"
+                            data-salary="@item.Salary"
+                            data-description="@Html.Raw(item.Description?.Replace("\"", "&quot;"))"
+                            data-address="@Html.Raw(item.Address?.Replace("\"", "&quot;"))"
+                            data-certificate="@item.CertificateFilePath">
+                        Download PDF
+                    </button>
                 </td>
-
             </tr>
         }
     </tbody>
 </table>
+
+<!-- Employee Details Modal -->
+<div class="modal fade" id="employeeModal" tabindex="-1">
+    <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content" id="modalContent">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title">Employee Details</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div class="flex-grow-1 pe-3">
+                        <!-- Employee Info Rows -->
+                        <div class="row mb-2">
+                            <div class="col-md-6">
+                                <label>Employee ID</label>
+                                <input class="form-control" id="modalEmpId" readonly />
+                            </div>
+                            <div class="col-md-6">
+                                <label>Name</label>
+                                <input class="form-control" id="modalName" readonly />
+                            </div>
+                        </div>
+                        <div class="row mb-2">
+                            <div class="col-md-6">
+                                <label>Department</label>
+                                <input class="form-control" id="modalDept" readonly />
+                            </div>
+                            <div class="col-md-6">
+                                <label>Email</label>
+                                <input class="form-control" id="modalEmail" readonly />
+                            </div>
+                        </div>
+                        <div class="row mb-2">
+                            <div class="col-md-6">
+                                <label>Mobile</label>
+                                <input class="form-control" id="modalMobile" readonly />
+                            </div>
+                            <div class="col-md-6">
+                                <label>Joining Date</label>
+                                <input class="form-control" id="modalJoining" readonly />
+                            </div>
+                        </div>
+                        <div class="row mb-2">
+                            <div class="col-md-6">
+                                <label>Date of Birth</label>
+                                <input class="form-control" id="modalDOB" readonly />
+                            </div>
+                            <div class="col-md-6">
+                                <label>Gender</label>
+                                <input class="form-control" id="modalGender" readonly />
+                            </div>
+                        </div>
+                        <div class="row mb-2">
+                            <div class="col-md-6">
+                                <label>Nationality</label>
+                                <input class="form-control" id="modalNationality" readonly />
+                            </div>
+                            <div class="col-md-6">
+                                <label>Blood Group</label>
+                                <input class="form-control" id="modalBlood" readonly />
+                            </div>
+                        </div>
+                        <div class="row mb-2">
+                            <div class="col-md-6">
+                                <label>Salary</label>
+                                <input class="form-control" id="modalSalary" readonly />
+                            </div>
+                            <div class="col-md-6">
+                                <label>Description</label>
+                                <textarea class="form-control" id="modalDescription" rows="2" readonly></textarea>
+                            </div>
+                        </div>
+                        <div class="row mb-2">
+                            <div class="col-12">
+                                <label>Address</label>
+                                <textarea class="form-control" id="modalAddress" rows="2" readonly></textarea>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="text-center">
+                        <label>Photo</label><br />
+                        <img id="modalPhoto" class="img-thumbnail border border-primary mb-2" style="max-width:150px; max-height:150px;" />
+                        <div>
+                            <a id="modalCertificate" class="btn btn-outline-success btn-sm mt-2" target="_blank">View Certificate</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button id="printBtn" type="button" class="btn btn-warning">Print</button>
+                <button id="downloadBtn" type="button" class="btn btn-success">Download PDF</button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script>
+        const modal = new bootstrap.Modal(document.getElementById('employeeModal'));
+
+        // Modal View Button
+        document.querySelectorAll('.viewBtn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const photo = btn.dataset.photo;
+                const cert = btn.dataset.certificate;
+
+                document.getElementById('modalEmpId').value = btn.dataset.empid;
+                document.getElementById('modalName').value = btn.dataset.name;
+                document.getElementById('modalDept').value = btn.dataset.department;
+                document.getElementById('modalEmail').value = btn.dataset.email;
+                document.getElementById('modalMobile').value = btn.dataset.mobile;
+                document.getElementById('modalJoining').value = btn.dataset.joining;
+                document.getElementById('modalDOB').value = btn.dataset.dob;
+                document.getElementById('modalGender').value = btn.dataset.gender;
+                document.getElementById('modalNationality').value = btn.dataset.nationality;
+                document.getElementById('modalBlood').value = btn.dataset.blood;
+                document.getElementById('modalSalary').value = btn.dataset.salary;
+                document.getElementById('modalDescription').value = btn.dataset.description;
+                document.getElementById('modalAddress').value = btn.dataset.address;
+
+                document.getElementById('modalPhoto').src = photo ? photo : '/images/no-image.png';
+                document.getElementById('modalCertificate').href = cert ? cert : '#';
+                document.getElementById('modalCertificate').style.display = cert ? 'inline-block' : 'none';
+
+                modal.show();
+            });
+        });
+
+        // Modal Print
+        document.getElementById('printBtn').addEventListener('click', () => {
+            const printContents = document.getElementById('modalContent').innerHTML;
+            const originalContents = document.body.innerHTML;
+            document.body.innerHTML = printContents;
+            window.print();
+            document.body.innerHTML = originalContents;
+            location.reload();
+        });
+
+        // Modal PDF Download
+        document.getElementById('downloadBtn').addEventListener('click', async () => {
+            const modalContent = document.getElementById('modalContent');
+            const canvas = await html2canvas(modalContent, { scale: 2 });
+            const imgData = canvas.toDataURL('image/png');
+            const pdf = new jspdf.jsPDF('p', 'mm', 'a4');
+            const imgProps = pdf.getImageProperties(imgData);
+            const pdfWidth = pdf.internal.pageSize.getWidth();
+            const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
+            pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
+            pdf.save('EmployeeDetails.pdf');
+        });
+
+        // Row-level PDF Download
+        document.querySelectorAll('.downloadRowBtn').forEach(btn => {
+            btn.addEventListener('click', async () => {
+                const tempDiv = document.createElement('div');
+                tempDiv.style.padding = '15px';
+                tempDiv.style.width = '600px';
+                tempDiv.style.fontFamily = 'Arial, sans-serif';
+                tempDiv.innerHTML = `
+                    <div style="overflow:hidden;">
+                        <img src="${btn.dataset.photo ? btn.dataset.photo : '/images/no-image.png'}"
+                             style="float:right; max-width:120px; max-height:120px; border:1px solid #000; margin-left:10px; margin-bottom:10px;" />
+                        <h3>Employee Details</h3>
+                        <p><strong>Employee ID:</strong> ${btn.dataset.empid}</p>
+                        <p><strong>Name:</strong> ${btn.dataset.name}</p>
+                        <p><strong>Department:</strong> ${btn.dataset.department}</p>
+                        <p><strong>Email:</strong> ${btn.dataset.email}</p>
+                        <p><strong>Mobile:</strong> ${btn.dataset.mobile}</p>
+                        <p><strong>Joining Date:</strong> ${btn.dataset.joining}</p>
+                        <p><strong>Date of Birth:</strong> ${btn.dataset.dob}</p>
+                        <p><strong>Gender:</strong> ${btn.dataset.gender}</p>
+                        <p><strong>Nationality:</strong> ${btn.dataset.nationality}</p>
+                        <p><strong>Blood Group:</strong> ${btn.dataset.blood}</p>
+                        <p><strong>Salary:</strong> ${btn.dataset.salary}</p>
+                        <p><strong>Description:</strong> ${btn.dataset.description}</p>
+                        <p><strong>Address:</strong> ${btn.dataset.address}</p>
+                        <p>Certificate: ${btn.dataset.certificate ? `<a href='${btn.dataset.certificate}' target='_blank'>View</a>` : 'N/A'}</p>
+                    </div>
+                `;
+                document.body.appendChild(tempDiv);
+                const canvas = await html2canvas(tempDiv, { scale: 2 });
+                const imgData = canvas.toDataURL('image/png');
+                const pdf = new jspdf.jsPDF('p', 'mm', 'a4');
+                const imgProps = pdf.getImageProperties(imgData);
+                const pdfWidth = pdf.internal.pageSize.getWidth();
+                const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
+                pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
+                pdf.save(`${btn.dataset.name}_Details.pdf`);
+                document.body.removeChild(tempDiv);
+            });
+        });
+    </script>
+}

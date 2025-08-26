@@ -14,6 +14,26 @@
             padding-top: 20px;
             color: white;
         }
+        
+        /* Responsive sidebar */
+        @@media (max-width: 768px) {
+            .sidebar {
+                position: fixed;
+                top: 0;
+                left: -100%;
+                width: 250px;
+                z-index: 1000;
+                transition: left 0.3s ease;
+            }
+            
+            .sidebar.show {
+                left: 0;
+            }
+            
+            .main-content {
+                margin-left: 0;
+            }
+        }
         .sidebar .nav-link {
             color: #ecf0f1;
             font-size: 1.1em;
@@ -59,6 +79,16 @@
 </head>
 <body>
     <div class="container-fluid">
+        <!-- Mobile Menu Toggle -->
+        <div class="d-md-none position-fixed top-0 start-0 p-3" style="z-index: 1001;">
+            <button class="btn btn-primary" type="button" id="sidebarToggle">
+                <i class="fas fa-bars"></i>
+            </button>
+        </div>
+        
+        <!-- Mobile Overlay -->
+        <div class="d-md-none position-fixed top-0 start-0 w-100 h-100 bg-dark" id="sidebarOverlay" style="z-index: 999; opacity: 0; visibility: hidden; transition: all 0.3s ease;"></div>
+        
         <div class="row">
             <nav id="sidebar" class="col-md-2 col-lg-2 d-md-block sidebar">
                 <div class="position-sticky pt-3">
@@ -82,7 +112,7 @@
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" asp-controller="Employee" asp-action="LeaveApply">
+                            <a class="nav-link" asp-controller="Leave" asp-action="LeaveApply">
                                 <i class="fas fa-calendar-plus mr-2"></i> Leave Apply
                             </a>
                         </li>
@@ -92,12 +122,12 @@
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" asp-controller="Employee" asp-action="LeaveHistory">
+                            <a class="nav-link" asp-controller="Leave" asp-action="LeaveHistory">
                                 <i class="fas fa-history mr-2"></i> Leave History
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" asp-controller="EmployeeAttendance" asp-action="AttendanceHistory">
+                            <a class="nav-link" asp-controller="Employee" asp-action="AttendanceHistory">
                                 <i class="fas fa-chart-bar mr-2"></i> Attendance History
                             </a>
                         </li>
@@ -129,6 +159,32 @@
                 if (link && currentPath.includes(link.split('/')[2])) {
                     $('.nav-link').removeClass('active');
                     $(this).addClass('active');
+                }
+            });
+            
+            // Mobile menu toggle
+            $('#sidebarToggle').on('click', function() {
+                $('#sidebar').toggleClass('show');
+                if ($('#sidebar').hasClass('show')) {
+                    $('#sidebarOverlay').css({opacity: 0.5, visibility: 'visible'});
+                } else {
+                    $('#sidebarOverlay').css({opacity: 0, visibility: 'hidden'});
+                }
+            });
+            
+            // Close sidebar when clicking overlay
+            $('#sidebarOverlay').on('click', function() {
+                $('#sidebar').removeClass('show');
+                $(this).css({opacity: 0, visibility: 'hidden'});
+            });
+            
+            // Close sidebar when clicking outside on mobile
+            $(document).on('click', function(e) {
+                if ($(window).width() <= 768) {
+                    if (!$(e.target).closest('#sidebar, #sidebarToggle').length) {
+                        $('#sidebar').removeClass('show');
+                        $('#sidebarOverlay').css({opacity: 0, visibility: 'hidden'});
+                    }
                 }
             });
         });

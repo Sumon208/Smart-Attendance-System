@@ -1,99 +1,289 @@
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
 using Smart_Attendance_System.Models;
 using Smart_Attendance_System.Services.Interfaces;
-using System.Linq;
 using System.Security.Claims;
-using System.Threading.Tasks;
 
 namespace Smart_Attendance_System.Controllers
 {
-    [Authorize(Roles = "2")]
+    [Authorize(Roles = "2")] // Restrict access to only Employee users (UserType 2)
     public class LeaveController : Controller
     {
-        private readonly ILeaveRepository _leaveRepository;
-        public LeaveController(ILeaveRepository leaveRepository)
+        private readonly IEmployeeRepository _employeeRepository;
+
+        public LeaveController(IEmployeeRepository employeeRepository)
         {
-            _leaveRepository = leaveRepository;
+            _employeeRepository = employeeRepository;
         }
 
-        public async Task<IActionResult> Apply()
+        public async Task<IActionResult> LeaveApply()
         {
-            return View(new Leave());
+            var employeeId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            
+            if (string.IsNullOrEmpty(employeeId))
+            {
+                return RedirectToAction("Login", "Account");
+            }
+
+            try
+            {
+                var employeeIdInt = int.Parse(employeeId);
+                
+                // Use static values for leave balances (temporary until database is implemented)
+                // TODO: Replace with actual database calls when leave balance system is implemented
+                var staticAnnualBalance = 21; // Standard annual leave days
+                var staticSickBalance = 14;   // Standard sick leave days
+                var staticPersonalBalance = 7; // Standard personal leave days
+                
+                // Get approved leaves to calculate actual available balance
+                var approvedLeaves = await _employeeRepository.GetEmployeeLeaveHistoryAsync(employeeIdInt);
+                var usedAnnualLeaves = approvedLeaves
+                    .Where(l => l.Status == LeaveStatus.Approved && l.LeaveType.ToLower() == "annual")
+                    .Sum(l => (l.EndDate - l.StartDate).Days + 1);
+                var usedSickLeaves = approvedLeaves
+                    .Where(l => l.Status == LeaveStatus.Approved && l.LeaveType.ToLower() == "sick")
+                    .Sum(l => (l.EndDate - l.StartDate).Days + 1);
+                var usedPersonalLeaves = approvedLeaves
+                    .Where(l => l.Status == LeaveStatus.Approved && l.LeaveType.ToLower() == "personal")
+                    .Sum(l => (l.EndDate - l.StartDate).Days + 1);
+                
+                // Calculate actual available balance
+                var annualBalance = staticAnnualBalance - usedAnnualLeaves;
+                var sickBalance = staticSickBalance - usedSickLeaves;
+                var personalBalance = staticPersonalBalance - usedPersonalLeaves;
+                
+                ViewBag.AnnualBalance = annualBalance;
+                ViewBag.SickBalance = sickBalance;
+                ViewBag.PersonalBalance = personalBalance;
+                ViewBag.StaticAnnualBalance = staticAnnualBalance;
+                ViewBag.StaticSickBalance = staticSickBalance;
+                ViewBag.StaticPersonalBalance = staticPersonalBalance;
+                
+                // Get pending leaves count
+                var pendingLeaves = await _employeeRepository.GetEmployeeLeaveHistoryAsync(employeeIdInt);
+                ViewBag.PendingLeavesCount = pendingLeaves.Count(l => l.Status == LeaveStatus.Pending);
+                
+                // Get recent leave applications (last 5)
+                var recentLeaves = pendingLeaves.Take(5).ToList();
+                ViewBag.RecentLeaves = recentLeaves;
+                
+                return View(new Leave());
+            }
+            catch (Exception)
+            {
+                TempData["ErrorMessage"] = "Failed to load leave information.";
+                return View(new Leave());
+            }
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Submit(Leave leave)
+        public async Task<IActionResult> SubmitLeave(Leave leave)
         {
             if (!ModelState.IsValid)
             {
-                var errors = string.Join("; ", ModelState.Values.SelectMany(x => x.Errors).Select(x => x.ErrorMessage));
-                TempData["ErrorMessage"] = "Validation failed: " + errors;
-                return View("Apply", leave);
+                return View("LeaveApply", leave);
             }
+
             var employeeId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            
             if (string.IsNullOrEmpty(employeeId))
+            {
+                TempData["ErrorMessage"] = "User not authenticated.";
                 return RedirectToAction("Login", "Account");
-            leave.EmployeeId = int.Parse(employeeId);
-            leave.Status = LeaveStatus.Pending;
-            await _leaveRepository.AddLeaveAsync(leave);
-            TempData["SuccessMessage"] = "Leave application submitted successfully!";
-            return RedirectToAction("History");
+            }
+
+            try
+            {
+                // Validate dates
+                if (leave.StartDate < DateTime.Today)
+                {
+                    ModelState.AddModelError("StartDate", "Start date cannot be in the past.");
+                    return View("LeaveApply", leave);
+                }
+
+                if (leave.EndDate < leave.StartDate)
+                {
+                    ModelState.AddModelError("EndDate", "End date cannot be earlier than start date.");
+                    return View("LeaveApply", leave);
+                }
+
+                // Calculate leave duration
+                var leaveDuration = (leave.EndDate - leave.StartDate).Days + 1;
+                
+                // Check leave balance using calculated available balance
+                if (string.IsNullOrEmpty(leave.LeaveType))
+                {
+                    ModelState.AddModelError("LeaveType", "Leave type is required.");
+                    return View("LeaveApply", leave);
+                }
+                
+                // Get approved leaves to calculate actual available balance
+                var approvedLeaves = await _employeeRepository.GetEmployeeLeaveHistoryAsync(int.Parse(employeeId));
+                var usedLeaves = approvedLeaves
+                    .Where(l => l.Status == LeaveStatus.Approved && l.LeaveType.ToLower() == leave.LeaveType.ToLower())
+                    .Sum(l => (l.EndDate - l.StartDate).Days + 1);
+                
+                // Get static leave balance based on leave type
+                var staticLeaveBalance = leave.LeaveType.ToLower() switch
+                {
+                    "annual" => 21,
+                    "sick" => 14,
+                    "personal" => 7,
+                    _ => 0
+                };
+                
+                // Calculate actual available balance
+                var leaveBalance = staticLeaveBalance - usedLeaves;
+                
+                if (leaveBalance < leaveDuration)
+                {
+                    ModelState.AddModelError("", $"Insufficient leave balance. You have {leaveBalance} days remaining for {leave.LeaveType} leave. (Total: {staticLeaveBalance}, Used: {usedLeaves})");
+                    return View("LeaveApply", leave);
+                }
+
+                // Create a new Leave object to save to database
+                var newLeave = new Leave
+                {
+                    EmployeeId = int.Parse(employeeId),
+                    LeaveType = leave.LeaveType,
+                    StartDate = leave.StartDate,
+                    EndDate = leave.EndDate,
+                    Reason = leave.Reason,
+                    Status = LeaveStatus.Pending
+                };
+                
+                // Save to database
+                var savedLeave = await _employeeRepository.CreateLeaveAsync(newLeave);
+                
+                if (savedLeave != null && savedLeave.LeaveId > 0)
+                {
+                    TempData["SuccessMessage"] = "Leave application submitted successfully! It will be reviewed by your manager.";
+                    return RedirectToAction("LeaveHistory");
+                }
+                else
+                {
+                    TempData["ErrorMessage"] = "Leave application failed to save. Please try again.";
+                    return View("LeaveApply", leave);
+                }
+            }
+            catch (Exception ex)
+            {
+                TempData["ErrorMessage"] = $"Leave application failed: {ex.Message}. Please try again.";
+                return View("LeaveApply", leave);
+            }
         }
 
-        public async Task<IActionResult> History()
+        public async Task<IActionResult> LeaveHistory()
         {
             var employeeId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            
             if (string.IsNullOrEmpty(employeeId))
+            {
                 return RedirectToAction("Login", "Account");
-            var leaves = await _leaveRepository.GetLeavesByEmployeeIdAsync(int.Parse(employeeId));
-            return View(leaves);
-        }
+            }
 
-        public async Task<IActionResult> Edit(int id)
-        {
-            var employeeId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            if (string.IsNullOrEmpty(employeeId))
-                return RedirectToAction("Login", "Account");
-            var leave = await _leaveRepository.GetLeaveByIdAsync(id);
-            if (leave == null || leave.EmployeeId != int.Parse(employeeId) || leave.Status != LeaveStatus.Pending)
-                return RedirectToAction("History");
-            return View(leave);
+            try
+            {
+                var employeeIdInt = int.Parse(employeeId);
+                var leaves = await _employeeRepository.GetEmployeeLeaveHistoryAsync(employeeIdInt);
+                
+                // Calculate leave statistics
+                var totalLeaves = leaves.Count();
+                var approvedLeaves = leaves.Count(l => l.Status == LeaveStatus.Approved);
+                var pendingLeaves = leaves.Count(l => l.Status == LeaveStatus.Pending);
+                var rejectedLeaves = leaves.Count(l => l.Status == LeaveStatus.Rejected);
+                
+                // Calculate leave balance information
+                var staticAnnualBalance = 21;
+                var staticSickBalance = 14;
+                var staticPersonalBalance = 7;
+                
+                var usedAnnualLeaves = leaves
+                    .Where(l => l.Status == LeaveStatus.Approved && l.LeaveType.ToLower() == "annual")
+                    .Sum(l => (l.EndDate - l.StartDate).Days + 1);
+                var usedSickLeaves = leaves
+                    .Where(l => l.Status == LeaveStatus.Approved && l.LeaveType.ToLower() == "sick")
+                    .Sum(l => (l.EndDate - l.StartDate).Days + 1);
+                var usedPersonalLeaves = leaves
+                    .Where(l => l.Status == LeaveStatus.Approved && l.LeaveType.ToLower() == "personal")
+                    .Sum(l => (l.EndDate - l.StartDate).Days + 1);
+                
+                var availableAnnualBalance = staticAnnualBalance - usedAnnualLeaves;
+                var availableSickBalance = staticSickBalance - usedSickLeaves;
+                var availablePersonalBalance = staticPersonalBalance - usedPersonalLeaves;
+                
+                ViewBag.TotalLeaves = totalLeaves;
+                ViewBag.ApprovedLeaves = approvedLeaves;
+                ViewBag.PendingLeaves = pendingLeaves;
+                ViewBag.RejectedLeaves = rejectedLeaves;
+                
+                // Leave balance information
+                ViewBag.StaticAnnualBalance = staticAnnualBalance;
+                ViewBag.StaticSickBalance = staticSickBalance;
+                ViewBag.StaticPersonalBalance = staticPersonalBalance;
+                ViewBag.UsedAnnualLeaves = usedAnnualLeaves;
+                ViewBag.UsedSickLeaves = usedSickLeaves;
+                ViewBag.UsedPersonalLeaves = usedPersonalLeaves;
+                ViewBag.AvailableAnnualBalance = availableAnnualBalance;
+                ViewBag.AvailableSickBalance = availableSickBalance;
+                ViewBag.AvailablePersonalBalance = availablePersonalBalance;
+
+                return View(leaves);
+            }
+            catch (Exception)
+            {
+                TempData["ErrorMessage"] = "Failed to retrieve leave history.";
+                return View(new List<Leave>());
+            }
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(Leave leave)
+        public async Task<IActionResult> CancelLeave(int leaveId)
         {
             var employeeId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            
             if (string.IsNullOrEmpty(employeeId))
+            {
                 return RedirectToAction("Login", "Account");
-            var existing = await _leaveRepository.GetLeaveByIdAsync(leave.LeaveId);
-            if (existing == null || existing.EmployeeId != int.Parse(employeeId) || existing.Status != LeaveStatus.Pending)
-                return RedirectToAction("History");
-            existing.LeaveType = leave.LeaveType;
-            existing.StartDate = leave.StartDate;
-            existing.EndDate = leave.EndDate;
-            existing.Reason = leave.Reason;
-            await _leaveRepository.UpdateLeaveAsync(existing);
-            TempData["SuccessMessage"] = "Leave application updated successfully.";
-            return RedirectToAction("History");
-        }
+            }
 
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Delete(int id)
-        {
-            var employeeId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            if (string.IsNullOrEmpty(employeeId))
-                return RedirectToAction("Login", "Account");
-            var leave = await _leaveRepository.GetLeaveByIdAsync(id);
-            if (leave == null || leave.EmployeeId != int.Parse(employeeId) || leave.Status != LeaveStatus.Pending)
-                return RedirectToAction("History");
-            await _leaveRepository.DeleteLeaveAsync(id);
-            TempData["SuccessMessage"] = "Leave application deleted successfully.";
-            return RedirectToAction("History");
+            try
+            {
+                var leave = await _employeeRepository.GetLeaveByIdAsync(leaveId);
+                
+                if (leave == null)
+                {
+                    TempData["ErrorMessage"] = "Leave request not found.";
+                    return RedirectToAction("LeaveHistory");
+                }
+
+                // Check if the leave belongs to the current employee
+                if (leave.EmployeeId != int.Parse(employeeId))
+                {
+                    TempData["ErrorMessage"] = "You can only cancel your own leave requests.";
+                    return RedirectToAction("LeaveHistory");
+                }
+
+                // Check if the leave is still pending
+                if (leave.Status != LeaveStatus.Pending)
+                {
+                    TempData["ErrorMessage"] = "Only pending leave requests can be cancelled.";
+                    return RedirectToAction("LeaveHistory");
+                }
+
+                // Delete the leave request
+                await _employeeRepository.DeleteLeaveAsync(leaveId);
+
+                TempData["SuccessMessage"] = "Leave request cancelled successfully.";
+                return RedirectToAction("LeaveHistory");
+            }
+            catch (Exception)
+            {
+                TempData["ErrorMessage"] = "Failed to cancel leave request.";
+                return RedirectToAction("LeaveHistory");
+            }
         }
     }
 }

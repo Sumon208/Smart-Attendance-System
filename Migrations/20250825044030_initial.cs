@@ -1,12 +1,11 @@
-﻿using System;
-using Microsoft.EntityFrameworkCore.Migrations;
+﻿using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
 namespace Smart_Attendance_System.Migrations
 {
     /// <inheritdoc />
-    public partial class AddEmployeeAdditionalFields : Migration
+    public partial class initial : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -23,10 +22,10 @@ namespace Smart_Attendance_System.Migrations
                 type: "nvarchar(max)",
                 nullable: true);
 
-            migrationBuilder.AddColumn<DateTime>(
+            migrationBuilder.AddColumn<string>(
                 name: "JoiningDate",
                 table: "Employees",
-                type: "datetime2",
+                type: "nvarchar(max)",
                 nullable: true);
         }
 

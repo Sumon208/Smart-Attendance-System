@@ -13,7 +13,7 @@
 
         <div class="form-group">
             <label asp-for="EmployeeId" class="control-label"></label>
-            <input asp-for="EmployeeId" class="form-control" readonly / >
+            <input asp-for="EmployeeId" class="form-control" readonly />
         </div>
 
         <div class="form-group">
@@ -32,7 +32,7 @@
             <span asp-validation-for="MobileNumber" class="text-danger"></span>
         </div>
 
-        @* <div class="form-group">
+        <div class="form-group">
             <label asp-for="Email" class="control-label"></label>
             <input asp-for="Email" class="form-control" />
             <span asp-validation-for="Email" class="text-danger"></span>
@@ -47,11 +47,11 @@
         <div class="form-group">
             <label asp-for="JoiningDate" class="control-label"></label>
             <input asp-for="JoiningDate" type="date" class="form-control" />
-        </div> *@
+        </div>
 
         <div class="form-group">
             <label asp-for="EmployeePhotoPath" class="control-label"></label>
-            @if (!string.IsNullOrEmpty(Model.EmployeePhotoPath))
+            @if (!string.IsNullOrEmpty(Model?.EmployeePhotoPath))
             {
                 <img src="~/uploads/@Model.EmployeePhotoPath" alt="Employee Photo" width="120" class="mb-2" />
             }
@@ -60,7 +60,7 @@
 
         <div class="form-group">
             <label asp-for="CertificateFilePath" class="control-label"></label>
-            @if (!string.IsNullOrEmpty(Model.CertificateFilePath))
+            @if (!string.IsNullOrEmpty(Model?.CertificateFilePath))
             {
                 <a href="~/uploads/@Model.CertificateFilePath" target="_blank">View Certificate</a>
             }
