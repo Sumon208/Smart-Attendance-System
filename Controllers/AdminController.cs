@@ -182,6 +182,8 @@ namespace Smart_Attendance_System.Controllers
             return RedirectToAction(nameof(Leave));
         }
 
+
+
         // 5. Salary Management Action
         public IActionResult Salary()
         {
