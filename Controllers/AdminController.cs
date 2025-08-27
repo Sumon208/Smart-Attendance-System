@@ -167,6 +167,7 @@ namespace Smart_Attendance_System.Controllers
             return View();
         }
 
+
         [HttpGet]
         public async Task<IActionResult> EmployeeAttendanceDetails(int employeeId)
         {
