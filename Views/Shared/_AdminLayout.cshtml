@@ -8,7 +8,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" />
     <style>
         .sidebar {
-            height: 100vh;
+           /*  height: 100vh; */
             background-color: #343a40;
             padding-top: 20px;
             color: white;
@@ -55,10 +55,6 @@
                                     </li>
                                     <li class="nav-item">
 
-                                       
-
-                                      
-
                                         <a class="nav-link" asp-controller="EmployeeManagement" asp-action="Index">
                                             <i class="fas fa-list-alt mr-2"></i> Total Employees
                                         </a>
@@ -81,11 +77,27 @@
                                 <i class="fas fa-money-bill-wave mr-2"></i> Salary
                             </a>
                         </li>
+
                         <li class="nav-item">
-                            <a class="nav-link" asp-controller="Admin" asp-action="AttendanceReport">
-                                <i class="fas fa-clipboard-list mr-2"></i> Attendance Report
+                            <a class="nav-link collapsed" data-toggle="collapse" href="#employeeSubmenu" aria-expanded="false" aria-controls="employeeSubmenu">
+                                <i class="fas fa-users mr-2"></i> Attendance Report
                             </a>
+                            <div class="collapse" id="employeeSubmenu">
+                                <ul class="flex-column nav pl-4">
+                                    <li class="nav-item">
+                                        <a class="nav-link" asp-controller="Admin" asp-action="AttendanceReport">
+                                            <i class="fas fa-clipboard-list mr-2"></i> Daily
+                                        </a>
+                                    </li>
+                                    <li class="nav-item">
+                                        <a class="nav-link" asp-controller="Admin" asp-action="AttendanceReport">
+                                            <i class="fas fa-clipboard-list mr-2"></i> Monthly
+                                        </a>
+                                    </li>
+                                </ul>
+                            </div>
                         </li>
+                        
                         <li class="nav-item">
                             <a class="nav-link" asp-controller="Account" asp-action="Logout">
                                 <i class="fas fa-sign-out-alt mr-2"></i> Logout
