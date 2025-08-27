@@ -64,8 +64,10 @@ namespace Smart_Attendance_System.Controllers
         public async Task<IActionResult> Delete(int id)
         {
             await _employeeRepository.DeleteEmployeeAsync(id);
+           TempData["SuccessMessage"] = "Employee deleted successfully!";
             return RedirectToAction(nameof(Index));
         }
+
 
         [HttpGet]
         public async Task<IActionResult> Update(int id)
