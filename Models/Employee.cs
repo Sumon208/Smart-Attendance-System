@@ -51,9 +51,9 @@ namespace Smart_Attendance_System.Models
         // New properties
         public string? MobileNumber { get; set; }
         public string? BloodGroup { get; set; }
+
         [NotMapped]
         public IFormFile? CertificateFile { get; set; }
-
 
         // Employee status for approval process
         public EmployeeStatus Status { get; set; } = EmployeeStatus.Pending;
