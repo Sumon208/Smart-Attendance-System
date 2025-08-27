@@ -34,10 +34,10 @@
                                 <i class="fas fa-user mr-1"></i>
                                 Search by Employee Name/ID
                             </label>
-                            <input type="text" 
-                                   class="form-control" 
-                                   id="employeeSearch" 
-                                   name="employeeSearch" 
+                            <input type="text"
+                                   class="form-control"
+                                   id="employeeSearch"
+                                   name="employeeSearch"
                                    value="@Model.EmployeeSearch"
                                    placeholder="Enter name or employee ID...">
                         </div>
@@ -46,10 +46,10 @@
                                 <i class="fas fa-calendar-day mr-1"></i>
                                 Date From
                             </label>
-                            <input type="date" 
-                                   class="form-control" 
-                                   id="dateFrom" 
-                                   name="dateFrom" 
+                            <input type="date"
+                                   class="form-control"
+                                   id="dateFrom"
+                                   name="dateFrom"
                                    value="@Model.DateFrom">
                         </div>
                         <div class="col-md-3">
@@ -57,10 +57,10 @@
                                 <i class="fas fa-calendar-day mr-1"></i>
                                 Date To
                             </label>
-                            <input type="date" 
-                                   class="form-control" 
-                                   id="dateTo" 
-                                   name="dateTo" 
+                            <input type="date"
+                                   class="form-control"
+                                   id="dateTo"
+                                   name="dateTo"
                                    value="@Model.DateTo">
                         </div>
                         <div class="col-md-2 d-flex align-items-end">
@@ -70,7 +70,7 @@
                             </button>
                         </div>
                     </form>
-                    
+
                     <!-- Quick Filter Buttons -->
                     <div class="mt-3">
                         <a href="@Url.Action("MonthlyAttendanceReport", "Admin")" class="btn btn-outline-secondary btn-sm mr-2">
@@ -85,6 +85,10 @@
                             <i class="fas fa-calendar mr-1"></i>
                             This Year
                         </a>
+                        <button type="button" class="btn btn-link btn-sm ml-2" onclick="clearSearch()">
+                            <i class="fas fa-times mr-1"></i>
+                            Clear
+                        </button>
                     </div>
                 </div>
             </div>
@@ -98,7 +102,7 @@
                             Attendance Details
                         </h5>
                         <div>
-                            <span class="badge badge-light">@Model.TotalRecords records found</span>
+                            <span id="recordCount" class="badge badge-light">@Model.TotalRecords records found</span>
                         </div>
                     </div>
                 </div>
@@ -109,63 +113,32 @@
                             <table class="table table-striped table-hover">
                                 <thead class="thead-dark">
                                     <tr>
-                                        <th>
-                                            <i class="fas fa-user mr-1"></i>
-                                            Employee
-                                        </th>
-                                        <th>
-                                            <i class="fas fa-id-card mr-1"></i>
-                                            Employee ID
-                                        </th>
-                                        <th>
-                                            <i class="fas fa-building mr-1"></i>
-                                            Department
-                                        </th>
-                                        <th>
-                                            <i class="fas fa-calendar mr-1"></i>
-                                            Date
-                                        </th>
-                                        <th>
-                                            <i class="fas fa-clock mr-1"></i>
-                                            Day
-                                        </th>
-                                        <th>
-                                            <i class="fas fa-sign-in-alt mr-1"></i>
-                                            Check In
-                                        </th>
-                                        <th>
-                                            <i class="fas fa-sign-out-alt mr-1"></i>
-                                            Check Out
-                                        </th>
-                                        <th>
-                                            <i class="fas fa-hourglass-half mr-1"></i>
-                                            Working Hours
-                                        </th>
-                                        <th>
-                                            <i class="fas fa-info-circle mr-1"></i>
-                                            Status
-                                        </th>
+                                        <th><i class="fas fa-user mr-1"></i> Employee</th>
+                                        <th><i class="fas fa-id-card mr-1"></i> Employee ID</th>
+                                        <th><i class="fas fa-building mr-1"></i> Department</th>
+                                        <th><i class="fas fa-calendar mr-1"></i> Date</th>
+                                        <th><i class="fas fa-clock mr-1"></i> Day</th>
+                                        <th><i class="fas fa-sign-in-alt mr-1"></i> Check In</th>
+                                        <th><i class="fas fa-sign-out-alt mr-1"></i> Check Out</th>
+                                        <th><i class="fas fa-hourglass-half mr-1"></i> Working Hours</th>
+                                        <th><i class="fas fa-info-circle mr-1"></i> Status</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     @foreach (var attendance in Model.Attendances)
                                     {
-                                        <tr>
-                                            <td>
-                                                <strong>@(attendance.Employee?.EmployeeName ?? "Unknown")</strong>
-                                            </td>
-                                            <td>
-                                                <span class="badge badge-secondary">@(attendance.Employee?.EmployeeId ?? "N/A")</span>
-                                            </td>
-                                            <td>
-                                                <span class="text-muted">@(attendance.Employee?.Department?.DepartmentName ?? "N/A")</span>
-                                            </td>
-                                            <td>
-                                                <span class="font-weight-bold">@attendance.AttendanceDate.ToString("MMM dd, yyyy")</span>
-                                            </td>
-                                            <td>
-                                                <span class="text-info">@attendance.AttendanceDate.ToString("ddd")</span>
-                                            </td>
+                                        var empName = (attendance.Employee?.EmployeeName ?? "Unknown");
+                                        var empId = (attendance.Employee?.EmployeeId ?? "N/A");
+                                        var isoDate = attendance.AttendanceDate.ToString("yyyy-MM-dd");
+
+                                        <tr data-employee="@empName.ToLowerInvariant()"
+                                            data-empid="@empId.ToLowerInvariant()"
+                                            data-date="@isoDate">
+                                            <td><strong>@empName</strong></td>
+                                            <td><span class="badge badge-secondary">@empId</span></td>
+                                            <td><span class="text-muted">@(attendance.Employee?.Department?.DepartmentName ?? "N/A")</span></td>
+                                            <td><span class="font-weight-bold">@attendance.AttendanceDate.ToString("MMM dd, yyyy")</span></td>
+                                            <td><span class="text-info">@attendance.AttendanceDate.ToString("ddd")</span></td>
                                             <td>
                                                 @if (attendance.CheckInTime.HasValue)
                                                 {
@@ -175,6 +148,7 @@
                                                 }
                                                 else
                                                 {
+
                                                     <span class="text-muted">—</span>
                                                 }
                                             </td>
@@ -187,6 +161,7 @@
                                                 }
                                                 else
                                                 {
+
                                                     <span class="text-muted">—</span>
                                                 }
                                             </td>
@@ -198,6 +173,7 @@
                                                 }
                                                 else
                                                 {
+
                                                     <span class="text-muted">—</span>
                                                 }
                                             </td>
@@ -235,21 +211,78 @@
 
 @section Scripts {
     <script>
-        // Auto-submit form when dates change
-        document.getElementById('dateFrom').addEventListener('change', function() {
-            document.querySelector('form').submit();
-        });
-        
-        document.getElementById('dateTo').addEventListener('change', function() {
-            document.querySelector('form').submit();
-        });
+        // --- small utilities ---
+        const debounce = (fn, delay = 250) => {
+            let t; return (...args) => { clearTimeout(t); t = setTimeout(() => fn(...args), delay); };
+        };
+        const q  = s => document.querySelector(s);
+        const qa = s => Array.from(document.querySelectorAll(s));
 
-        // Clear search functionality
-        function clearSearch() {
-            document.getElementById('employeeSearch').value = '';
-            document.getElementById('dateFrom').value = '';
-            document.getElementById('dateTo').value = '';
-            document.querySelector('form').submit();
+        // --- selectors ---
+        const $form = document.querySelector('form');
+        const $employeeSearch = q('#employeeSearch');
+        const $dateFrom = q('#dateFrom');
+        const $dateTo = q('#dateTo');
+        const $recordCount = q('#recordCount');
+
+        // Table rows to filter
+        const $rows = qa('tbody tr');
+
+        // Normalize string
+        const norm = s => (s || '').toLowerCase().trim();
+
+        // Live filter logic
+        function applyFilter() {
+            const term = norm($employeeSearch?.value);
+            const from = $dateFrom?.value || ''; // yyyy-MM-dd
+            const to   = $dateTo?.value || '';   // yyyy-MM-dd
+
+            let visible = 0;
+
+            $rows.forEach(row => {
+                const emp   = row.getAttribute('data-employee') || '';
+                const empid = row.getAttribute('data-empid') || '';
+                const date  = row.getAttribute('data-date') || '';
+
+                const textMatch  = term === '' || emp.includes(term) || empid.includes(term);
+                const afterFrom  = !from || date >= from;
+                const beforeTo   = !to   || date <= to;
+
+                const show = textMatch && afterFrom && beforeTo;
+
+                row.style.display = show ? '' : 'none';
+                if (show) visible++;
+            });
+
+            if ($recordCount) {
+                $recordCount.textContent = `${visible} record${visible === 1 ? '' : 's'} found`;
+            }
         }
+
+        const debouncedFilter = debounce(applyFilter, 150);
+
+        // Wire up instant events
+        if ($employeeSearch) $employeeSearch.addEventListener('input', debouncedFilter);
+        if ($dateFrom) $dateFrom.addEventListener('input', debouncedFilter);
+        if ($dateTo) $dateTo.addEventListener('input', debouncedFilter);
+
+        // Prevent form submit (keep progressive enhancement)
+        if ($form) {
+            $form.addEventListener('submit', function(e) {
+                e.preventDefault();
+                applyFilter();
+            });
+        }
+
+        // Clear search functionality (instant)
+        window.clearSearch = function() {
+            if ($employeeSearch) $employeeSearch.value = '';
+            if ($dateFrom) $dateFrom.value = '';
+            if ($dateTo) $dateTo.value = '';
+            applyFilter();
+        };
+
+        // Initial run so count matches prefilled inputs
+        applyFilter();
     </script>
 }
