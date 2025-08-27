@@ -69,6 +69,11 @@ namespace Smart_Attendance_System.Services.Repositories
 
         public async Task DeleteEmployeeAsync(int id)
         {
+            // delete all related SystemUsers first
+            var systemUsers = _context.SystemUsers.Where(su => su.EmployeeId == id);
+            _context.SystemUsers.RemoveRange(systemUsers);
+
+            // then delete employee
             var employee = await _context.Employees.FindAsync(id);
             if (employee != null)
             {
@@ -77,7 +82,9 @@ namespace Smart_Attendance_System.Services.Repositories
             }
         }
 
-       
+
+
+
         // Leave methods implementation
         public async Task<Leave> CreateLeaveAsync(Leave leave)
         {

@@ -18,7 +18,7 @@
         <div class="card text-white bg-warning text-center">
             <div class="card-body">
                 <i class="fas fa-hourglass-half fa-2x mb-2"></i>
-                <h3>@Model?.Count(l => l.Status == LeaveStatus.Pending) ?? 0</h3>
+                <h3>@Model?.Count(l => l.Status == LeaveStatus.Pending)</h3>
                 <h6>Pending</h6>
             </div>
         </div>
@@ -27,7 +27,7 @@
         <div class="card text-white bg-success text-center">
             <div class="card-body">
                 <i class="fas fa-check-circle fa-2x mb-2"></i>
-                <h3>@Model?.Count(l => l.Status == LeaveStatus.Approved) ?? 0</h3>
+                <h3>@Model?.Count(l => l.Status == LeaveStatus.Approved)</h3>
                 <h6>Approved</h6>
             </div>
         </div>
@@ -36,7 +36,7 @@
         <div class="card text-white bg-danger text-center">
             <div class="card-body">
                 <i class="fas fa-times-circle fa-2x mb-2"></i>
-                <h3>@Model?.Count(l => l.Status == LeaveStatus.Rejected) ?? 0</h3>
+                <h3>@Model?.Count(l => l.Status == LeaveStatus.Rejected)</h3>
                 <h6>Rejected</h6>
             </div>
         </div>
@@ -45,7 +45,7 @@
         <div class="card text-white bg-info text-center">
             <div class="card-body">
                 <i class="fas fa-calendar-alt fa-2x mb-2"></i>
-                <h3>@Model?.Count() ?? 0</h3>
+                <h3>@Model?.Count()</h3>
                 <h6>Total</h6>
             </div>
         </div>
@@ -86,7 +86,11 @@
                                         <small class="text-muted">@item.Employee?.EmployeeId</small>
                                     </div>
                                 </td>
-                                <td>@item.Employee?.Department?.DepartmentName</td>
+                                <td>
+                                    <div>
+                                        <strong>@item.Employee?.Department?.DepartmentName</strong><br>   
+                                    </div>
+                                </td>
                                 <td>
                                     <span class="badge badge-@GetLeaveTypeBadgeClass(item.LeaveType)">
                                         @item.LeaveType
@@ -158,6 +162,8 @@
     .badge {
         font-size: 0.8rem;
         padding: 0.4rem 0.6rem;
+        font-weight: 500;
+        letter-spacing: 0.5px;
     }
     
     .btn-sm {
@@ -170,6 +176,12 @@
         font-weight: 600;
         background-color: #343a40;
         color: white;
+    }
+    
+    /* Table enhancements */
+    .table-hover tbody tr:hover {
+        background-color: rgba(0, 123, 255, 0.05);
+        transition: all 0.2s ease;
     }
 </style>
 
