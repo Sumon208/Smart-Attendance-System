@@ -169,6 +169,7 @@ namespace Smart_Attendance_System.Controllers
 
 
 
+
         // 6. Attendance Report Actions
         [HttpGet]
         public async Task<IActionResult> AttendanceReport()
@@ -176,6 +177,7 @@ namespace Smart_Attendance_System.Controllers
             var allAttendance = await _adminRepository.GetAllAttendanceAsync();
             return View(allAttendance);
         }
+
 
 
 
