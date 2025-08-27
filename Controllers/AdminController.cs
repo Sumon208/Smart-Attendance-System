@@ -177,7 +177,7 @@ namespace Smart_Attendance_System.Controllers
 
 
 
-        // Monthly attendance report for admin
+            // Monthly attendance report for admin
         [HttpGet]
         public async Task<IActionResult> MonthlyAttendanceReport(string? employeeSearch = null, string? dateFrom = null, string? dateTo = null)
         {
@@ -199,7 +199,7 @@ namespace Smart_Attendance_System.Controllers
             var attendanceRepository = HttpContext.RequestServices.GetRequiredService<IAttendanceRepository>();
             var attendanceData = await attendanceRepository.GetMonthlyAttendanceReportAsync(employeeSearch, fromDate, toDate);
 
-            // Create view model for the report
+            // Create view model for the report with actual monthly data
             var viewModel = new MonthlyAttendanceReportViewModel
             {
                 Attendances = attendanceData.ToList(),
