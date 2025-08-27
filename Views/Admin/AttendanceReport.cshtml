@@ -5,28 +5,367 @@
     Layout = "_AdminLayout";
 }
 
-<h2>Attendance Report</h2>
+<div class="container-fluid mt-4">
+    <!-- Page Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="fw-bold text-primary m-0">
+            <i class="bi bi-clipboard-check"></i> Daily Attendance Report
+            <small class="text-muted d-block d-md-inline">(@DateTime.Today.ToLongDateString())</small>
+        </h2>
+        <div class="text-end">
+            <button id="btnExportPdf" class="btn btn-danger shadow-sm me-2">
+                <i class="bi bi-file-earmark-pdf"></i> Download PDF
+            </button>
+            <button id="btnPrint" class="btn btn-secondary shadow-sm">
+                <i class="bi bi-printer"></i> Print
+            </button>
+        </div>
+    </div>
 
-<table class="table table-bordered table-hover">
-    <thead class="thead-dark">
-        <tr>
-            <th>Employee Name</th>
-            <th>Date</th>
-            <th>Check In Time</th>
-            <th>Check Out Time</th>
-            <th>Status</th>
-        </tr>
-    </thead>
-    <tbody>
-        @foreach (var item in Model)
-        {
-            <tr>
-                <td>@(item.Employee?.EmployeeName ?? "Unknown")</td>
-                <td>@item.AttendanceDate.ToShortDateString()</td>
-                <td>@(item.CheckInTime?.ToShortTimeString() ?? "—")</td> 
-                <td>@(item.CheckOutTime?.ToShortTimeString() ?? "—")</td>
-                <td>@item.Status</td>
-            </tr>
+    <!-- Search & Filter -->
+    <div class="card mb-4 shadow-sm rounded-4 p-3 border-0">
+        <form class="row g-2 align-items-center" onsubmit="return false;">
+            <div class="col-md-5">
+                <input id="searchName" type="text" class="form-control shadow-sm"
+                       placeholder="🔍 Search by Employee Name" />
+            </div>
+            <div class="col-md-2 d-grid">
+                <button id="btnSearch" type="button" class="btn btn-primary shadow-sm">
+                    <i class="bi bi-search"></i> Search
+                </button>
+            </div>
+            <div class="col-md-2 d-grid">
+                <button id="btnReset" type="button" class="btn btn-outline-secondary shadow-sm">
+                    <i class="bi bi-arrow-counterclockwise"></i> Reset
+                </button>
+            </div>
+            <div class="col-md-3 text-end">
+                <span id="resultCount" class="text-muted small"></span>
+            </div>
+        </form>
+    </div>
+
+    <!-- Attendance Table Card -->
+    <div class="card shadow-lg border-0 rounded-4 p-3">
+        <div class="card-body p-0">
+            <table id="attendanceTable" class="table table-hover align-middle mb-0">
+                <thead class="table-dark">
+                    <tr>
+                        <th><i class="bi bi-person-circle"></i> Employee Name</th>
+                        <th><i class="bi bi-calendar-event"></i> Date</th>
+                        <th><i class="bi bi-box-arrow-in-right"></i> Check In</th>
+                        <th><i class="bi bi-box-arrow-left"></i> Check Out</th>
+                        <th><i class="bi bi-activity"></i> Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model)
+                    {
+                        <tr class="fade-row">
+                            <td data-col="name" class="fw-semibold text-capitalize">
+                                @(item.Employee?.EmployeeName ?? "Unknown")
+                            </td>
+                            <td data-col="date">@item.AttendanceDate.ToString("dd-MMM-yyyy")</td>
+                            <td data-col="in">@((item.CheckInTime?.ToShortTimeString()) ?? "—")</td>
+                            <td data-col="out">@((item.CheckOutTime?.ToShortTimeString()) ?? "—")</td>
+                            <td data-col="status">
+                                @if (item.Status == "Present")
+                                {
+                                    <span class="badge rounded-pill pulse-success">
+                                        <i class="bi bi-check-circle"></i> Present
+                                    </span>
+                                }
+                                else if (item.Status == "Late")
+                                {
+                                    <span class="badge rounded-pill pulse-warning text-dark">
+                                        <i class="bi bi-clock-history"></i> Late
+                                    </span>
+                                }
+                                else
+                                {
+                                    <span class="badge rounded-pill pulse-danger">
+                                        <i class="bi bi-x-circle"></i> Absent
+                                    </span>
+                                }
+                            </td>
+                        </tr>
+                    }
+                    <tr id="noDataRow" style="display:none;">
+                        <td colspan="5" class="text-center text-muted py-4">
+                            <i class="bi bi-folder-x"></i> No matching records found.
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Bootstrap Icons -->
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
+
+<!-- jsPDF + AutoTable -->
+<script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.8.2/dist/jspdf.plugin.autotable.min.js"></script>
+
+<script>
+    (function () {
+        const searchInput = document.getElementById('searchName');
+        const btnSearch = document.getElementById('btnSearch');
+        const btnReset = document.getElementById('btnReset');
+        const btnExportPdf = document.getElementById('btnExportPdf');
+        const btnPrint = document.getElementById('btnPrint');
+        const table = document.getElementById('attendanceTable');
+        const rows = Array.from(table.querySelectorAll('tbody tr')).filter(r => r.id !== 'noDataRow');
+        const noDataRow = document.getElementById('noDataRow');
+        const resultCount = document.getElementById('resultCount');
+
+        function filterRows() {
+            const q = (searchInput.value || '').trim().toLowerCase();
+            let visible = 0;
+            rows.forEach(tr => {
+                const nameCell = tr.querySelector('td[data-col="name"]');
+                const nameText = (nameCell ? nameCell.textContent : '').toLowerCase();
+                const show = !q || nameText.includes(q);
+                tr.style.display = show ? '' : 'none';
+                if (show) visible++;
+            });
+            noDataRow.style.display = visible === 0 ? '' : 'none';
+            resultCount.textContent = visible > 0 ? `Showing ${visible} record${visible > 1 ? 's' : ''}` : '';
         }
-    </tbody>
-</table>
+
+        btnSearch.addEventListener('click', filterRows);
+        btnReset.addEventListener('click', () => { searchInput.value=''; filterRows(); searchInput.focus(); });
+        searchInput.addEventListener('input', filterRows);
+        searchInput.addEventListener('keydown', e => { if(e.key==='Enter'){ e.preventDefault(); filterRows(); } });
+        filterRows();
+
+        btnExportPdf.addEventListener('click', () => {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF({ orientation:'p', unit:'pt', format:'a4' });
+            doc.setFontSize(14);
+            doc.text(`Daily Attendance Report - ${new Date().toLocaleDateString()}`, 40, 40);
+
+            const body=[];
+            rows.forEach(tr=>{
+                if(tr.style.display==='none') return;
+                body.push([
+                    tr.querySelector('td[data-col="name"]').textContent.trim(),
+                    tr.querySelector('td[data-col="date"]').textContent.trim(),
+                    tr.querySelector('td[data-col="in"]').textContent.trim(),
+                    tr.querySelector('td[data-col="out"]').textContent.trim(),
+                    tr.querySelector('td[data-col="status"]').innerText.trim()
+                ]);
+            });
+
+            if(!body.length){ alert('No data to export.'); return; }
+
+            doc.autoTable({
+                startY:60,
+                head:[['Employee Name','Date','Check In','Check Out','Status']],
+                body:body,
+                theme:'grid',
+                styles:{ fontSize:10, cellPadding:6 },
+                headStyles:{ fillColor:[33,37,41], textColor:255 },
+                columnStyles:{0:{cellWidth:160},1:{cellWidth:90},2:{cellWidth:80},3:{cellWidth:80},4:{cellWidth:90}},
+                margin:{left:40,right:40}
+            });
+
+            doc.save(`Attendance_${new Date().toISOString().slice(0,10)}.pdf`);
+        });
+
+        btnPrint.addEventListener('click', () => {
+            const visibleRows = rows.filter(tr => tr.style.display!=='none');
+            if(!visibleRows.length){ alert('No data to print.'); return; }
+
+            let printContent = `<h3>Daily Attendance Report - ${new Date().toLocaleDateString()}</h3>`;
+            printContent += '<table border="1" cellspacing="0" cellpadding="6" style="border-collapse: collapse; width:100%; font-family:sans-serif;">';
+            printContent += `<thead>
+                                <tr style="background:#212529;color:#fff;">
+                                    <th>Employee Name</th><th>Date</th><th>Check In</th><th>Check Out</th><th>Status</th>
+                                </tr></thead><tbody>`;
+            visibleRows.forEach(tr=>{
+                printContent += `<tr>
+                                    <td>${tr.querySelector('td[data-col="name"]').textContent}</td>
+                                    <td>${tr.querySelector('td[data-col="date"]').textContent}</td>
+                                    <td>${tr.querySelector('td[data-col="in"]').textContent}</td>
+                                    <td>${tr.querySelector('td[data-col="out"]').textContent}</td>
+                                    <td>${tr.querySelector('td[data-col="status"]').innerText}</td>
+                                 </tr>`;
+            });
+            printContent += '</tbody></table>';
+
+            const printWindow = window.open('','_blank','width=900,height=600');
+            printWindow.document.write(printContent);
+            printWindow.document.close();
+            printWindow.focus();
+            printWindow.print();
+        });
+    })();
+</script>
+
+<style>
+    /* Full Page Card & Table Styling */
+    body {
+        background: #f0f2f5;
+        font-family: 'Segoe UI',sans-serif;
+    }
+
+    .card {
+        border-left: 5px solid #0d6efd;
+        transition: 0.3s;
+        border-radius: 12px;
+    }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.12);
+        }
+
+    #attendanceTable {
+        background: #fff;
+        border-radius: 10px;
+        overflow: hidden;
+    }
+
+        #attendanceTable tbody tr {
+            transition: all 0.25s ease;
+        }
+
+            #attendanceTable tbody tr:hover {
+                box-shadow: inset 0 0 0 9999px rgba(13,110,253,0.05);
+                transform: translateY(-2px);
+            }
+
+    /* Row fade-in */
+    .fade-row {
+        animation: fadeIn 0.6s ease forwards;
+        opacity: 0;
+    }
+   @@keyframes fadeIn {
+        to
+
+    {
+        opacity: 1;
+    }
+
+    }
+
+    /* Status badges with dynamic breathing glow */
+    .status-badge {
+        display: inline-block;
+        padding: .5em 1em;
+        font-weight: 500;
+        border-radius: 25px;
+        color: #fff;
+        text-shadow: 0 0 2px rgba(0,0,0,0.2);
+        transition: transform 0.3s, box-shadow 0.3s;
+    }
+
+        .status-badge:hover {
+            transform: scale(1.1);
+        }
+
+    /* Breathing glow animations */
+   @@keyframes glow-success {
+        0%,100%
+
+    {
+        box-shadow: 0 0 5px #28a745;
+        background-color: #28a745;
+    }
+
+    25% {
+        box-shadow: 0 0 20px #28a745;
+        background-color: #45c25e;
+    }
+
+    50% {
+        box-shadow: 0 0 35px #28a745;
+        background-color: #28a745;
+    }
+
+    75% {
+        box-shadow: 0 0 20px #28a745;
+        background-color: #45c25e;
+    }
+
+    }
+   @@keyframes glow-warning {
+        0%,100%
+
+    {
+        box-shadow: 0 0 5px #ffc107;
+        background-color: #ffc107;
+        color: #212529;
+    }
+
+    25% {
+        box-shadow: 0 0 20px #ffc107;
+        background-color: #ffdd57;
+    }
+
+    50% {
+        box-shadow: 0 0 35px #ffc107;
+        background-color: #ffc107;
+    }
+
+    75% {
+        box-shadow: 0 0 20px #ffc107;
+        background-color: #ffdd57;
+    }
+
+    }
+   @@keyframes glow-danger {
+        0%,100%
+
+    {
+        box-shadow: 0 0 5px #dc3545;
+        background-color: #dc3545;
+    }
+
+    25% {
+        box-shadow: 0 0 20px #dc3545;
+        background-color: #e95c66;
+    }
+
+    50% {
+        box-shadow: 0 0 35px #dc3545;
+        background-color: #dc3545;
+    }
+
+    75% {
+        box-shadow: 0 0 20px #dc3545;
+        background-color: #e95c66;
+    }
+
+    }
+
+    .pulse-success {
+        animation: glow-success 2.5s ease-in-out infinite;
+    }
+
+    .pulse-warning {
+        animation: glow-warning 2.5s ease-in-out infinite;
+    }
+
+    .pulse-danger {
+        animation: glow-danger 2.5s ease-in-out infinite;
+    }
+
+    /* Header & Search Styling */
+    h2 small {
+        font-weight: 400;
+        color: #6c757d;
+    }
+
+    form input.form-control {
+        box-shadow: 0 3px 8px rgba(0,0,0,0.08);
+        border-radius: 8px;
+    }
+
+    form button {
+        box-shadow: 0 3px 8px rgba(0,0,0,0.08);
+        border-radius: 8px;
+    }
+</style>
