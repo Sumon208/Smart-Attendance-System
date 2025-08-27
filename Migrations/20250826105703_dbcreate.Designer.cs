@@ -12,8 +12,8 @@ using Smart_Attendance_System.Data;
 namespace Smart_Attendance_System.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20250818040632_I")]
-    partial class I
+    [Migration("20250826105703_dbcreate")]
+    partial class dbcreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -82,6 +82,9 @@ namespace Smart_Attendance_System.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<string>("Address")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("BloodGroup")
                         .HasColumnType("nvarchar(max)");
 
@@ -97,6 +100,9 @@ namespace Smart_Attendance_System.Migrations
                     b.Property<string>("Description")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<string>("Email")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("EmployeeId")
                         .IsRequired()
                         .HasMaxLength(50)
@@ -108,12 +114,13 @@ namespace Smart_Attendance_System.Migrations
                         .HasColumnType("nvarchar(100)");
 
                     b.Property<string>("EmployeePhotoPath")
-                        .IsRequired()
-                        .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Gender")
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("JoiningDate")
+                        .HasColumnType("datetime2");
 
                     b.Property<string>("MobileNumber")
                         .HasColumnType("nvarchar(max)");

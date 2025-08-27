@@ -435,5 +435,7 @@ namespace Smart_Attendance_System.Controllers
             var duration = checkOutTime!.Value - checkInTime!.Value;
             return duration.TotalHours;
         }
+
+
     }
 }

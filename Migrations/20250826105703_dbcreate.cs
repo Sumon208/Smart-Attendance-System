@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace Smart_Attendance_System.Migrations
 {
     /// <inheritdoc />
-    public partial class I : Migration
+    public partial class dbcreate : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -32,16 +32,19 @@ namespace Smart_Attendance_System.Migrations
                         .Annotation("SqlServer:Identity", "1, 1"),
                     EmployeeId = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
                     EmployeeName = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
-                    EmployeePhotoPath = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: false),
                     DateOfBirth = table.Column<DateTime>(type: "datetime2", nullable: true),
                     Gender = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    Email = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    Address = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    JoiningDate = table.Column<DateTime>(type: "datetime2", nullable: true),
                     DepartmentId = table.Column<int>(type: "int", nullable: true),
                     Salary = table.Column<decimal>(type: "decimal(18,2)", nullable: true),
                     Nationality = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     Description = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    EmployeePhotoPath = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    CertificateFilePath = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     MobileNumber = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     BloodGroup = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    CertificateFilePath = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     Status = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
