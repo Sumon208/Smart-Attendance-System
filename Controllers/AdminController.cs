@@ -180,6 +180,7 @@ namespace Smart_Attendance_System.Controllers
 
 
 
+
         [HttpGet]
         public async Task<IActionResult> EmployeeAttendanceDetails(int employeeId)
         {
@@ -279,6 +280,56 @@ namespace Smart_Attendance_System.Controllers
         {
             var employees = await _adminRepository.GetAllEmployeesAsync(); // Assuming this retrieves all approved employees
             return View(employees.Where(e => e.Status == EmployeeStatus.Approved));
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> AttendanceReport()
+        {
+            var today = DateTime.Today;
+
+
+            var employees = await _adminRepository.GetAllEmployeesAsync();
+
+
+            var attendance = await _adminRepository.GetAttendanceByDateAsync(today);
+
+
+            var report = employees.Select(emp =>
+            {
+                var record = attendance.FirstOrDefault(a => a.EmployeeId == emp.Id);
+
+                if (record == null)
+                {
+
+                    return new Attendance
+                    {
+                        Employee = emp,
+                        AttendanceDate = today,
+                        Status = "Absent"
+                    };
+                }
+                else
+                {
+
+                    string status;
+                    if (record.CheckInTime.HasValue)
+                    {
+                        if (record.CheckInTime.Value.TimeOfDay > new TimeSpan(9, 30, 0))
+                            status = "Late";
+                        else
+                            status = "Present";
+                    }
+                    else
+                    {
+                        status = "Absent";
+                    }
+
+                    record.Status = status;
+                    return record;
+                }
+            }).ToList();
+
+            return View(report);
         }
     }
 }

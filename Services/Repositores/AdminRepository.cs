@@ -157,5 +157,13 @@ namespace Smart_Attendance_System.Services.Repositories
                 await _context.SaveChangesAsync();
             }
         }
+        public async Task<IEnumerable<Attendance>> GetAttendanceByDateAsync(DateTime date)
+        {
+            return await _context.Attendances
+                                .Where(a => a.AttendanceDate.Date == date.Date)
+                                .Include(a => a.Employee)
+                                .ToListAsync();
+        }
+
     }
 }
