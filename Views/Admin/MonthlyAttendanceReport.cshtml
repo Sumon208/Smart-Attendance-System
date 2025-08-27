@@ -1,0 +1,288 @@
+@model Smart_Attendance_System.Models.ViewModel.MonthlyAttendanceReportViewModel
+
+@{
+    ViewData["Title"] = "Monthly Attendance Report";
+    Layout = "_AdminLayout";
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <!-- Header -->
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2 class="mb-0">
+                    <i class="fas fa-calendar-alt text-primary mr-2"></i>
+                    Monthly Attendance Report
+                </h2>
+                <div class="text-muted">
+                    <small>Generated on @DateTime.Now.ToString("MMMM dd, yyyy 'at' HH:mm")</small>
+                </div>
+            </div>
+
+            <!-- Search and Filter Section -->
+            <div class="card mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-search mr-2"></i>
+                        Search & Filter Options
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <form method="get" class="row g-3">
+                        <div class="col-md-4">
+                            <label for="employeeSearch" class="form-label">
+                                <i class="fas fa-user mr-1"></i>
+                                Search by Employee Name/ID
+                            </label>
+                            <input type="text"
+                                   class="form-control"
+                                   id="employeeSearch"
+                                   name="employeeSearch"
+                                   value="@Model.EmployeeSearch"
+                                   placeholder="Enter name or employee ID...">
+                        </div>
+                        <div class="col-md-3">
+                            <label for="dateFrom" class="form-label">
+                                <i class="fas fa-calendar-day mr-1"></i>
+                                Date From
+                            </label>
+                            <input type="date"
+                                   class="form-control"
+                                   id="dateFrom"
+                                   name="dateFrom"
+                                   value="@Model.DateFrom">
+                        </div>
+                        <div class="col-md-3">
+                            <label for="dateTo" class="form-label">
+                                <i class="fas fa-calendar-day mr-1"></i>
+                                Date To
+                            </label>
+                            <input type="date"
+                                   class="form-control"
+                                   id="dateTo"
+                                   name="dateTo"
+                                   value="@Model.DateTo">
+                        </div>
+                        <div class="col-md-2 d-flex align-items-end">
+                            <button type="submit" class="btn btn-primary w-100">
+                                <i class="fas fa-search mr-1"></i>
+                                Search
+                            </button>
+                        </div>
+                    </form>
+
+                    <!-- Quick Filter Buttons -->
+                    <div class="mt-3">
+                        <a href="@Url.Action("MonthlyAttendanceReport", "Admin")" class="btn btn-outline-secondary btn-sm mr-2">
+                            <i class="fas fa-calendar mr-1"></i>
+                            Current Month
+                        </a>
+                        <a href="@Url.Action("MonthlyAttendanceReport", "Admin", new { dateFrom = DateTime.Today.AddDays(-30).ToString("yyyy-MM-dd"), dateTo = DateTime.Today.ToString("yyyy-MM-dd") })" class="btn btn-outline-secondary btn-sm mr-2">
+                            <i class="fas fa-calendar-week mr-1"></i>
+                            Last 30 Days
+                        </a>
+                        <a href="@Url.Action("MonthlyAttendanceReport", "Admin", new { dateFrom = new DateTime(DateTime.Today.Year, 1, 1).ToString("yyyy-MM-dd"), dateTo = DateTime.Today.ToString("yyyy-MM-dd") })" class="btn btn-outline-secondary btn-sm">
+                            <i class="fas fa-calendar mr-1"></i>
+                            This Year
+                        </a>
+                        <button type="button" class="btn btn-link btn-sm ml-2" onclick="clearSearch()">
+                            <i class="fas fa-times mr-1"></i>
+                            Clear
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Attendance Table -->
+            <div class="card">
+                <div class="card-header bg-dark text-white">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">
+                            <i class="fas fa-table mr-2"></i>
+                            Attendance Details
+                        </h5>
+                        <div>
+                            <span id="recordCount" class="badge badge-light">@Model.TotalRecords records found</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body">
+                    @if (Model.Attendances.Any())
+                    {
+                        <div class="table-responsive">
+                            <table class="table table-striped table-hover">
+                                <thead class="thead-dark">
+                                    <tr>
+                                        <th><i class="fas fa-user mr-1"></i> Employee</th>
+                                        <th><i class="fas fa-id-card mr-1"></i> Employee ID</th>
+                                        <th><i class="fas fa-building mr-1"></i> Department</th>
+                                        <th><i class="fas fa-calendar mr-1"></i> Date</th>
+                                        <th><i class="fas fa-clock mr-1"></i> Day</th>
+                                        <th><i class="fas fa-sign-in-alt mr-1"></i> Check In</th>
+                                        <th><i class="fas fa-sign-out-alt mr-1"></i> Check Out</th>
+                                        <th><i class="fas fa-hourglass-half mr-1"></i> Working Hours</th>
+                                        <th><i class="fas fa-info-circle mr-1"></i> Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var attendance in Model.Attendances)
+                                    {
+                                        var empName = (attendance.Employee?.EmployeeName ?? "Unknown");
+                                        var empId = (attendance.Employee?.EmployeeId ?? "N/A");
+                                        var isoDate = attendance.AttendanceDate.ToString("yyyy-MM-dd");
+
+                                        <tr data-employee="@empName.ToLowerInvariant()"
+                                            data-empid="@empId.ToLowerInvariant()"
+                                            data-date="@isoDate">
+                                            <td><strong>@empName</strong></td>
+                                            <td><span class="badge badge-secondary">@empId</span></td>
+                                            <td><span class="text-muted">@(attendance.Employee?.Department?.DepartmentName ?? "N/A")</span></td>
+                                            <td><span class="font-weight-bold">@attendance.AttendanceDate.ToString("MMM dd, yyyy")</span></td>
+                                            <td><span class="text-info">@attendance.AttendanceDate.ToString("ddd")</span></td>
+                                            <td>
+                                                @if (attendance.CheckInTime.HasValue)
+                                                {
+                                                    <span class="text-success font-weight-bold">
+                                                        @attendance.CheckInTime.Value.ToString("HH:mm")
+                                                    </span>
+                                                }
+                                                else
+                                                {
+
+                                                    <span class="text-muted">—</span>
+                                                }
+                                            </td>
+                                            <td>
+                                                @if (attendance.CheckOutTime.HasValue)
+                                                {
+                                                    <span class="text-info font-weight-bold">
+                                                        @attendance.CheckOutTime.Value.ToString("HH:mm")
+                                                    </span>
+                                                }
+                                                else
+                                                {
+
+                                                    <span class="text-muted">—</span>
+                                                }
+                                            </td>
+                                            <td>
+                                                @if (attendance.CheckInTime.HasValue && attendance.CheckOutTime.HasValue)
+                                                {
+                                                    var workingHours = (attendance.CheckOutTime.Value - attendance.CheckInTime.Value).TotalHours;
+                                                    <span class="badge badge-primary">@workingHours.ToString("F1")h</span>
+                                                }
+                                                else
+                                                {
+
+                                                    <span class="text-muted">—</span>
+                                                }
+                                            </td>
+                                            <td>
+                                                @{
+                                                    var statusClass = attendance.Status switch
+                                                    {
+                                                        "Present" => "badge-success",
+                                                        "Late" => "badge-warning",
+                                                        "Absent" => "badge-danger",
+                                                        _ => "badge-secondary"
+                                                    };
+                                                }
+                                                <span class="badge @statusClass">@attendance.Status</span>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="text-center py-5">
+                            <i class="fas fa-search fa-3x text-muted mb-3"></i>
+                            <h5 class="text-muted">No attendance records found</h5>
+                            <p class="text-muted">Try adjusting your search criteria or date range.</p>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // --- small utilities ---
+        const debounce = (fn, delay = 250) => {
+            let t; return (...args) => { clearTimeout(t); t = setTimeout(() => fn(...args), delay); };
+        };
+        const q  = s => document.querySelector(s);
+        const qa = s => Array.from(document.querySelectorAll(s));
+
+        // --- selectors ---
+        const $form = document.querySelector('form');
+        const $employeeSearch = q('#employeeSearch');
+        const $dateFrom = q('#dateFrom');
+        const $dateTo = q('#dateTo');
+        const $recordCount = q('#recordCount');
+
+        // Table rows to filter
+        const $rows = qa('tbody tr');
+
+        // Normalize string
+        const norm = s => (s || '').toLowerCase().trim();
+
+        // Live filter logic
+        function applyFilter() {
+            const term = norm($employeeSearch?.value);
+            const from = $dateFrom?.value || ''; // yyyy-MM-dd
+            const to   = $dateTo?.value || '';   // yyyy-MM-dd
+
+            let visible = 0;
+
+            $rows.forEach(row => {
+                const emp   = row.getAttribute('data-employee') || '';
+                const empid = row.getAttribute('data-empid') || '';
+                const date  = row.getAttribute('data-date') || '';
+
+                const textMatch  = term === '' || emp.includes(term) || empid.includes(term);
+                const afterFrom  = !from || date >= from;
+                const beforeTo   = !to   || date <= to;
+
+                const show = textMatch && afterFrom && beforeTo;
+
+                row.style.display = show ? '' : 'none';
+                if (show) visible++;
+            });
+
+            if ($recordCount) {
+                $recordCount.textContent = `${visible} record${visible === 1 ? '' : 's'} found`;
+            }
+        }
+
+        const debouncedFilter = debounce(applyFilter, 150);
+
+        // Wire up instant events
+        if ($employeeSearch) $employeeSearch.addEventListener('input', debouncedFilter);
+        if ($dateFrom) $dateFrom.addEventListener('input', debouncedFilter);
+        if ($dateTo) $dateTo.addEventListener('input', debouncedFilter);
+
+        // Prevent form submit (keep progressive enhancement)
+        if ($form) {
+            $form.addEventListener('submit', function(e) {
+                e.preventDefault();
+                applyFilter();
+            });
+        }
+
+        // Clear search functionality (instant)
+        window.clearSearch = function() {
+            if ($employeeSearch) $employeeSearch.value = '';
+            if ($dateFrom) $dateFrom.value = '';
+            if ($dateTo) $dateTo.value = '';
+            applyFilter();
+        };
+
+        // Initial run so count matches prefilled inputs
+        applyFilter();
+    </script>
+}

@@ -33,7 +33,7 @@ namespace Smart_Attendance_System.Models
         public string? Gender { get; set; }
         public string? Email { get; set; }
         public string? Address { get; set; }
-        public string? JoiningDate { get; set; }
+        public DateTime? JoiningDate { get; set; }
 
         public int? DepartmentId { get; set; }
 
@@ -51,9 +51,9 @@ namespace Smart_Attendance_System.Models
         // New properties
         public string? MobileNumber { get; set; }
         public string? BloodGroup { get; set; }
+
         [NotMapped]
         public IFormFile? CertificateFile { get; set; }
-
 
         // Employee status for approval process
         public EmployeeStatus Status { get; set; } = EmployeeStatus.Pending;

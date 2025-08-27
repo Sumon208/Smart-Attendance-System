@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using Smart_Attendance_System.Data;
 using Smart_Attendance_System.Models;
 using Smart_Attendance_System.Models.ViewModel;
@@ -59,6 +60,9 @@ namespace Smart_Attendance_System.Controllers
             return RedirectToAction(nameof(Employee));
         }
 
+
+
+
         // GET: /Admin/EditEmployee/dev-004
         // GET: /Admin/EditEmployee/dev-004
         // GET: /Admin/EditEmployee?employeeId=dev-004
@@ -76,6 +80,9 @@ namespace Smart_Attendance_System.Controllers
             ViewBag.Departments = await _adminRepository.GetAllDepartmentsAsync();
             return View(employee);
         }
+
+
+
 
         // POST: /Admin/EditEmployee
         [HttpPost]
@@ -110,39 +117,6 @@ namespace Smart_Attendance_System.Controllers
         }
 
 
-
-        //[HttpGet]
-        //public async Task<IActionResult> DeleteEmployee(string employeeId)
-        //{
-        //    if (string.IsNullOrEmpty(employeeId))
-        //        return BadRequest("Employee ID is required.");
-
-        //    var employee = await _adminRepository.GetEmployeeByEmployeeIdAsync(employeeId);
-        //    if (employee == null)
-        //        return NotFound("Employee not found.");
-
-
-           
-        //    var relatedUsers = _context.SystemUsers.Where(u => u.EmployeeId == employee.Id);
-        //    _context.SystemUsers.RemoveRange(relatedUsers);
-
-        //    await _adminRepository.DeleteEmployeeAsync(employee.Id);
-
-        //    await _context.SaveChangesAsync();
-
-
-        //    TempData["SuccessMessage"] = $"Employee '{employee.EmployeeName}' deleted successfully.";
-
-        //    return RedirectToAction("Employee");
-        //}
-
-
-
-         
-
-
-
-
         // 3. Department Management Actions
         [HttpGet]
         public async Task<IActionResult> Department()
@@ -166,6 +140,7 @@ namespace Smart_Attendance_System.Controllers
             return RedirectToAction(nameof(Department));
         }
 
+
         // 4. Leave Management Actions
         [HttpGet]
         public async Task<IActionResult> Leave()
@@ -173,6 +148,8 @@ namespace Smart_Attendance_System.Controllers
             var leaves = await _adminRepository.GetAllLeaveApplicationsAsync();
             return View(leaves);
         }
+
+
 
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -182,18 +159,60 @@ namespace Smart_Attendance_System.Controllers
             return RedirectToAction(nameof(Leave));
         }
 
+
+
         // 5. Salary Management Action
         public IActionResult Salary()
         {
             return View();
         }
 
-        
+
         [HttpGet]
         public async Task<IActionResult> EmployeeAttendanceDetails(int employeeId)
         {
             var attendanceDetails = await _adminRepository.GetEmployeeAttendanceAsync(employeeId);
             return View(attendanceDetails);
+        }
+
+
+
+            // Monthly attendance report for admin
+        [HttpGet]
+        public async Task<IActionResult> MonthlyAttendanceReport(string? employeeSearch = null, string? dateFrom = null, string? dateTo = null)
+        {
+            DateTime? fromDate = null;
+            DateTime? toDate = null;
+
+            // Parse date parameters
+            if (!string.IsNullOrEmpty(dateFrom) && DateTime.TryParse(dateFrom, out var from))
+            {
+                fromDate = from;
+            }
+
+            if (!string.IsNullOrEmpty(dateTo) && DateTime.TryParse(dateTo, out var to))
+            {
+                toDate = to;
+            }
+
+            // Get monthly attendance report using the attendance repository
+            var attendanceRepository = HttpContext.RequestServices.GetRequiredService<IAttendanceRepository>();
+            var attendanceData = await attendanceRepository.GetMonthlyAttendanceReportAsync(employeeSearch, fromDate, toDate);
+
+            // Create view model for the report with actual monthly data
+            var viewModel = new MonthlyAttendanceReportViewModel
+            {
+                Attendances = attendanceData.ToList(),
+                EmployeeSearch = employeeSearch ?? "",
+                DateFrom = dateFrom ?? "",
+                DateTo = dateTo ?? "",
+                TotalRecords = attendanceData.Count(),
+                PresentCount = attendanceData.Count(a => a.Status == "Present"),
+                LateCount = attendanceData.Count(a => a.Status == "Late"),
+                AbsentCount = attendanceData.Count(a => a.Status == "Absent")
+            };
+
+            return View(viewModel);
         }
      
 

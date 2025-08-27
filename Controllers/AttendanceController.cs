@@ -6,6 +6,7 @@ using Smart_Attendance_System.Services.Interfaces;
 using System.Security.Claims;
 using iTextSharp.text;
 using iTextSharp.text.pdf;
+using Smart_Attendance_System.Services.Repositores;
 
 namespace Smart_Attendance_System.Controllers
 {
@@ -15,9 +16,9 @@ namespace Smart_Attendance_System.Controllers
 
         private readonly IAttendanceRepository _attendancerepository;
 
-        public AttendanceController(IAttendanceRepository attendancerepository)
+        public AttendanceController(IAttendanceRepository attendanceRepository)
         {
-            _attendancerepository = attendancerepository;
+            _attendancerepository = attendanceRepository;
         }
 
         public async Task<IActionResult> Attendance()
@@ -434,5 +435,7 @@ namespace Smart_Attendance_System.Controllers
             var duration = checkOutTime!.Value - checkInTime!.Value;
             return duration.TotalHours;
         }
+
+
     }
 }

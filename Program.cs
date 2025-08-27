@@ -19,7 +19,7 @@ namespace Smart_Attendance_System
             // === Add Database and Authentication Services Here ===
 
             // Read the connection string from appsettings.json
-            var connectionString = builder.Configuration.GetConnectionString("default");
+            var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 
             // Configure DbContext to use SQL Server
             builder.Services.AddDbContext<ApplicationDbContext>(options =>

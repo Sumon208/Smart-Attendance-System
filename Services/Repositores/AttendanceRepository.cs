@@ -62,5 +62,47 @@ namespace Smart_Attendance_System.Services.Repositores
                                  .FirstOrDefaultAsync(e => e.Id == id);
         }
 
+        // Monthly attendance report method
+        public async Task<IEnumerable<Attendance>> GetMonthlyAttendanceReportAsync(string? employeeSearch = null, DateTime? dateFrom = null, DateTime? dateTo = null)
+        {
+            var query = _context.Attendances
+                .Include(a => a.Employee)
+                .ThenInclude(e => e.Department)
+                .AsQueryable();
+
+            // Filter by employee name or ID
+            if (!string.IsNullOrEmpty(employeeSearch))
+            {
+                query = query.Where(a => 
+                    a.Employee.EmployeeName.Contains(employeeSearch) || 
+                    a.Employee.EmployeeId.Contains(employeeSearch));
+            }
+
+            // Filter by date range
+            if (dateFrom.HasValue)
+            {
+                query = query.Where(a => a.AttendanceDate >= dateFrom.Value);
+            }
+
+            if (dateTo.HasValue)
+            {
+                query = query.Where(a => a.AttendanceDate <= dateTo.Value);
+            }
+
+            // If no date filters, default to current month
+            if (!dateFrom.HasValue && !dateTo.HasValue)
+            {
+                var currentMonth = DateTime.Today;
+                var monthStart = new DateTime(currentMonth.Year, currentMonth.Month, 1);
+                var monthEnd = monthStart.AddMonths(1).AddDays(-1);
+                
+                query = query.Where(a => a.AttendanceDate >= monthStart && a.AttendanceDate <= monthEnd);
+            }
+
+            return await query
+                .OrderByDescending(a => a.AttendanceDate)
+                .ThenBy(a => a.Employee.EmployeeName)
+                .ToListAsync();
+        }
     }
 }
