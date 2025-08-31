@@ -8,7 +8,6 @@
 <div class="container-fluid">
     <div class="row">
         <div class="col-12">
-            <!-- Header -->
             <div class="d-flex justify-content-between align-items-center mb-4">
                 <h2 class="mb-0">
                     <i class="fas fa-calendar-alt text-primary mr-2"></i>
@@ -19,7 +18,6 @@
                 </div>
             </div>
 
-            <!-- Search and Filter Section -->
             <div class="card mb-4">
                 <div class="card-header bg-primary text-white">
                     <h5 class="mb-0">
@@ -70,41 +68,15 @@
                             </button>
                         </div>
                     </form>
-
-                    <!-- Quick Filter Buttons -->
-                    <div class="mt-3">
-                        <a href="@Url.Action("MonthlyAttendanceReport", "Admin")" class="btn btn-outline-secondary btn-sm mr-2">
-                            <i class="fas fa-calendar mr-1"></i>
-                            Current Month
-                        </a>
-                        <a href="@Url.Action("MonthlyAttendanceReport", "Admin", new { dateFrom = DateTime.Today.AddDays(-30).ToString("yyyy-MM-dd"), dateTo = DateTime.Today.ToString("yyyy-MM-dd") })" class="btn btn-outline-secondary btn-sm mr-2">
-                            <i class="fas fa-calendar-week mr-1"></i>
-                            Last 30 Days
-                        </a>
-                        <a href="@Url.Action("MonthlyAttendanceReport", "Admin", new { dateFrom = new DateTime(DateTime.Today.Year, 1, 1).ToString("yyyy-MM-dd"), dateTo = DateTime.Today.ToString("yyyy-MM-dd") })" class="btn btn-outline-secondary btn-sm">
-                            <i class="fas fa-calendar mr-1"></i>
-                            This Year
-                        </a>
-                        <button type="button" class="btn btn-link btn-sm ml-2" onclick="clearSearch()">
-                            <i class="fas fa-times mr-1"></i>
-                            Clear
-                        </button>
-                    </div>
                 </div>
             </div>
 
-            <!-- Attendance Table -->
             <div class="card">
                 <div class="card-header bg-dark text-white">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <h5 class="mb-0">
-                            <i class="fas fa-table mr-2"></i>
-                            Attendance Details
-                        </h5>
-                        <div>
-                            <span id="recordCount" class="badge badge-light">@Model.TotalRecords records found</span>
-                        </div>
-                    </div>
+                    <h5 class="mb-0">
+                        <i class="fas fa-table mr-2"></i>
+                        Attendance Details
+                    </h5>
                 </div>
                 <div class="card-body">
                     @if (Model.Attendances.Any())
@@ -113,15 +85,16 @@
                             <table class="table table-striped table-hover">
                                 <thead class="thead-dark">
                                     <tr>
-                                        <th><i class="fas fa-user mr-1"></i> Employee</th>
-                                        <th><i class="fas fa-id-card mr-1"></i> Employee ID</th>
-                                        <th><i class="fas fa-building mr-1"></i> Department</th>
-                                        <th><i class="fas fa-calendar mr-1"></i> Date</th>
-                                        <th><i class="fas fa-clock mr-1"></i> Day</th>
-                                        <th><i class="fas fa-sign-in-alt mr-1"></i> Check In</th>
-                                        <th><i class="fas fa-sign-out-alt mr-1"></i> Check Out</th>
-                                        <th><i class="fas fa-hourglass-half mr-1"></i> Working Hours</th>
-                                        <th><i class="fas fa-info-circle mr-1"></i> Status</th>
+                                        <th>Employee</th>
+                                        <th>Employee ID</th>
+                                        <th>Department</th>
+                                        <th>Date</th>
+                                        <th>Day</th>
+                                        <th>Check In</th>
+                                        <th>Check Out</th>
+                                        <th>Working Hours</th>
+                                        <th>Status</th>
+                                        <th>Action</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -137,48 +110,17 @@
                                             <td><strong>@empName</strong></td>
                                             <td><span class="badge badge-secondary">@empId</span></td>
                                             <td><span class="text-muted">@(attendance.Employee?.Department?.DepartmentName ?? "N/A")</span></td>
-                                            <td><span class="font-weight-bold">@attendance.AttendanceDate.ToString("MMM dd, yyyy")</span></td>
-                                            <td><span class="text-info">@attendance.AttendanceDate.ToString("ddd")</span></td>
+                                            <td>@attendance.AttendanceDate.ToString("MMM dd, yyyy")</td>
+                                            <td>@attendance.AttendanceDate.ToString("ddd")</td>
+                                            <td>@(attendance.CheckInTime?.ToString("HH:mm") ?? "—")</td>
+                                            <td>@(attendance.CheckOutTime?.ToString("HH:mm") ?? "—")</td>
                                             <td>
-                                                @if (attendance.CheckInTime.HasValue)
-                                                {
-                                                    <span class="text-success font-weight-bold">
-                                                        @attendance.CheckInTime.Value.ToString("HH:mm")
-                                                    </span>
-                                                }
-                                                else
-                                                {
-
-                                                    <span class="text-muted">—</span>
-                                                }
-                                            </td>
-                                            <td>
-                                                @if (attendance.CheckOutTime.HasValue)
-                                                {
-                                                    <span class="text-info font-weight-bold">
-                                                        @attendance.CheckOutTime.Value.ToString("HH:mm")
-                                                    </span>
-                                                }
-                                                else
-                                                {
-
-                                                    <span class="text-muted">—</span>
-                                                }
-                                            </td>
-                                            <td>
-                                                @if (attendance.CheckInTime.HasValue && attendance.CheckOutTime.HasValue)
-                                                {
-                                                    var workingHours = (attendance.CheckOutTime.Value - attendance.CheckInTime.Value).TotalHours;
-                                                    <span class="badge badge-primary">@workingHours.ToString("F1")h</span>
-                                                }
-                                                else
-                                                {
-
-                                                    <span class="text-muted">—</span>
-                                                }
-                                            </td>
-                                            <td>
-                                                @{
+                                                @(attendance.CheckInTime.HasValue && attendance.CheckOutTime.HasValue
+                                                                                        ? (attendance.CheckOutTime.Value - attendance.CheckInTime.Value).TotalHours.ToString("F1") + "h"
+                                                                                        : "—")
+                                    </td>
+                                    <td>
+                                        @{
                                                     var statusClass = attendance.Status switch
                                                     {
                                                         "Present" => "badge-success",
@@ -188,6 +130,13 @@
                                                     };
                                                 }
                                                 <span class="badge @statusClass">@attendance.Status</span>
+                                            </td>
+                                            <td>
+                                                <button class="btn btn-sm btn-info view-attendance-btn"
+                                                        data-employeeid="@attendance.EmployeeId"
+                                                        data-employee="@empName">
+                                                    <i class="fas fa-eye"></i> View
+                                                </button>
                                             </td>
                                         </tr>
                                     }
@@ -200,7 +149,6 @@
                         <div class="text-center py-5">
                             <i class="fas fa-search fa-3x text-muted mb-3"></i>
                             <h5 class="text-muted">No attendance records found</h5>
-                            <p class="text-muted">Try adjusting your search criteria or date range.</p>
                         </div>
                     }
                 </div>
@@ -209,80 +157,110 @@
     </div>
 </div>
 
+
+
+<div class="modal fade" id="employeeAttendanceModal" tabindex="-1" aria-labelledby="modalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title" id="modalLabel">Attendance History</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+
+            <div class="modal-header">
+                <button id="downloadModalPdf" class="btn btn-danger">
+                    <i class="fas fa-file-pdf"></i> Download PDF
+                </button>
+                <button id="printModalBtn" class="btn btn-info">
+                    <i class="fas fa-print"></i> Print
+                </button>
+            </div>
+
+            <div class="modal-body" id="modalContent">
+                <div class="text-center py-3">
+                    <span class="spinner-border text-primary"></span>
+                    <p>Loading...</p>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
 @section Scripts {
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.9.3/html2pdf.bundle.min.js"></script>
     <script>
-        // --- small utilities ---
-        const debounce = (fn, delay = 250) => {
-            let t; return (...args) => { clearTimeout(t); t = setTimeout(() => fn(...args), delay); };
-        };
-        const q  = s => document.querySelector(s);
         const qa = s => Array.from(document.querySelectorAll(s));
+        const q = s => document.querySelector(s);
 
-        // --- selectors ---
-        const $form = document.querySelector('form');
-        const $employeeSearch = q('#employeeSearch');
-        const $dateFrom = q('#dateFrom');
-        const $dateTo = q('#dateTo');
-        const $recordCount = q('#recordCount');
+        const modal = new bootstrap.Modal(q('#employeeAttendanceModal'));
+        const modalContent = q('#modalContent');
+        const modalTitle = q('#modalLabel');
 
-        // Table rows to filter
-        const $rows = qa('tbody tr');
-
-        // Normalize string
-        const norm = s => (s || '').toLowerCase().trim();
-
-        // Live filter logic
-        function applyFilter() {
-            const term = norm($employeeSearch?.value);
-            const from = $dateFrom?.value || ''; // yyyy-MM-dd
-            const to   = $dateTo?.value || '';   // yyyy-MM-dd
-
-            let visible = 0;
-
-            $rows.forEach(row => {
-                const emp   = row.getAttribute('data-employee') || '';
-                const empid = row.getAttribute('data-empid') || '';
-                const date  = row.getAttribute('data-date') || '';
-
-                const textMatch  = term === '' || emp.includes(term) || empid.includes(term);
-                const afterFrom  = !from || date >= from;
-                const beforeTo   = !to   || date <= to;
-
-                const show = textMatch && afterFrom && beforeTo;
-
-                row.style.display = show ? '' : 'none';
-                if (show) visible++;
+        function calculateTotals() {
+            const table = modalContent.querySelector('table');
+            if(!table) return;
+            const rows = table.querySelectorAll('tbody tr');
+            let present=0, late=0, absent=0;
+            rows.forEach(r=>{
+                const status = r.cells[5].innerText.trim();
+                if(status==='Present') present++;
+                else if(status==='Late') late++;
+                else if(status==='Absent') absent++;
             });
-
-            if ($recordCount) {
-                $recordCount.textContent = `${visible} record${visible === 1 ? '' : 's'} found`;
-            }
+            const totalPresentEl = table.querySelector('#totalPresent');
+            const totalLateEl = table.querySelector('#totalLate');
+            const totalAbsentEl = table.querySelector('#totalAbsent');
+            if(totalPresentEl) totalPresentEl.innerText = present;
+            if(totalLateEl) totalLateEl.innerText = late;
+            if(totalAbsentEl) totalAbsentEl.innerText = absent;
         }
 
-        const debouncedFilter = debounce(applyFilter, 150);
-
-        // Wire up instant events
-        if ($employeeSearch) $employeeSearch.addEventListener('input', debouncedFilter);
-        if ($dateFrom) $dateFrom.addEventListener('input', debouncedFilter);
-        if ($dateTo) $dateTo.addEventListener('input', debouncedFilter);
-
-        // Prevent form submit (keep progressive enhancement)
-        if ($form) {
-            $form.addEventListener('submit', function(e) {
-                e.preventDefault();
-                applyFilter();
+        qa('.view-attendance-btn').forEach(btn=>{
+            btn.addEventListener('click', async function(){
+                const empId = this.getAttribute('data-employeeid');
+                const empName = this.getAttribute('data-employee');
+                modalTitle.textContent = `Attendance History - ${empName}`;
+                modalContent.innerHTML = `<div class="text-center py-3"><span class="spinner-border text-primary"></span><p>Loading...</p></div>`;
+                modal.show();
+                try {
+                    const response = await fetch(`@Url.Action("GetEmployeeMonthlyAttendance", "Admin")?employeeId=${empId}&dateFrom=@(Model.DateFrom)&dateTo=@(Model.DateTo)`);
+                    if(!response.ok) throw new Error('Failed to fetch');
+                    modalContent.innerHTML = await response.text();
+                    calculateTotals();
+                } catch(err){
+                    modalContent.innerHTML = `<div class="text-danger text-center">Error loading data</div>`;
+                    console.error(err);
+                }
             });
-        }
+        });
 
-        // Clear search functionality (instant)
-        window.clearSearch = function() {
-            if ($employeeSearch) $employeeSearch.value = '';
-            if ($dateFrom) $dateFrom.value = '';
-            if ($dateTo) $dateTo.value = '';
-            applyFilter();
-        };
+        // Download PDF button for Modal
+        document.getElementById("downloadModalPdf").addEventListener("click", function () {
+            var title = document.getElementById("modalLabel").innerText;
+            var content = document.getElementById("modalContent");
 
-        // Initial run so count matches prefilled inputs
-        applyFilter();
+            var element = document.createElement("div");
+            element.innerHTML = `
+                <h2 style="text-align:center; margin-bottom:20px; color:#2c3e50;">
+                    ${title}
+                </h2>
+                ${content.innerHTML}
+            `;
+
+            var opt = {
+                margin: 0.5,
+                filename: `${title.replace(/\s+/g, '_')}.pdf`,
+                image: { type: 'jpeg', quality: 0.98 },
+                html2canvas: { scale: 2 },
+                jsPDF: { unit: 'in', format: 'a4', orientation: 'landscape' }
+            };
+
+            html2pdf().set(opt).from(element).save();
+        });
+
+        // Print button for Modal
+        document.getElementById("printModalBtn").addEventListener("click", function () {
+            window.print();
+        });
     </script>
 }
