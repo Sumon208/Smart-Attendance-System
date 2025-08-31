@@ -1,0 +1,51 @@
+﻿@model IEnumerable<Smart_Attendance_System.Models.Attendance>
+
+<div id="attendanceModalContent">
+    <div class="mb-3 d-flex justify-content-between">
+      
+     </div>
+
+    <table class="table table-bordered table-striped">
+        <thead class="thead-dark">
+            <tr>
+                <th>Date</th>
+                <th>Day</th>
+                <th>Check In</th>
+                <th>Check Out</th>
+                <th>Working Hours</th>
+                <th>Status</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var att in Model)
+            {
+                <tr>
+                    <td>@att.AttendanceDate.ToString("MMM dd, yyyy")</td>
+                    <td>@att.AttendanceDate.ToString("ddd")</td>
+                    <td>@(att.CheckInTime?.ToString("HH:mm") ?? "—")</td>
+                    <td>@(att.CheckOutTime?.ToString("HH:mm") ?? "—")</td>
+                    <td>
+                        @(att.CheckInTime.HasValue && att.CheckOutTime.HasValue
+                                            ? (att.CheckOutTime.Value - att.CheckInTime.Value).TotalHours.ToString("F1") + "h"
+                                            : "—")
+                </td>
+                <td>@att.Status</td>
+            </tr>
+                        }
+        </tbody>
+        <tfoot>
+            <tr>
+                <th colspan="5" class="text-success">Total Present</th>
+                <th id="totalPresent" class="text-success"></th>
+            </tr>
+            <tr>
+                <th colspan="5" class="text-warning">Total Late</th>
+                <th id="totalLate" class="text-warning"></th>
+            </tr>
+            <tr>
+                <th colspan="5" class="text-danger">Total Absent</th>
+                <th id="totalAbsent" class="text-danger"></th>
+            </tr>
+        </tfoot>
+    </table>
+</div>

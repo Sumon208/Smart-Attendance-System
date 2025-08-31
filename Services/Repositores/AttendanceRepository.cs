@@ -62,47 +62,80 @@ namespace Smart_Attendance_System.Services.Repositores
                                  .FirstOrDefaultAsync(e => e.Id == id);
         }
 
-        // Monthly attendance report method
-        public async Task<IEnumerable<Attendance>> GetMonthlyAttendanceReportAsync(string? employeeSearch = null, DateTime? dateFrom = null, DateTime? dateTo = null)
+     public async Task<IEnumerable<Attendance>> GetMonthlyAttendanceReportAsync(
+            string? employeeSearch = null,
+            DateTime? dateFrom = null,
+            DateTime? dateTo = null)
         {
-            var query = _context.Attendances
-                .Include(a => a.Employee)
-                .ThenInclude(e => e.Department)
+            // Step 1: Fetch employees first
+            var employeesQuery = _context.Employees
+                .Include(e => e.Department)
                 .AsQueryable();
 
-            // Filter by employee name or ID
             if (!string.IsNullOrEmpty(employeeSearch))
             {
-                query = query.Where(a => 
-                    a.Employee.EmployeeName.Contains(employeeSearch) || 
-                    a.Employee.EmployeeId.Contains(employeeSearch));
+                employeesQuery = employeesQuery.Where(e =>
+                    e.EmployeeName.Contains(employeeSearch) ||
+                    e.EmployeeId.Contains(employeeSearch));
             }
 
-            // Filter by date range
-            if (dateFrom.HasValue)
-            {
-                query = query.Where(a => a.AttendanceDate >= dateFrom.Value);
-            }
+            var employees = await employeesQuery.ToListAsync();
 
-            if (dateTo.HasValue)
-            {
-                query = query.Where(a => a.AttendanceDate <= dateTo.Value);
-            }
-
-            // If no date filters, default to current month
+            // Step 2: Set default date range (current month)
             if (!dateFrom.HasValue && !dateTo.HasValue)
             {
-                var currentMonth = DateTime.Today;
-                var monthStart = new DateTime(currentMonth.Year, currentMonth.Month, 1);
-                var monthEnd = monthStart.AddMonths(1).AddDays(-1);
-                
-                query = query.Where(a => a.AttendanceDate >= monthStart && a.AttendanceDate <= monthEnd);
+                var today = DateTime.Today;
+                dateFrom = new DateTime(today.Year, today.Month, 1);
+                dateTo = dateFrom.Value.AddMonths(1).AddDays(-1);
             }
 
-            return await query
+            if (dateFrom.HasValue && !dateTo.HasValue)
+                dateTo = dateFrom.Value.AddMonths(1).AddDays(-1);
+
+            if (!dateFrom.HasValue && dateTo.HasValue)
+                dateFrom = new DateTime(dateTo.Value.Year, dateTo.Value.Month, 1);
+
+            // Step 3: Generate list of dates in range
+            var dates = Enumerable.Range(0, (dateTo.Value - dateFrom.Value).Days + 1)
+                                  .Select(offset => dateFrom.Value.AddDays(offset))
+                                  .ToList();
+
+            // Step 4: Fetch actual attendances from database for the date range
+            var allAttendances = await _context.Attendances
+                .Include(a => a.Employee)
+                .ThenInclude(e => e.Department)
+                .Where(a => a.AttendanceDate >= dateFrom.Value && a.AttendanceDate <= dateTo.Value)
+                .ToListAsync();
+
+            // Step 5: Generate report combining employees and dates
+            var report = employees
+                .SelectMany(emp => dates, (emp, date) => new { emp, date })
+                .Select(ed =>
+                {
+                    var att = allAttendances
+                        .FirstOrDefault(a => a.EmployeeId == ed.emp.Id && a.AttendanceDate.Date == ed.date.Date);
+
+                    return new Attendance
+                    {
+                        AttendanceId = att?.AttendanceId ?? 0,
+                        Employee = ed.emp,
+                        EmployeeId = ed.emp.Id,
+                        AttendanceDate = ed.date,
+                        CheckInTime = att?.CheckInTime,
+                        CheckOutTime = att?.CheckOutTime,
+                        Status = att == null
+                            ? "Absent"
+                            : (att.CheckInTime.HasValue && att.CheckInTime.Value.TimeOfDay > new TimeSpan(9, 15, 0))
+                                ? "Late"
+                                : "Present"
+                    };
+                })
                 .OrderByDescending(a => a.AttendanceDate)
                 .ThenBy(a => a.Employee.EmployeeName)
-                .ToListAsync();
+                .ToList();
+
+            return report;
         }
+
     }
 }
