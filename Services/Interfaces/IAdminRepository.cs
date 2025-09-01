@@ -25,6 +25,9 @@ namespace Smart_Attendance_System.Services.Interfaces
         Task<IEnumerable<Attendance>> GetEmployeeAttendanceAsync(int employeeId);
         Task<IEnumerable<Attendance>> GetAllAttendanceAsync();
         Task<IEnumerable<Attendance>> GetAttendanceByDateAsync(DateTime date);
+        Task<IEnumerable<EmployeeVM>> GetAllEmployeeBasicInfoAsync();
+        Task<EmployeeVM> GetEmployeeByIdByAsync(int employeeId);
+
 
 
         // for MonthlySalaryReport

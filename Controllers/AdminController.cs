@@ -399,5 +399,36 @@ namespace Smart_Attendance_System.Controllers
 
             return View(report);
         }
+
+        [HttpGet]
+        public async Task<IActionResult> GetEmployeeMonthlyAttendance(int employeeId, string? dateFrom, string? dateTo)
+        {
+            DateTime? fromDate = null;
+            DateTime? toDate = null;
+
+            if (!string.IsNullOrEmpty(dateFrom) && DateTime.TryParse(dateFrom, out var from))
+                fromDate = from;
+
+            if (!string.IsNullOrEmpty(dateTo) && DateTime.TryParse(dateTo, out var to))
+                toDate = to;
+
+            var attendanceRepo = HttpContext.RequestServices.GetRequiredService<IAttendanceRepository>();
+            var attendances = await attendanceRepo.GetMonthlyAttendanceReportAsync(null, fromDate, toDate);
+
+            // Filter only this employee
+            var employeeAttendances = attendances.Where(a => a.EmployeeId == employeeId).ToList();
+
+            return PartialView("_EmployeeAttendancePartial", employeeAttendances);
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> EmployeeBasicInfo()
+        {
+            var employees = await _adminRepository.GetAllEmployeeBasicInfoAsync();
+            return View(employees);
+        }
+
+
+
     }
 }

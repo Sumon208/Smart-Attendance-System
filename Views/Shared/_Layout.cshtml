@@ -1,4 +1,10 @@
-﻿@if (TempData["SuccessMessage"] != null)
+﻿@using System.Security.Claims
+@{
+    var employeeName = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Name)?.Value;
+    var employeeEmail = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Email)?.Value;
+    var employeePhoto = User.Claims.FirstOrDefault(c => c.Type == "EmployeePhotoPath")?.Value ?? "/images/default-user.png";
+}
+@if (TempData["SuccessMessage"] != null)
 {
     <script>
         window.onload = function () {
@@ -20,7 +26,10 @@
     <header>
         <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
             <div class="container-fluid">
-                <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">Smart Attendance System</a>
+                <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">
+                    <img src="/images/about-egroup.png" alt="Smart Attendance System" style="height:30px; width:auto;" />
+                </a>
+               
                 <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
                         aria-expanded="false" aria-label="Toggle navigation">
                     <span class="navbar-toggler-icon"></span>
@@ -28,11 +37,25 @@
                 <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
                     <ul class="navbar-nav flex-grow-1">
                         <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Index">Home</a>
+                            <a class="nav-link text-dark"
+                               asp-area="" asp-controller="Home" asp-action="Index"
+                               style="transition: background-color 0.3s ease; padding: 5px 10px; border-radius: 5px;"
+                               onmouseover="this.style.backgroundColor='#6c757d'; this.style.color='white';"
+                               onmouseout="this.style.backgroundColor=''; this.style.color='black';">
+                                Home
+                            </a>
                         </li>
+
                         <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
+                            <a class="nav-link text-dark"
+                               asp-area="" asp-controller="Home" asp-action="Privacy"
+                               style="transition: background-color 0.3s ease; padding: 5px 10px; border-radius: 5px;"
+                               onmouseover="this.style.backgroundColor='#6c757d'; this.style.color='white';"
+                               onmouseout="this.style.backgroundColor=''; this.style.color='black';">
+                                About Us
+                            </a>
                         </li>
+
                     </ul>
                     <ul class="navbar-nav">
                         <div class="d-flex">

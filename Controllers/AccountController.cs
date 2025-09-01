@@ -82,10 +82,12 @@ namespace Smart_Attendance_System.Controllers
                     // If the user is an Admin or an Approved User, proceed with login
                     var claims = new List<Claim>
                       {
-                        new Claim(ClaimTypes.NameIdentifier, user.EmployeeId?.ToString() ?? "0"),
-                        new Claim(ClaimTypes.Email, user.Email),
-                        new Claim(ClaimTypes.Role, user.UserType.ToString())
-                      };
+                            new Claim(ClaimTypes.Name, user.Employee?.EmployeeName ?? ""), // Employee Name
+    new Claim(ClaimTypes.NameIdentifier, user.EmployeeId?.ToString() ?? "0"),
+    new Claim(ClaimTypes.Email, user.Email),
+    new Claim("EmployeePhotoPath", user.Employee?.EmployeePhotoPath ?? "/images/default-user.png"),
+    new Claim(ClaimTypes.Role, user.UserType.ToString())
+                                              };
 
                     var claimsIdentity = new ClaimsIdentity(claims, "Login");
                     await HttpContext.SignInAsync(new ClaimsPrincipal(claimsIdentity));

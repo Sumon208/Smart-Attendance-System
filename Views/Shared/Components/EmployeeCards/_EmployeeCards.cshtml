@@ -1,0 +1,19 @@
+﻿@model IEnumerable<Smart_Attendance_System.Models.ViewModel.EmployeeVM>
+
+<div class="row">
+    @foreach (var emp in Model)
+    {
+        <div class="col-md-3 mb-4">
+            <div class="card text-center card-custom">
+                <img src="@(!string.IsNullOrEmpty(emp.EmployeePhotoPath) ? emp.EmployeePhotoPath : "/images/default-user.png")"
+                     class="card-img-top rounded-circle mt-3"
+                     style="width:100px; height:100px; object-fit:cover;"
+                     alt="@emp.EmployeeName" />
+                <div class="card-body">
+                    <h5 class="card-title">@emp.EmployeeName</h5>
+                    <p class="card-text">@emp.Email</p>
+                </div>
+            </div>
+        </div>
+    }
+</div>

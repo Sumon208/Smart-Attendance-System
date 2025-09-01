@@ -167,6 +167,35 @@ namespace Smart_Attendance_System.Services.Repositories
                                 .Include(a => a.Employee)
                                 .ToListAsync();
         }
+        public async Task<IEnumerable<EmployeeVM>> GetAllEmployeeBasicInfoAsync()
+        {
+            // Join Employees with SystemUsers to get email
+            var result = await (from e in _context.Employees
+                                join u in _context.SystemUsers on e.Id equals u.EmployeeId
+                                select new EmployeeVM
+                                {
+                                    EmployeePhotoPath = e.EmployeePhotoPath,
+                                    EmployeeName = e.EmployeeName,
+                                    Email = u.Email
+                                }).ToListAsync();
+
+            return result;
+        }
+        public async Task<EmployeeVM> GetEmployeeByIdByAsync(int employeeId)
+        {
+            var result = await (from e in _context.Employees
+                                join u in _context.SystemUsers on e.Id equals u.EmployeeId
+                                where e.Id == employeeId
+                                select new EmployeeVM
+                                {
+                                    EmployeePhotoPath = e.EmployeePhotoPath,
+                                    EmployeeName = e.EmployeeName,
+                                    Email = u.Email
+                                }).FirstOrDefaultAsync();
+
+            return result;
+        }
+
 
         // MonthlySalaryReport
         public async Task<List<MonthlySalaryViewModel>> GetMonthlySalaryReportAsync(DateTime? fromDate, DateTime? toDate)
