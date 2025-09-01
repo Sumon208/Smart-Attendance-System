@@ -1,4 +1,20 @@
-﻿<!DOCTYPE html>
+﻿@using Smart_Attendance_System.Models.ViewModel
+@inject Smart_Attendance_System.Services.Interfaces.IAdminRepository AdminRepository
+
+@{
+    var userId = User.Claims.FirstOrDefault(c => c.Type == "EmployeeId")?.Value;
+    EmployeeVM currentUser = null;
+    if (!string.IsNullOrEmpty(userId))
+    {
+        currentUser = AdminRepository.GetEmployeeByIdByAsync(int.Parse(userId)).Result;
+    }
+
+    var employeeName = currentUser?.EmployeeName ?? User.Claims.FirstOrDefault(c => c.Type == System.Security.Claims.ClaimTypes.Name)?.Value ?? "User";
+    var employeeEmail = currentUser?.Email ?? User.Claims.FirstOrDefault(c => c.Type == System.Security.Claims.ClaimTypes.Email)?.Value ?? "user@example.com";
+    var employeePhoto = currentUser?.EmployeePhotoPath ?? User.Claims.FirstOrDefault(c => c.Type == "EmployeePhotoPath")?.Value ?? "/images/default-user.png";
+}
+
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="utf-8" />
@@ -7,107 +23,166 @@
     <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" />
     <style>
+        /* --- SIDEBAR --- */
         .sidebar {
-           /*  height: 100vh; */
             background-color: #343a40;
             padding-top: 20px;
             color: white;
+            height: 100vh;
+            position: fixed;
+            top: 60px; /* leave space for header */
+            left: 0;
+            width: 220px;
+            overflow-y: auto;
         }
-        .sidebar .nav-link {
-            color: #adb5bd;
-            font-size: 1.1em;
-            padding: 10px 15px;
+
+            .sidebar .nav-link {
+                color: #adb5bd;
+                font-size: 1.1em;
+                padding: 10px 15px;
+            }
+
+                .sidebar .nav-link:hover {
+                    color: #fff;
+                    background-color: #495057;
+                }
+
+        /* --- HEADER --- */
+        .header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 60px;
+            background-color: #343a40;
+            color: white;
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+            padding: 0 20px;
+            z-index: 1000;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
         }
-        .sidebar .nav-link:hover {
-            color: #fff;
-            background-color: #495057;
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
         }
+
+            .user-info img {
+                width: 50px;
+                height: 50px;
+                border-radius: 50%;
+                object-fit: cover;
+                border: 2px solid #c82333;
+            }
+
+            .user-info a.btn-danger {
+                border: none;
+            }
+
+        /* --- MAIN CONTENT --- */
         .main-content {
-            padding: 20px;
+            margin-left: 220px; /* sidebar width */
+            padding: 80px 20px 20px 20px; /* top padding for fixed header */
         }
-        .card-custom {
-            min-height: 150px;
+
+        /* Make sidebar scrollable */
+        .sidebar::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .sidebar::-webkit-scrollbar-thumb {
+            background-color: rgba(255,255,255,0.2);
+            border-radius: 3px;
         }
     </style>
 </head>
 <body>
+    <!-- HEADER -->
+    <div class="header">
+        <div class="user-info">
+            <img src="@employeePhoto" alt="User Photo" />
+            <div>
+                <strong>@employeeName</strong><br />
+                <small>@employeeEmail</small>
+            </div>
+            <a href="/Account/Logout" class="btn btn-sm btn-danger ml-3 p-2" title="Logout">
+                <i class="fas fa-sign-out-alt"></i>
+            </a>
+        </div>
+    </div>
+
     <div class="container-fluid">
         <div class="row">
-            <nav id="sidebar" class="col-md-2 col-lg-2 d-md-block sidebar">
-                <div class="position-sticky pt-3">
-                    <h4 class="text-center text-light mb-4">Admin Panel</h4>
-                    <ul class="nav flex-column">
-                        <li class="nav-item">
-                            <a class="nav-link active" asp-controller="Admin" asp-action="Dashboard">
-                                <i class="fas fa-chart-line mr-2"></i> Dashboard
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link collapsed" data-toggle="collapse" href="#employeeSubmenu" aria-expanded="false" aria-controls="employeeSubmenu">
-                                <i class="fas fa-users mr-2"></i> Employees
-                            </a>
-                            <div class="collapse" id="employeeSubmenu">
-                                <ul class="flex-column nav pl-4">
-                                    <li class="nav-item">
-                                        <a class="nav-link" asp-controller="Admin" asp-action="EmployeeAppointment">
-                                            <i class="fas fa-user-clock mr-2"></i> Employee Appointment
-                                        </a>
-                                    </li>
-                                    <li class="nav-item">
-
-                                        <a class="nav-link" asp-controller="EmployeeManagement" asp-action="Index">
-                                            <i class="fas fa-list-alt mr-2"></i> Total Employees
-                                        </a>
-                                    </li>
-                                </ul>
-                            </div>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" asp-controller="Department" asp-action="Index">
-                                <i class="fas fa-building mr-2"></i> Departments
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" asp-controller="Admin" asp-action="Leave">
-                                <i class="fas fa-calendar-check mr-2"></i> Leave
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" asp-controller="Admin" asp-action="Salary">
-                                <i class="fas fa-money-bill-wave mr-2"></i> Salary
-                            </a>
-                        </li>
-
-                        <li class="nav-item">
-                            <a class="nav-link collapsed" data-toggle="collapse" href="#attendanceSubmenu" aria-expanded="false" aria-controls="attendanceSubmenu">
-                                <i class="fas fa-clipboard-list mr-2"></i> Attendance Report
-                            </a>
-                            <div class="collapse" id="attendanceSubmenu">
-                                <ul class="flex-column nav pl-4">
-                                    <li class="nav-item">
-                                        <a class="nav-link" asp-controller="Admin" asp-action="AttendanceReport">
-                                            <i class="fas fa-calendar-day mr-2"></i> Daily
-                                        </a>
-                                    </li>
-                                    <li class="nav-item">
-                                        <a class="nav-link" asp-controller="Admin" asp-action="MonthlyAttendanceReport">
-                                            <i class="fas fa-calendar-alt mr-2"></i> Monthly
-                                        </a>
-                                    </li>
-                                </ul>
-                            </div>
-                        </li>
-                        
-                        <li class="nav-item">
-                            <a class="nav-link" asp-controller="Account" asp-action="Logout">
-                                <i class="fas fa-sign-out-alt mr-2"></i> Logout
-                            </a>
-                        </li>
-                    </ul>
-                </div>
+            <!-- SIDEBAR -->
+            <nav id="sidebar" class="sidebar">
+                <h4 class="text-center text-light mb-4">Admin Panel</h4>
+                <ul class="nav flex-column">
+                    <li class="nav-item">
+                        <a class="nav-link active" asp-controller="Admin" asp-action="Dashboard">
+                            <i class="fas fa-chart-line mr-2"></i> Dashboard
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link collapsed" data-toggle="collapse" href="#employeeSubmenu" aria-expanded="false" aria-controls="employeeSubmenu">
+                            <i class="fas fa-users mr-2"></i> Employees
+                        </a>
+                        <div class="collapse" id="employeeSubmenu">
+                            <ul class="flex-column nav pl-4">
+                                <li class="nav-item">
+                                    <a class="nav-link" asp-controller="Admin" asp-action="EmployeeAppointment">
+                                        <i class="fas fa-user-clock mr-2"></i> Employee Appointment
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link" asp-controller="EmployeeManagement" asp-action="Index">
+                                        <i class="fas fa-list-alt mr-2"></i> Total Employees
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" asp-controller="Department" asp-action="Index">
+                            <i class="fas fa-building mr-2"></i> Departments
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" asp-controller="Admin" asp-action="Leave">
+                            <i class="fas fa-calendar-check mr-2"></i> Leave
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" asp-controller="Admin" asp-action="Salary">
+                            <i class="fas fa-money-bill-wave mr-2"></i> Salary
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link collapsed" data-toggle="collapse" href="#attendanceSubmenu" aria-expanded="false" aria-controls="attendanceSubmenu">
+                            <i class="fas fa-clipboard-list mr-2"></i> Attendance Report
+                        </a>
+                        <div class="collapse" id="attendanceSubmenu">
+                            <ul class="flex-column nav pl-4">
+                                <li class="nav-item">
+                                    <a class="nav-link" asp-controller="Admin" asp-action="AttendanceReport">
+                                        <i class="fas fa-calendar-day mr-2"></i> Daily
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link" asp-controller="Admin" asp-action="MonthlyAttendanceReport">
+                                        <i class="fas fa-calendar-alt mr-2"></i> Monthly
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
+                    </li>
+                </ul>
             </nav>
 
-            <main class="col-md-10 ml-sm-auto col-lg-10 px-md-4 main-content">
+            <!-- MAIN CONTENT -->
+            <main class="main-content">
                 @RenderBody()
             </main>
         </div>

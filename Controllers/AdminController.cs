@@ -338,8 +338,13 @@ namespace Smart_Attendance_System.Controllers
 
             return PartialView("_EmployeeAttendancePartial", employeeAttendances);
         }
-       
 
+        [HttpGet]
+        public async Task<IActionResult> EmployeeBasicInfo()
+        {
+            var employees = await _adminRepository.GetAllEmployeeBasicInfoAsync();
+            return View(employees);
+        }
 
     }
 }
