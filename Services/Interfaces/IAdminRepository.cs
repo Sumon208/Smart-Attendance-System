@@ -26,5 +26,13 @@ namespace Smart_Attendance_System.Services.Interfaces
         Task<IEnumerable<Attendance>> GetAllAttendanceAsync();
         Task<IEnumerable<Attendance>> GetAttendanceByDateAsync(DateTime date);
 
+
+        // for MonthlySalaryReport
+        Task<List<MonthlySalaryViewModel>> GetMonthlySalaryReportAsync(DateTime? fromDate, DateTime? toDate);
+        // inside IAdminRepository
+        Task<MonthlySalaryViewModel?> GetMonthlySalaryByEmployeeIdAsync(int employeeId, DateTime? fromDate = null, DateTime? toDate = null);
+        Task UpdateMonthlySalaryAsync(MonthlySalaryViewModel model);
+
+
     }
 }

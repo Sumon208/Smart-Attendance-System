@@ -1,0 +1,58 @@
+﻿@model Smart_Attendance_System.Models.ViewModel.MonthlySalaryViewModel
+@{
+    ViewData["Title"] = "Update Salary";
+    Layout = "_AdminLayout";
+}
+
+<div class="container mt-4">
+    <h3 class="text-primary"><i class="fas fa-edit"></i> Update Salary - @Model.EmployeeName</h3>
+
+    <form asp-action="UpdateSalary" method="post">
+        @Html.AntiForgeryToken()
+        <input type="hidden" asp-for="EmployeeId" />
+
+        <div class="mb-3">
+            <label class="form-label">Employee Code</label>
+            <input class="form-control" value="@Model.EmployeeCode" readonly />
+        </div>
+
+        <div class="mb-3">
+            <label asp-for="GrossSalary" class="form-label"></label>
+            <input asp-for="GrossSalary" class="form-control" />
+            <span asp-validation-for="GrossSalary" class="text-danger"></span>
+        </div>
+
+        <div class="mb-3">
+            <label asp-for="MonthlySalary" class="form-label">Monthly Salary (calculated)</label>
+            <input asp-for="MonthlySalary" class="form-control" />
+            <span asp-validation-for="MonthlySalary" class="text-danger"></span>
+        </div>
+
+        <div class="row">
+            <div class="col-md-4 mb-3">
+                <label asp-for="PresentCount" class="form-label"></label>
+                <input asp-for="PresentCount" class="form-control" />
+            </div>
+            <div class="col-md-4 mb-3">
+                <label asp-for="LateCount" class="form-label"></label>
+                <input asp-for="LateCount" class="form-control" />
+            </div>
+            <div class="col-md-4 mb-3">
+                <label asp-for="ApprovedLeaveDays" class="form-label"></label>
+                <input asp-for="ApprovedLeaveDays" class="form-control" />
+            </div>
+        </div>
+
+        <div class="mb-3">
+            <label asp-for="WorkingDays" class="form-label"></label>
+            <input asp-for="WorkingDays" class="form-control" />
+        </div>
+
+        <button type="submit" class="btn btn-success">Save</button>
+        <a asp-action="MonthlySalaryReport" class="btn btn-secondary ms-2">Cancel</a>
+    </form>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

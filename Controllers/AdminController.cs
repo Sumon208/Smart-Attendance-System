@@ -152,11 +152,82 @@ namespace Smart_Attendance_System.Controllers
         }
 
 
-
-        // 5. Salary Management Action
-        public IActionResult Salary()
+        // Monthly Salary Report
+        [HttpGet]
+        public async Task<IActionResult> MonthlySalaryReport(string? dateFrom = null, string? dateTo = null)
         {
-            return View();
+            DateTime? fromDate = null;
+            DateTime? toDate = null;
+
+            if (!string.IsNullOrEmpty(dateFrom) && DateTime.TryParse(dateFrom, out var from))
+                fromDate = from;
+
+            if (!string.IsNullOrEmpty(dateTo) && DateTime.TryParse(dateTo, out var to))
+                toDate = to;
+
+            var salaryData = await _adminRepository.GetMonthlySalaryReportAsync(fromDate, toDate);
+
+            // Pass extra info to ViewBag if needed
+            ViewBag.DateFrom = fromDate?.ToString("yyyy-MM-dd") ?? "";
+            ViewBag.DateTo = toDate?.ToString("yyyy-MM-dd") ?? "";
+
+            return View(salaryData);
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> ViewSalaryDetails(int id, string? dateFrom = null, string? dateTo = null)
+        {
+            DateTime? fromDate = null;
+            DateTime? toDate = null;
+
+            if (!string.IsNullOrEmpty(dateFrom) && DateTime.TryParse(dateFrom, out var from))
+                fromDate = from;
+
+            if (!string.IsNullOrEmpty(dateTo) && DateTime.TryParse(dateTo, out var to))
+                toDate = to;
+
+            // Get all salaries
+            var salaries = await _adminRepository.GetMonthlySalaryReportAsync(fromDate, toDate);
+
+            // Find the requested employee
+            var employeeSalary = salaries.FirstOrDefault(x => x.EmployeeId == id);
+            if (employeeSalary == null)
+                return NotFound("Salary record not found.");
+
+            return PartialView("_ViewSalaryDetailsPartial", employeeSalary);
+        }
+   // for update salary
+
+        [HttpGet]
+        public async Task<IActionResult> UpdateSalary(int id)
+        {
+            var model = await _adminRepository.GetMonthlySalaryByEmployeeIdAsync(id);
+            if (model == null) return NotFound("Salary record not found.");
+            return View(model);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> UpdateSalary(MonthlySalaryViewModel model)
+        {
+            if (!ModelState.IsValid)
+            {
+                // Return view with validation errors
+                return View(model);
+            }
+
+            try
+            {
+                await _adminRepository.UpdateMonthlySalaryAsync(model);
+                TempData["SuccessMessage"] = "Salary updated successfully.";
+                return RedirectToAction(nameof(MonthlySalaryReport));
+            }
+            catch (Exception ex)
+            {
+                // log exception as needed
+                ModelState.AddModelError("", "Unable to update salary. " + ex.Message);
+                return View(model);
+            }
         }
 
 
