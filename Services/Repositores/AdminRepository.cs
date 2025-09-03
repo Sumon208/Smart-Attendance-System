@@ -1,8 +1,13 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Smart_Attendance_System.Data;
 using Smart_Attendance_System.Models;
+using Microsoft.EntityFrameworkCore;
+using Smart_Attendance_System.Data;
+using Smart_Attendance_System.Models;
 using Smart_Attendance_System.Models.ViewModel;
 using Smart_Attendance_System.Services.Interfaces;
+using Microsoft.CodeAnalysis.Elfie.Serialization;
+using Microsoft.EntityFrameworkCore.Storage;
 
 namespace Smart_Attendance_System.Services.Repositories
 {
@@ -141,14 +146,39 @@ namespace Smart_Attendance_System.Services.Repositories
             return await _context.Attendances.Include(a => a.Employee).ToListAsync();
         }
 
-        // AdminRepository.cs
+        // AdminReposponse
 
         public async Task<IEnumerable<Employee>> GetPendingEmployeesAsync()
         {
             return await _context.Employees
-                                 .Include(e => e.Department)       
+                                 .Include(e => e.Department)
                                  .Where(e => e.Status == EmployeeStatus.Pending)
                                  .ToListAsync();
+        }
+        public async Task<bool> SetEmployeeStatusAsync(int employeeId, EmployeeStatus status)
+        {
+            var employee = await _context.Employees.FindAsync(employeeId);
+            if (employee == null) return false;
+
+            employee.Status = status;
+            _context.Employees.Update(employee);
+            await _context.SaveChangesAsync();
+            return true;
+        }
+
+        public async Task<string?> GetUserEmailForEmployeeAsync(int employeeId)
+        {
+            var user = await _context.SystemUsers
+                .Include(u => u.Employee)
+                .FirstOrDefaultAsync(u => u.EmployeeId == employeeId);
+
+            return user?.Email;
+        }
+
+        public async Task<Employee?> GetEmployeeIdAsync(int employeeId)
+        {
+            return await _context.Employees
+                .FirstOrDefaultAsync(e => e.Id == employeeId);
         }
 
         public async Task UpdateEmployeeStatusAsync(int employeeId, EmployeeStatus status)
@@ -157,9 +187,11 @@ namespace Smart_Attendance_System.Services.Repositories
             if (employee != null)
             {
                 employee.Status = status;
+                _context.Employees.Update(employee);
                 await _context.SaveChangesAsync();
             }
         }
+
         public async Task<IEnumerable<Attendance>> GetAttendanceByDateAsync(DateTime date)
         {
             return await _context.Attendances
@@ -198,7 +230,7 @@ namespace Smart_Attendance_System.Services.Repositories
         public async Task<Leave> GetLeaveByIdAsync(int leaveId)
         {
             return await _context.Leaves
-                .Include(l => l.Employee) 
+                .Include(l => l.Employee)
                 .FirstOrDefaultAsync(l => l.LeaveId == leaveId);
         }
 
@@ -222,10 +254,11 @@ namespace Smart_Attendance_System.Services.Repositories
                 return false;
 
             notification.IsRead = true;
-           
+
 
             return await _context.SaveChangesAsync() > 0;
         }
+       
 
 
         // MonthlySalaryReport
@@ -310,7 +343,7 @@ namespace Smart_Attendance_System.Services.Repositories
             return result;
         }
 
-        
+
 
         public async Task<MonthlySalaryViewModel?> GetMonthlySalaryByEmployeeIdAsync(int employeeId, DateTime? fromDate = null, DateTime? toDate = null)
         {
@@ -327,7 +360,7 @@ namespace Smart_Attendance_System.Services.Repositories
             var employee = await _context.Employees.FindAsync(model.EmployeeId);
             if (employee == null) throw new InvalidOperationException("Employee not found.");
 
-            
+
             employee.Salary = model.GrossSalary;
 
             // If you have a separate salary history table, add a record here (optional)
@@ -336,7 +369,17 @@ namespace Smart_Attendance_System.Services.Repositories
         }
 
 
+        public async Task<Employee?> GetEmployeeById(int employeeId)
+        {
+            return await _context.Employees
+                .FirstOrDefaultAsync(e => e.Id == employeeId);
+        }
+
+
 
 
     }
 }
+
+
+

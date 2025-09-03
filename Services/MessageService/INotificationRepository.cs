@@ -11,6 +11,8 @@ namespace Smart_Attendance_System.Services.MessageService
         Task<int> GetUnreadCountForAdminAsync();
         Task<int> GetUnreadCountForEmployeeAsync(int employeeId);
         Task MarkAsReadAsync(int notificationId);
+        Task<bool> MarkNotificationAsReadAsync(int id);
+
 
     }
 }

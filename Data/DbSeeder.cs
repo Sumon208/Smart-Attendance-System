@@ -45,7 +45,7 @@ public static class DbSeeder
         // Create the admin SystemUser
         var adminUser = new SystemUser
         {
-            Email = "admin@smartattendancesystem.com",
+            Email = "admin2025@gmail.com",
             PasswordHash = PasswordHasher.HashPassword("Admin@123"),
             UserType = 1, // Admin
             EmployeeId = adminEmployee.Id // Corrected: link to the auto-generated 'Id'

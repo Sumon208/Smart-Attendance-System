@@ -6,6 +6,9 @@ using Microsoft.AspNetCore.Authentication.Cookies;
 using Smart_Attendance_System.Services.Repositores;
 using Smart_Attendance_System.Data.SMTP_Service;
 using Smart_Attendance_System.Services.MessageService;
+using Smart_Attendance_System.EmailSettings;
+using Microsoft.Extensions.DependencyInjection;
+
 
 namespace Smart_Attendance_System
 {
@@ -37,14 +40,17 @@ namespace Smart_Attendance_System
                 });
 
             // Register Repositories for Dependency Injection
+            // builder.Services.Configure<EmailSettings>(builder.Configuration.GetSection("EmailSettings"));
+            builder.Services.Configure<Config.EmailSettings>(builder.Configuration.GetSection("EmailSettings"));
+            builder.Services.AddTransient<IEmailService, EmailService>();
+
             builder.Services.AddScoped<IAccountRepository, AccountRepository>();
             builder.Services.AddScoped<IAdminRepository, AdminRepository>();
             builder.Services.AddScoped<IEmployeeRepository, EmployeeRepository>();
             builder.Services.AddScoped<IAttendanceRepository, AttendanceRepository>();
             builder.Services.AddScoped<IDepartmentRepository, DepartmentRepository>();
             builder.Services.AddScoped<INotificationRepository, NotificationRepository>();
-
-            builder.Services.AddScoped<EmailService>();
+            builder.Services.AddTransient<EmailService>();
 
 
             var app = builder.Build();

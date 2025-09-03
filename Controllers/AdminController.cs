@@ -1,9 +1,17 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Smart_Attendance_System.Models.ViewModel;
+using Smart_Attendance_System.Models;
+using Smart_Attendance_System.Services.Interfaces;
+using Smart_Attendance_System.Services.MessageService;
+using System.Security.Policy;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Smart_Attendance_System.Data;
 using Smart_Attendance_System.Data.SMTP_Service;
+using Smart_Attendance_System.EmailSettings;
 using Smart_Attendance_System.Models;
 using Smart_Attendance_System.Models.ViewModel;
 using Smart_Attendance_System.Services.Interfaces;
@@ -14,21 +22,25 @@ using Smart_Attendance_System.Services.Repositories;
 
 namespace Smart_Attendance_System.Controllers
 {
-    [Authorize(Roles = "1")] 
+    [Authorize(Roles = "Admin")]
 
     public class AdminController : Controller
     {
+        private readonly EmailService _emailService;
+        private readonly INotificationRepository _notificationRepository;
         private readonly IAdminRepository _adminRepository;
         private readonly IAccountRepository _accountRepository;
-        private readonly INotificationRepository _notificationRepository;
-        private readonly EmailService _emailService;
 
-
-        public AdminController(IAdminRepository adminRepository, IAccountRepository accountRepository, INotificationRepository notificationRepository)
+        public AdminController(
+            EmailService emailService,
+            INotificationRepository notificationRepository,
+            IAdminRepository adminRepository,
+            IAccountRepository accountRepository)
         {
+            _emailService = emailService;
+            _notificationRepository = notificationRepository;
             _adminRepository = adminRepository;
             _accountRepository = accountRepository;
-            _notificationRepository = notificationRepository;
         }
 
         // 1. Dashboard Action
@@ -149,13 +161,7 @@ namespace Smart_Attendance_System.Controllers
 
 
 
-        //[HttpPost]
-        //[ValidateAntiForgeryToken]
-        //public async Task<IActionResult> UpdateLeaveStatus(int leaveId, LeaveStatus status)
-        //{
-        //    await _adminRepository.UpdateLeaveStatusAsync(leaveId, status);
-        //    return RedirectToAction(nameof(Leave));
-        //}
+
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> UpdateLeaveStatus(int leaveId, LeaveStatus status)
@@ -185,7 +191,7 @@ namespace Smart_Attendance_System.Controllers
                                 <p>Regards,<br/>Smart Attendance System</p>
                             ";
 
-                await _emailService.SendEmailAsync(leave.Employee.Email, subject, body);
+                // await _emailService.SendEmailAsync(leave.Employee.Email, subject, body);
             }
 
             return RedirectToAction(nameof(Leave));
@@ -228,9 +234,13 @@ namespace Smart_Attendance_System.Controllers
         [HttpPost]
         public async Task<IActionResult> MarkAsRead(int id)
         {
-            var success = await _adminRepository.MarkNotificationAsReadAsync(id);
+            var success = await _notificationRepository.MarkNotificationAsReadAsync(id);
             return Json(new { success });
         }
+
+        
+
+
 
         // Monthly Salary Report
         [HttpGet]
@@ -276,7 +286,7 @@ namespace Smart_Attendance_System.Controllers
 
             return PartialView("_ViewSalaryDetailsPartial", employeeSalary);
         }
-   // for update salary
+        // for update salary
 
         [HttpGet]
         public async Task<IActionResult> UpdateSalary(int id)
@@ -320,7 +330,7 @@ namespace Smart_Attendance_System.Controllers
 
 
 
-            // Monthly attendance report for admin
+        // Monthly attendance report for admin
         [HttpGet]
         public async Task<IActionResult> MonthlyAttendanceReport(string? employeeSearch = null, string? dateFrom = null, string? dateTo = null)
         {
@@ -404,23 +414,109 @@ namespace Smart_Attendance_System.Controllers
 
             return View(viewModel);
         }
-
-        // Action to handle approval or rejection
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> ApproveEmployee(int employeeId)
+        public async Task<IActionResult> ApproveEmployee(int id)
         {
-            await _adminRepository.UpdateEmployeeStatusAsync(employeeId, EmployeeStatus.Approved);
-            return RedirectToAction(nameof(EmployeeAppointment));
+            var ok = await _adminRepository.SetEmployeeStatusAsync(id, EmployeeStatus.Approved);
+            if (ok)
+            {
+                var to = await _adminRepository.GetUserEmailForEmployeeAsync(id);
+                if (!string.IsNullOrWhiteSpace(to))
+                {
+                    var subject = "Your account has been approved";
+                    var body = $@"
+                <p>Congratulation,</p>
+                <p>Your Smart Attendance account has been <strong>approved</strong>.</p>
+                <p>You can now sign in and start using the system.</p>
+                <p> Best Regards,<br/>Manager Operation,
+                    <br/>Sushama 
+                   </p>";
+
+                    try { await _emailService.SendEmailAsync(to, subject, body); } catch { }
+                }
+
+                if (_notificationRepository != null)
+                {
+                    await _notificationRepository.AddNotificationAsync(new Notification
+                    {
+                        EmployeeId = id,
+                        Title = "Account Approved",
+                        Message = "Your account has been approved. You can now log in.",
+                        LinkUrl = Url.Action("Login", "Account", null, Request.Scheme)
+                    });
+                }
+
+                TempData["SuccessMessage"] = "Employee approved and email sent.";
+            }
+            else
+            {
+                TempData["ErrorMessage"] = "Approval failed.";
+            }
+
+            return RedirectToAction("EmployeeAppointment");
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> RejectEmployee(int employeeId)
+        public async Task<IActionResult> RejectEmployee(int id, string? reason)
         {
-            await _adminRepository.UpdateEmployeeStatusAsync(employeeId, EmployeeStatus.Rejected);
-            return RedirectToAction(nameof(EmployeeAppointment));
+            var ok = await _adminRepository.SetEmployeeStatusAsync(id, EmployeeStatus.Rejected);
+            if (ok)
+            {
+                var to = await _adminRepository.GetUserEmailForEmployeeAsync(id);
+                if (!string.IsNullOrWhiteSpace(to))
+                {
+                    var subject = "Your account has been rejected";
+                    var safeReason = string.IsNullOrWhiteSpace(reason) ? "Not specified." : reason;
+                    var body = $@"
+                <p>Hi,</p>
+                <p>We're sorry to inform you your Smart Attendance account request was <strong>rejected</strong>.</p>
+                <p><strong>Reason:</strong> {System.Net.WebUtility.HtmlEncode(safeReason)}</p>
+                <p>You may re-apply with corrected information.</p>
+                <p>Regards,<br/>Admin Team</p>";
+
+                    try { await _emailService.SendEmailAsync(to, subject, body); } catch { }
+                }
+
+                if (_notificationRepository != null)
+                {
+                    await _notificationRepository.AddNotificationAsync(new Notification
+                    {
+                        EmployeeId = id,
+                        Title = "Account Rejected",
+                        Message = $"Your account request was rejected. Reason: {reason ?? "Not specified."}",
+                        LinkUrl = Url.Action("Register", "Account", null, Request.Scheme)
+                    });
+                }
+
+                TempData["SuccessMessage"] = "Employee rejected and email sent.";
+            }
+            else
+            {
+                TempData["ErrorMessage"] = "Rejection failed.";
+            }
+
+            return RedirectToAction("EmployeeAppointment");
         }
+
+        [HttpPost]
+        public async Task<IActionResult> UpdateEmployeeStatus(int id, EmployeeStatus status)
+        {
+            await _adminRepository.UpdateEmployeeStatusAsync(id, status);
+
+            var email = await _adminRepository.GetUserEmailForEmployeeAsync(id);
+            var employee = await _adminRepository.GetEmployeeByIdAsync(id);
+
+            if (!string.IsNullOrEmpty(email) && employee != null)
+            {
+                await _emailService.SendStatusUpdateAsync(email, employee.EmployeeName, status);
+            }
+
+            TempData["Success"] = "Employee status updated and notification sent.";
+            return RedirectToAction("PendingEmployees");
+        }
+
 
         // Modified Employee action to show Approved employees
         [HttpGet]

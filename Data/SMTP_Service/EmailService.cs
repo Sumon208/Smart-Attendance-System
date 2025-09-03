@@ -1,33 +1,49 @@
 ﻿using System.Net;
 using System.Net.Mail;
+using Microsoft.Extensions.Configuration;
 
 namespace Smart_Attendance_System.Data.SMTP_Service
 {
     public class EmailService
     {
         private readonly IConfiguration _config;
+        private readonly SmtpClient _client;
+        private readonly string _from;
+
         public EmailService(IConfiguration config)
         {
             _config = config;
+
+            var section = _config.GetSection("Smtp");
+            var host = section.GetValue<string>("Host")!;
+            var port = section.GetValue<int>("Port");
+            var user = section.GetValue<string>("User")!;
+            var pass = section.GetValue<string>("Pass")!;
+            _from = section.GetValue<string>("From")!;
+            var enableSsl = section.GetValue<bool>("EnableSsl");
+
+            _client = new SmtpClient(host, port)
+            {
+                Credentials = new NetworkCredential(user, pass),
+                EnableSsl = enableSsl
+            };
         }
 
-        public async Task SendEmailAsync(string to, string subject, string body)
+        public async Task SendAsync(string to, string subject, string htmlBody)
         {
-            var smtpUser = _config["Smtp:User"];
-            var smtpPass = _config["Smtp:Pass"];
-
-            using var client = new SmtpClient("smtp.gmail.com", 587)
+            using var msg = new MailMessage(_from, to)
             {
-                Credentials = new NetworkCredential(smtpUser, smtpPass),
-                EnableSsl = true
-            };
-
-            var mail = new MailMessage(smtpUser, to, subject, body)
-            {
+                Subject = subject,
+                Body = htmlBody,
                 IsBodyHtml = true
             };
 
-            await client.SendMailAsync(mail);
+            // You can add a plain-text alt view if you want:
+            // var plain = AlternateView.CreateAlternateViewFromString(
+            //     Regex.Replace(htmlBody, "<.*?>", string.Empty), null, "text/plain");
+            // msg.AlternateViews.Add(plain);
+
+            await _client.SendMailAsync(msg);
         }
     }
 }

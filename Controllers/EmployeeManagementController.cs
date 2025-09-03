@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 
 namespace Smart_Attendance_System.Controllers
 {
-    [Authorize(Roles = "1")] // Only Admin can access this controller
+    [Authorize(Roles = "Admin")] // Only Admin can access this controller
     public class EmployeeManagementController : Controller
     {
         private readonly IEmployeeRepository _employeeRepository;

@@ -7,7 +7,7 @@ using Smart_Attendance_System.Services.MessageService;
 
 namespace Smart_Attendance_System.Controllers
 {
-    [Authorize(Roles = "2")] // Restrict access to only Employee users (UserType 2)
+    [Authorize(Roles = "Employee")] // Restrict access to only Employee users (UserType 2)
     public class LeaveController : Controller
     {
         private readonly IEmployeeRepository _employeeRepository;

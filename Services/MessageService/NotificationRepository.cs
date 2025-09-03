@@ -55,6 +55,17 @@ namespace Smart_Attendance_System.Services.Repositores
                 await _context.SaveChangesAsync();
             }
         }
-        
+
+        public async Task<bool> MarkNotificationAsReadAsync(int id)
+        {
+            var notification = await _context.Notifications.FindAsync(id);
+            if (notification == null) return false;
+
+            notification.IsRead = true;
+            await _context.SaveChangesAsync();
+            return true;
+        }
+
+
     }
 }

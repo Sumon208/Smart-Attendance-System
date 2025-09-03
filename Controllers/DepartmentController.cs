@@ -5,7 +5,7 @@ using Smart_Attendance_System.Models;
 
 namespace Smart_Attendance_System.Controllers
 {
-    [Authorize(Roles = "1")] // Restrict access to only users with UserType 1 (Admin)
+    [Authorize(Roles = "Admin")] // Restrict access to only users with UserType 1 (Admin)
     public class DepartmentController : Controller
     {
         private readonly IDepartmentRepository _department;
