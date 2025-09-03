@@ -3,23 +3,32 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Smart_Attendance_System.Data;
+using Smart_Attendance_System.Data.SMTP_Service;
 using Smart_Attendance_System.Models;
 using Smart_Attendance_System.Models.ViewModel;
 using Smart_Attendance_System.Services.Interfaces;
+using Smart_Attendance_System.Services.MessageService;
+using Smart_Attendance_System.Services.Repositores;
 using Smart_Attendance_System.Services.Repositories;
+
 
 namespace Smart_Attendance_System.Controllers
 {
-    [Authorize(Roles = "1")] // Restrict access to only users with UserType 1 (Admin)
+    [Authorize(Roles = "1")] 
+
     public class AdminController : Controller
     {
         private readonly IAdminRepository _adminRepository;
         private readonly IAccountRepository _accountRepository;
+        private readonly INotificationRepository _notificationRepository;
+        private readonly EmailService _emailService;
 
-        public AdminController(IAdminRepository adminRepository, IAccountRepository accountRepository)
+
+        public AdminController(IAdminRepository adminRepository, IAccountRepository accountRepository, INotificationRepository notificationRepository)
         {
             _adminRepository = adminRepository;
             _accountRepository = accountRepository;
+            _notificationRepository = notificationRepository;
         }
 
         // 1. Dashboard Action
@@ -59,9 +68,6 @@ namespace Smart_Attendance_System.Controllers
             await _adminRepository.AddEmployeeAsync(employee);
             return RedirectToAction(nameof(Employee));
         }
-
-
-
 
         [HttpGet]
         public async Task<IActionResult> EditEmployee(string employeeId)
@@ -143,14 +149,88 @@ namespace Smart_Attendance_System.Controllers
 
 
 
+        //[HttpPost]
+        //[ValidateAntiForgeryToken]
+        //public async Task<IActionResult> UpdateLeaveStatus(int leaveId, LeaveStatus status)
+        //{
+        //    await _adminRepository.UpdateLeaveStatusAsync(leaveId, status);
+        //    return RedirectToAction(nameof(Leave));
+        //}
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> UpdateLeaveStatus(int leaveId, LeaveStatus status)
         {
             await _adminRepository.UpdateLeaveStatusAsync(leaveId, status);
+
+            var leave = await _adminRepository.GetLeaveByIdAsync(leaveId);
+            if (leave != null)
+            {
+                // 🔔 Notify employee in-app
+                await _notificationRepository.AddNotificationAsync(new Notification
+                {
+                    EmployeeId = leave.EmployeeId,
+                    Title = $"Leave {status}",
+                    Message = $"Your leave request ({leave.LeaveType}, {leave.StartDate:dd MMM}-{leave.EndDate:dd MMM}) was {status}",
+                    LinkUrl = Url.Action("LeaveHistory", "Leave", null, Request.Scheme)
+                });
+
+                // 📧 Send email to employee
+                var subject = $"Leave {status}";
+                var body = $@"
+                                <p>Hello {leave.Employee?.EmployeeName},</p>
+                                <p>Your leave request (<b>{leave.LeaveType}</b>) 
+                                from <b>{leave.StartDate:dd MMM yyyy}</b> to <b>{leave.EndDate:dd MMM yyyy}</b> 
+                                has been <span style='color:blue;font-weight:bold'>{status}</span>.</p>
+                                <p><b>Reason:</b> {leave.Reason}</p>
+                                <p>Regards,<br/>Smart Attendance System</p>
+                            ";
+
+                await _emailService.SendEmailAsync(leave.Employee.Email, subject, body);
+            }
+
             return RedirectToAction(nameof(Leave));
         }
 
+        // GET: /Admin/GetNotifications
+        [HttpGet]
+        [ResponseCache(NoStore = true, Location = ResponseCacheLocation.None)]
+        public async Task<IActionResult> GetNotifications()
+        {
+            var items = await _notificationRepository.GetNotificationsForAdminAsync();
+
+            // ✅ Only take unread notifications
+            var unread = items.Where(n => !n.IsRead);
+
+            var dto = unread.Select(n => new
+            {
+                id = n.NotificationId,
+                title = n.Title,
+                message = n.Message,
+                linkUrl = string.IsNullOrWhiteSpace(n.LinkUrl)
+                            ? Url.Action("Leave", "Admin", null, Request.Scheme)
+                            : n.LinkUrl,
+                isRead = n.IsRead,
+                createdAt = n.CreatedAt
+            });
+
+            return Json(dto);
+        }
+
+
+        // OPTIONAL: if you want a badge with only unread count
+        [HttpGet]
+        public async Task<IActionResult> GetUnreadCount()
+        {
+            var count = await _notificationRepository.GetUnreadCountForAdminAsync();
+            return Json(new { count });
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> MarkAsRead(int id)
+        {
+            var success = await _adminRepository.MarkNotificationAsReadAsync(id);
+            return Json(new { success });
+        }
 
         // Monthly Salary Report
         [HttpGet]
@@ -400,26 +480,26 @@ namespace Smart_Attendance_System.Controllers
             return View(report);
         }
 
-        [HttpGet]
-        public async Task<IActionResult> GetEmployeeMonthlyAttendance(int employeeId, string? dateFrom, string? dateTo)
-        {
-            DateTime? fromDate = null;
-            DateTime? toDate = null;
+        //[HttpGet]
+        //public async Task<IActionResult> GetEmployeeMonthlyAttendance(int employeeId, string? dateFrom, string? dateTo)
+        //{
+        //    DateTime? fromDate = null;
+        //    DateTime? toDate = null;
 
-            if (!string.IsNullOrEmpty(dateFrom) && DateTime.TryParse(dateFrom, out var from))
-                fromDate = from;
+        //    if (!string.IsNullOrEmpty(dateFrom) && DateTime.TryParse(dateFrom, out var from))
+        //        fromDate = from;
 
-            if (!string.IsNullOrEmpty(dateTo) && DateTime.TryParse(dateTo, out var to))
-                toDate = to;
+        //    if (!string.IsNullOrEmpty(dateTo) && DateTime.TryParse(dateTo, out var to))
+        //        toDate = to;
 
-            var attendanceRepo = HttpContext.RequestServices.GetRequiredService<IAttendanceRepository>();
-            var attendances = await attendanceRepo.GetMonthlyAttendanceReportAsync(null, fromDate, toDate);
+        //    var attendanceRepo = HttpContext.RequestServices.GetRequiredService<IAttendanceRepository>();
+        //    var attendances = await attendanceRepo.GetMonthlyAttendanceReportAsync(null, fromDate, toDate);
 
-            // Filter only this employee
-            var employeeAttendances = attendances.Where(a => a.EmployeeId == employeeId).ToList();
+        //    // Filter only this employee
+        //    var employeeAttendances = attendances.Where(a => a.EmployeeId == employeeId).ToList();
 
-            return PartialView("_EmployeeAttendancePartial", employeeAttendances);
-        }
+        //    return PartialView("_EmployeeAttendancePartial", employeeAttendances);
+        //}
 
         [HttpGet]
         public async Task<IActionResult> EmployeeBasicInfo()

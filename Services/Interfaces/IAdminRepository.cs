@@ -27,6 +27,10 @@ namespace Smart_Attendance_System.Services.Interfaces
         Task<IEnumerable<Attendance>> GetAttendanceByDateAsync(DateTime date);
         Task<IEnumerable<EmployeeVM>> GetAllEmployeeBasicInfoAsync();
         Task<EmployeeVM> GetEmployeeByIdByAsync(int employeeId);
+        Task<Leave> GetLeaveByIdAsync(int leaveId);
+        // for notification
+        Task<IEnumerable<Notification>> GetUnreadNotificationsAsync(int userId);
+        Task<bool> MarkNotificationAsReadAsync(int id);
 
 
 

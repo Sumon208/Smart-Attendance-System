@@ -195,6 +195,37 @@ namespace Smart_Attendance_System.Services.Repositories
 
             return result;
         }
+        public async Task<Leave> GetLeaveByIdAsync(int leaveId)
+        {
+            return await _context.Leaves
+                .Include(l => l.Employee) 
+                .FirstOrDefaultAsync(l => l.LeaveId == leaveId);
+        }
+
+        // for notification
+        // ✅ Get unread notifications
+        public async Task<IEnumerable<Notification>> GetUnreadNotificationsAsync(int userId)
+        {
+            return await _context.Notifications
+                .Where(n =>
+                    (n.EmployeeId == userId || n.ForRole == "Admin") // match employee OR admin
+                    && !n.IsRead)
+                .OrderByDescending(n => n.CreatedAt)
+                .ToListAsync();
+        }
+
+        // ✅ Mark notification as read
+        public async Task<bool> MarkNotificationAsReadAsync(int id)
+        {
+            var notification = await _context.Notifications.FindAsync(id);
+            if (notification == null)
+                return false;
+
+            notification.IsRead = true;
+           
+
+            return await _context.SaveChangesAsync() > 0;
+        }
 
 
         // MonthlySalaryReport

@@ -6,16 +6,19 @@ using BCrypt.Net;
 using Smart_Attendance_System.Models;
 using Smart_Attendance_System.Models.ViewModel;
 using Smart_Attendance_System.Services.Interfaces;
+using Smart_Attendance_System.Services.MessageService;
 
 namespace Smart_Attendance_System.Controllers
 {
     public class AccountController : Controller
     {
         private readonly IAccountRepository _accountRepository;
+        private readonly INotificationRepository _notificationRepository;
 
-        public AccountController(IAccountRepository accountRepository)
+        public AccountController(IAccountRepository accountRepository,INotificationRepository notificationRepository)
         {
             _accountRepository = accountRepository;
+            _notificationRepository = notificationRepository;
         }
 
         [HttpGet]
@@ -83,10 +86,10 @@ namespace Smart_Attendance_System.Controllers
                     var claims = new List<Claim>
                       {
                             new Claim(ClaimTypes.Name, user.Employee?.EmployeeName ?? ""), // Employee Name
-    new Claim(ClaimTypes.NameIdentifier, user.EmployeeId?.ToString() ?? "0"),
-    new Claim(ClaimTypes.Email, user.Email),
-    new Claim("EmployeePhotoPath", user.Employee?.EmployeePhotoPath ?? "/images/default-user.png"),
-    new Claim(ClaimTypes.Role, user.UserType.ToString())
+                                new Claim(ClaimTypes.NameIdentifier, user.EmployeeId?.ToString() ?? "0"),
+                                new Claim(ClaimTypes.Email, user.Email),
+                                new Claim("EmployeePhotoPath", user.Employee?.EmployeePhotoPath ?? "/images/default-user.png"),
+                                new Claim(ClaimTypes.Role, user.UserType.ToString())
                                               };
 
                     var claimsIdentity = new ClaimsIdentity(claims, "Login");
@@ -123,17 +126,86 @@ namespace Smart_Attendance_System.Controllers
             return View();
         }
 
-      
+
+
+        //[HttpPost]
+        //[ValidateAntiForgeryToken]
+        //public async Task<IActionResult> Register(RegistrationViewModel model)
+        //{
+        //    // Fetch departments and employees once to use for all view returns
+        //    var departments = await _accountRepository.GetAllDepartmentsAsync();
+        //    var employees = await _accountRepository.GetAllEmployeesAsync();
+
+        //    // The ViewBag must be populated before any 'return View(model)'
+        //    ViewBag.Departments = new SelectList(departments, "DepartmentId", "DepartmentName");
+        //    ViewBag.Employees = employees;
+
+        //    if (ModelState.IsValid)
+        //    {
+        //        if (!string.IsNullOrEmpty(model.EmployeeId))
+        //        {
+        //            var existingEmployee = await _accountRepository.GetEmployeeByEmployeeIdAsync(model.EmployeeId);
+        //            if (existingEmployee != null)
+        //            {
+        //                ModelState.AddModelError("EmployeeId", "An account with this Employee ID already exists.");
+        //                return View(model);
+        //            }
+        //        }
+        //        else
+        //        {
+        //            ModelState.AddModelError("EmployeeId", "Employee ID is required.");
+        //            return View(model);
+        //        }
+
+        //        var existingUser = await _accountRepository.GetUserByEmailAsync(model.Email);
+        //        if (existingUser != null)
+        //        {
+        //            ModelState.AddModelError("Email", "An account with this email already exists.");
+        //            return View(model);
+        //        }
+
+        //        var newEmployee = new Employee
+        //        {
+        //            EmployeeName = model.EmployeeName,
+        //            EmployeeId = model.EmployeeId,
+        //            DepartmentId = model.DepartmentId,
+        //            EmployeePhotoPath = "/images/default.jpg",
+        //            Gender = "N/A",
+        //            Nationality = "N/A",
+        //            DateOfBirth = DateTime.Now,
+        //            Salary = 0,
+        //            Description = "New User",
+        //            Status = EmployeeStatus.Pending // The corrected line is here.
+        //        };
+
+        //        var newSystemUser = new SystemUser
+        //        {
+        //            Email = model.Email,
+        //            PasswordHash = BCrypt.Net.BCrypt.HashPassword(model.Password),
+        //            UserType = 2,
+        //        };
+
+        //        var result = await _accountRepository.RegisterUserAsync(newEmployee, newSystemUser);
+
+        //        if (result)
+        //        {
+        //            TempData["SuccessMessage"] = "Registration successful! You can now log in.";
+        //            return RedirectToAction("Login");
+        //        }
+
+        //        ModelState.AddModelError(string.Empty, "Registration failed. Please try again.");
+        //    }
+
+        //    return View(model);
+        //}
 
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Register(RegistrationViewModel model)
         {
-            // Fetch departments and employees once to use for all view returns
             var departments = await _accountRepository.GetAllDepartmentsAsync();
             var employees = await _accountRepository.GetAllEmployeesAsync();
 
-            // The ViewBag must be populated before any 'return View(model)'
             ViewBag.Departments = new SelectList(departments, "DepartmentId", "DepartmentName");
             ViewBag.Employees = employees;
 
@@ -172,7 +244,7 @@ namespace Smart_Attendance_System.Controllers
                     DateOfBirth = DateTime.Now,
                     Salary = 0,
                     Description = "New User",
-                    Status = EmployeeStatus.Pending // The corrected line is here.
+                    Status = EmployeeStatus.Pending // 👈 still pending until admin approves
                 };
 
                 var newSystemUser = new SystemUser
@@ -186,7 +258,18 @@ namespace Smart_Attendance_System.Controllers
 
                 if (result)
                 {
-                    TempData["SuccessMessage"] = "Registration successful! You can now log in.";
+                    // ✅ Add notification for Admin
+                    await _notificationRepository.AddNotificationAsync(new Notification
+                    {
+                        ForRole = "Admin",
+                        Title = "New User Registration",
+                        Message = $"User {newEmployee.EmployeeName} has registered and is awaiting approval.",
+                        LinkUrl = Url.Action("PendingUsers", "Admin", null, Request.Scheme), // you’ll need to create PendingUsers action
+                        CreatedAt = DateTime.UtcNow,
+                        IsRead = false
+                    });
+
+                    TempData["SuccessMessage"] = "Registration successful! Please wait for Admin approval before login.";
                     return RedirectToAction("Login");
                 }
 
@@ -195,6 +278,7 @@ namespace Smart_Attendance_System.Controllers
 
             return View(model);
         }
+
         [HttpGet]
         public async Task<IActionResult> Logout()
         {

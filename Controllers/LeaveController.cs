@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Authorization;
 using Smart_Attendance_System.Models;
 using Smart_Attendance_System.Services.Interfaces;
 using System.Security.Claims;
+using Smart_Attendance_System.Services.MessageService;
 
 namespace Smart_Attendance_System.Controllers
 {
@@ -10,10 +11,13 @@ namespace Smart_Attendance_System.Controllers
     public class LeaveController : Controller
     {
         private readonly IEmployeeRepository _employeeRepository;
+        private readonly INotificationRepository _notificationRepository;
 
-        public LeaveController(IEmployeeRepository employeeRepository)
+        public LeaveController(IEmployeeRepository employeeRepository,
+                       INotificationRepository notificationRepository)
         {
             _employeeRepository = employeeRepository;
+            _notificationRepository = notificationRepository;
         }
 
         public async Task<IActionResult> LeaveApply()
@@ -86,7 +90,7 @@ namespace Smart_Attendance_System.Controllers
             }
 
             var employeeId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            
+
             if (string.IsNullOrEmpty(employeeId))
             {
                 TempData["ErrorMessage"] = "User not authenticated.";
@@ -108,23 +112,17 @@ namespace Smart_Attendance_System.Controllers
                     return View("LeaveApply", leave);
                 }
 
-                // Calculate leave duration
-                var leaveDuration = (leave.EndDate - leave.StartDate).Days + 1;
-                
-                // Check leave balance using calculated available balance
-                if (string.IsNullOrEmpty(leave.LeaveType))
+                // Ensure leave type is selected
+                if (string.IsNullOrWhiteSpace(leave.LeaveType))
                 {
                     ModelState.AddModelError("LeaveType", "Leave type is required.");
                     return View("LeaveApply", leave);
                 }
-                
-                // Get approved leaves to calculate actual available balance
-                var approvedLeaves = await _employeeRepository.GetEmployeeLeaveHistoryAsync(int.Parse(employeeId));
-                var usedLeaves = approvedLeaves
-                    .Where(l => l.Status == LeaveStatus.Approved && l.LeaveType.ToLower() == leave.LeaveType.ToLower())
-                    .Sum(l => (l.EndDate - l.StartDate).Days + 1);
-                
-                // Get static leave balance based on leave type
+
+                // Calculate leave duration
+                var leaveDuration = (leave.EndDate - leave.StartDate).Days + 1;
+
+                // Define static limits (later can move to DB)
                 var staticLeaveBalance = leave.LeaveType.ToLower() switch
                 {
                     "annual" => 21,
@@ -132,40 +130,70 @@ namespace Smart_Attendance_System.Controllers
                     "personal" => 7,
                     _ => 0
                 };
-                
-                // Calculate actual available balance
-                var leaveBalance = staticLeaveBalance - usedLeaves;
-                
-                if (leaveBalance < leaveDuration)
+
+                // Ensure repository is available
+                if (_employeeRepository == null)
                 {
-                    ModelState.AddModelError("", $"Insufficient leave balance. You have {leaveBalance} days remaining for {leave.LeaveType} leave. (Total: {staticLeaveBalance}, Used: {usedLeaves})");
+                    TempData["ErrorMessage"] = "System error: Employee repository is not available.";
                     return View("LeaveApply", leave);
                 }
 
-                // Create a new Leave object to save to database
+                // Get approved leaves safely
+                var approvedLeaves = await _employeeRepository
+                    .GetEmployeeLeaveHistoryAsync(int.Parse(employeeId))
+                    ?? new List<Leave>();
+
+                var usedLeaves = approvedLeaves
+                    .Where(l => l != null
+                                && l.Status == LeaveStatus.Approved
+                                && !string.IsNullOrWhiteSpace(l.LeaveType)
+                                && l.LeaveType.ToLower() == leave.LeaveType.ToLower())
+                    .Sum(l => (l.EndDate - l.StartDate).Days + 1);
+
+                // Remaining balance
+                var leaveBalance = staticLeaveBalance - usedLeaves;
+
+                if (leaveBalance < leaveDuration)
+                {
+                    ModelState.AddModelError("",
+                        $"Insufficient leave balance. You have {leaveBalance} days remaining for {leave.LeaveType} leave. (Total: {staticLeaveBalance}, Used: {usedLeaves})");
+                    return View("LeaveApply", leave);
+                }
+
+                // Save leave request
                 var newLeave = new Leave
                 {
                     EmployeeId = int.Parse(employeeId),
-                    LeaveType = leave.LeaveType,
+                    LeaveType = leave.LeaveType,  // string from dropdown
                     StartDate = leave.StartDate,
                     EndDate = leave.EndDate,
                     Reason = leave.Reason,
                     Status = LeaveStatus.Pending
                 };
-                
-                // Save to database
+
                 var savedLeave = await _employeeRepository.CreateLeaveAsync(newLeave);
-                
-                if (savedLeave != null && savedLeave.LeaveId > 0)
-                {
-                    TempData["SuccessMessage"] = "Leave application submitted successfully! It will be reviewed by your manager.";
-                    return RedirectToAction("LeaveHistory");
-                }
-                else
+
+                if (savedLeave == null || savedLeave.LeaveId <= 0)
                 {
                     TempData["ErrorMessage"] = "Leave application failed to save. Please try again.";
                     return View("LeaveApply", leave);
                 }
+
+                if (_notificationRepository != null)
+                {
+                    await _notificationRepository.AddNotificationAsync(new Notification
+                    {
+                        ForRole = "Admin",
+                        Title = "New Leave Application",
+                        Message = $"Leave #{savedLeave.LeaveId} from {savedLeave.StartDate:dd MMM} to {savedLeave.EndDate:dd MMM}",
+                        LinkUrl = Url.Action("Leave", "Admin", null, Request.Scheme)
+                    });
+                }
+
+
+
+                TempData["SuccessMessage"] = "Leave application submitted successfully! It will be reviewed by your manager.";
+                return RedirectToAction("LeaveHistory");
             }
             catch (Exception ex)
             {
@@ -173,6 +201,7 @@ namespace Smart_Attendance_System.Controllers
                 return View("LeaveApply", leave);
             }
         }
+
 
         public async Task<IActionResult> LeaveHistory()
         {
