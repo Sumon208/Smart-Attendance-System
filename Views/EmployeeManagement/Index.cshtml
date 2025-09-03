@@ -80,7 +80,6 @@
     </tbody>
 </table>
 
-<!-- Employee Details Modal -->
 <div class="modal fade" id="employeeModal" tabindex="-1">
     <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
         <div class="modal-content" id="modalContent">
@@ -89,9 +88,8 @@
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
-                <div class="d-flex justify-content-between align-items-start">
+                <div id="printable-content" class="printable-container d-flex justify-content-between align-items-start">
                     <div class="flex-grow-1 pe-3">
-                        <!-- Employee Info Rows -->
                         <div class="row mb-2">
                             <div class="col-md-6">
                                 <label>Employee ID</label>
@@ -159,7 +157,7 @@
                             </div>
                         </div>
                     </div>
-                    <div class="text-center">
+                    <div class="text-center print-photo-wrapper">
                         <label>Photo</label><br />
                         <img id="modalPhoto" class="img-thumbnail border border-primary mb-2" style="max-width:150px; max-height:150px;" />
                         <div>
@@ -180,10 +178,45 @@
 @section Scripts {
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <style>
+        @@media print {
+            .modal-header, .modal-footer, .btn, a[target="_blank"] {
+                display: none !important;
+            }
+
+            body > *:not(.modal-dialog) {
+                display: none !important;
+            }
+            /* Printable container using flex with proper wrapping */
+            .printable-container {
+                display: flex !important;
+                flex-direction: row !important;
+                justify-content: space-between !important;
+                align-items: flex-start !important;
+                width: 100% !important;
+            }
+
+            .print-photo-wrapper {
+                text-align: right !important;
+                flex-shrink: 0 !important;
+                margin-left: 15px !important;
+            }
+
+                .print-photo-wrapper img {
+                    max-width: 150px !important;
+                    max-height: 150px !important;
+                    border: 1px solid #000 !important;
+                }
+
+            .flex-grow-1 {
+                flex: 1 !important;
+            }
+        }
+    </style>
+
     <script>
         const modal = new bootstrap.Modal(document.getElementById('employeeModal'));
 
-        // Modal View Button
         document.querySelectorAll('.viewBtn').forEach(btn => {
             btn.addEventListener('click', () => {
                 const photo = btn.dataset.photo;
@@ -212,14 +245,17 @@
         });
 
         // Modal Print
-        document.getElementById('printBtn').addEventListener('click', () => {
-            const printContents = document.getElementById('modalContent').innerHTML;
+                document.getElementById('printBtn').addEventListener('click', () => {
+            const printContents = document.getElementById('printable-content').outerHTML;
             const originalContents = document.body.innerHTML;
-            document.body.innerHTML = printContents;
+
+            document.body.innerHTML = `<div style="width:100%; font-family: Arial, sans-serif; display:flex; justify-content:space-between; align-items:flex-start;">${printContents}</div>`;
+
             window.print();
             document.body.innerHTML = originalContents;
             location.reload();
         });
+
 
         // Modal PDF Download
         document.getElementById('downloadBtn').addEventListener('click', async () => {
@@ -238,28 +274,32 @@
         document.querySelectorAll('.downloadRowBtn').forEach(btn => {
             btn.addEventListener('click', async () => {
                 const tempDiv = document.createElement('div');
-                tempDiv.style.padding = '15px';
                 tempDiv.style.width = '600px';
                 tempDiv.style.fontFamily = 'Arial, sans-serif';
+                tempDiv.style.padding = '15px';
                 tempDiv.innerHTML = `
-                    <div style="overflow:hidden;">
-                        <img src="${btn.dataset.photo ? btn.dataset.photo : '/images/no-image.png'}"
-                             style="float:right; max-width:120px; max-height:120px; border:1px solid #000; margin-left:10px; margin-bottom:10px;" />
-                        <h3>Employee Details</h3>
-                        <p><strong>Employee ID:</strong> ${btn.dataset.empid}</p>
-                        <p><strong>Name:</strong> ${btn.dataset.name}</p>
-                        <p><strong>Department:</strong> ${btn.dataset.department}</p>
-                        <p><strong>Email:</strong> ${btn.dataset.email}</p>
-                        <p><strong>Mobile:</strong> ${btn.dataset.mobile}</p>
-                        <p><strong>Joining Date:</strong> ${btn.dataset.joining}</p>
-                        <p><strong>Date of Birth:</strong> ${btn.dataset.dob}</p>
-                        <p><strong>Gender:</strong> ${btn.dataset.gender}</p>
-                        <p><strong>Nationality:</strong> ${btn.dataset.nationality}</p>
-                        <p><strong>Blood Group:</strong> ${btn.dataset.blood}</p>
-                        <p><strong>Salary:</strong> ${btn.dataset.salary}</p>
-                        <p><strong>Description:</strong> ${btn.dataset.description}</p>
-                        <p><strong>Address:</strong> ${btn.dataset.address}</p>
-                        <p>Certificate: ${btn.dataset.certificate ? `<a href='${btn.dataset.certificate}' target='_blank'>View</a>` : 'N/A'}</p>
+                    <div style="display:flex; justify-content:space-between; align-items:flex-start; overflow:hidden;">
+                        <div style="flex:1; padding-right:15px;">
+                            <h3>Employee Details</h3>
+                            <p><strong>Employee ID:</strong> ${btn.dataset.empid}</p>
+                            <p><strong>Name:</strong> ${btn.dataset.name}</p>
+                            <p><strong>Department:</strong> ${btn.dataset.department}</p>
+                            <p><strong>Email:</strong> ${btn.dataset.email}</p>
+                            <p><strong>Mobile:</strong> ${btn.dataset.mobile}</p>
+                            <p><strong>Joining Date:</strong> ${btn.dataset.joining}</p>
+                            <p><strong>Date of Birth:</strong> ${btn.dataset.dob}</p>
+                            <p><strong>Gender:</strong> ${btn.dataset.gender}</p>
+                            <p><strong>Nationality:</strong> ${btn.dataset.nationality}</p>
+                            <p><strong>Blood Group:</strong> ${btn.dataset.blood}</p>
+                            <p><strong>Salary:</strong> ${btn.dataset.salary}</p>
+                            <p><strong>Description:</strong> ${btn.dataset.description}</p>
+                            <p><strong>Address:</strong> ${btn.dataset.address}</p>
+                            <p>Certificate: ${btn.dataset.certificate ? `<a href='${btn.dataset.certificate}' target='_blank'>View</a>` : 'N/A'}</p>
+                        </div>
+                        <div style="text-align:right; flex-shrink:0;">
+                            <img src="${btn.dataset.photo ? btn.dataset.photo : '/images/no-image.png'}"
+                                 style="max-width:150px; max-height:150px; border:1px solid #000;" />
+                        </div>
                     </div>
                 `;
                 document.body.appendChild(tempDiv);

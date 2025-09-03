@@ -10,7 +10,7 @@
     <div class="col-lg-8">
         <div class="card shadow-sm">
             <div class="card-body">
-                <form asp-action="Update" asp-controller="EmployeeManagement" method="post" enctype="multipart/form-data">
+                <form id="editEmployeeForm" asp-action="Update" asp-controller="EmployeeManagement" method="post" enctype="multipart/form-data">
                     <input type="hidden" asp-for="Id" />
 
                     <div class="mb-3">
@@ -27,17 +27,19 @@
 
                     <div class="row g-3">
                         <div class="col-md-6">
-                            <label asp-for="DateOfBirth" class="form-label"></label>
-                            <input asp-for="DateOfBirth" type="date" class="form-control" />
-                            <span asp-validation-for="DateOfBirth" class="text-danger"></span>
+                            <label asp-for="JoiningDate" class="form-label"></label>
+                            <input asp-for="JoiningDate" type="date" class="form-control"
+                                   value="@(Model.JoiningDate.HasValue? Model.JoiningDate.Value.ToString("yyyy-MM-dd") : "")" />
+                            <span asp-validation-for="JoiningDate" class="text-danger"></span>
                         </div>
+
                         <div class="col-md-6">
                             <label asp-for="Gender" class="form-label"></label>
                             <select asp-for="Gender" class="form-select">
                                 <option value="">Select Gender</option>
-                                <option value="Male" selected="@Model.Gender == " Male"">Male</option>
-                                <option value="Female" selected="@Model.Gender == " Female"">Female</option>
-                                <option value="Other" selected="@Model.Gender == " Other"">Other</option>
+                                <option value="Male" @@(Model.Gender= ="Male" ?"selected":"")>Male</option>
+                                <option value="Female" @@(Model.Gender= ="Female" ?"selected":"")>Female</option>
+                                <option value="Other" @@(Model.Gender= ="Other" ?"selected":"")>Other</option>
                             </select>
                             <span asp-validation-for="Gender" class="text-danger"></span>
                         </div>
@@ -51,7 +53,7 @@
 
                     <div class="mb-3">
                         <label asp-for="MobileNumber" class="form-label"></label>
-                        <input asp-for="MobileNumber" class="form-control" />
+                        <input asp-for="MobileNumber" type="number" class="form-control" />
                         <span asp-validation-for="MobileNumber" class="text-danger"></span>
                     </div>
 
@@ -63,9 +65,10 @@
 
                     <div class="row g-3">
                         <div class="col-md-6">
-                            <label asp-for="JoiningDate" class="form-label"></label>
-                            <input asp-for="JoiningDate" type="date" class="form-control" />
-                            <span asp-validation-for="JoiningDate" class="text-danger"></span>
+                            <label asp-for="DateOfBirth" class="form-label"></label>
+                            <input asp-for="DateOfBirth" type="date" class="form-control"
+                                   value="@(Model.DateOfBirth?.ToString("yyyy-MM-dd"))" />
+                            <span asp-validation-for="DateOfBirth" class="text-danger"></span>
                         </div>
                         <div class="col-md-6">
                             <label asp-for="Department" class="form-label"></label>
@@ -74,7 +77,6 @@
                             </select>
                             <span asp-validation-for="DepartmentId" class="text-danger"></span>
                         </div>
-
                     </div>
 
                     <div class="row g-3 mt-3">
@@ -93,7 +95,17 @@
                     <div class="row g-3 mt-3">
                         <div class="col-md-6">
                             <label asp-for="BloodGroup" class="form-label"></label>
-                            <input asp-for="BloodGroup" class="form-control" />
+                            <select asp-for="BloodGroup" class="form-select" required>
+                                <option value="">Select Blood Group</option>
+                                <option value="A+" @@(Model.BloodGroup= ="A+" ?"selected":"")>A+</option>
+                                <option value="A-" @@(Model.BloodGroup= ="A-" ?"selected":"")>A-</option>
+                                <option value="B+" @@(Model.BloodGroup= ="B+" ?"selected":"")>B+</option>
+                                <option value="B-" @@(Model.BloodGroup= ="B-" ?"selected":"")>B-</option>
+                                <option value="O+" @@(Model.BloodGroup= ="O+" ?"selected":"")>O+</option>
+                                <option value="O-" @@(Model.BloodGroup= ="O-" ?"selected":"")>O-</option>
+                                <option value="AB+" @@(Model.BloodGroup= ="AB+" ?"selected":"")>AB+</option>
+                                <option value="AB-" @@(Model.BloodGroup= ="AB-" ?"selected":"")>AB-</option>
+                            </select>
                             <span asp-validation-for="BloodGroup" class="text-danger"></span>
                         </div>
                         <div class="col-md-6">
@@ -119,7 +131,7 @@
                         </div>
 
                         <div class="col-md-6">
-                            <label class="form-label">Current Certificate</label>
+                            <label class="form-label">Certificate <span class="text-danger">*</span></label>
                             <div class="mb-2">
                                 @if (!string.IsNullOrEmpty(Model.CertificateFilePath))
                                 {
@@ -141,15 +153,75 @@
     </div>
 </div>
 
+<!-- Danger Modal -->
+<div class="modal fade" id="dangerModal" tabindex="-1" aria-labelledby="dangerModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-danger">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title" id="dangerModalLabel">Certificate Required</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body text-center">
+                <i class="bi bi-exclamation-triangle-fill text-danger fs-1 mb-2"></i>
+                <p>Please upload the certificate before submitting the form!</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-danger" data-bs-dismiss="modal">OK</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Success Modal -->
+<div class="modal fade" id="successModal" tabindex="-1" aria-labelledby="successModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-success">
+            <div class="modal-header bg-success text-white">
+                <h5 class="modal-title" id="successModalLabel">Update Successful</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body text-center">
+                <i class="bi bi-check-circle-fill text-success fs-1 mb-2"></i>
+                <p>Employee has been updated successfully!</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-success" data-bs-dismiss="modal" id="okButton">OK</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
     <script>
         function previewPhoto(event) {
             var output = document.getElementById('photoPreview');
             output.src = URL.createObjectURL(event.target.files[0]);
-            output.onload = function () {
-                URL.revokeObjectURL(output.src)
+            output.onload = function () { URL.revokeObjectURL(output.src) }
+        }
+
+        // Certificate validation
+        document.getElementById('editEmployeeForm').addEventListener('submit', function(e){
+            var form = this;
+            var certificateInput = form.querySelector('input[name="CertificateFile"]');
+            var existingCertificate = '@(Model.CertificateFilePath ?? "")';
+            if (!certificateInput.files.length && !existingCertificate) {
+                e.preventDefault();
+                var dangerModal = new bootstrap.Modal(document.getElementById('dangerModal'));
+                dangerModal.show();
             }
+        });
+
+        // Show success modal if TempData["Success"] exists
+        @if (TempData["Success"] != null)
+        {
+                <text>
+                var successModal = new bootstrap.Modal(document.getElementById('successModal'));
+                successModal.show();
+                document.getElementById('okButton').addEventListener('click', function(){
+                    window.location.href = '@Url.Action("Index", "EmployeeManagement")';
+                });
+                </text>
         }
     </script>
 }
