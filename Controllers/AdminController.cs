@@ -426,12 +426,15 @@ namespace Smart_Attendance_System.Controllers
                 {
                     var subject = "Your account has been approved";
                     var body = $@"
-                <p>Congratulation,</p>
+                <p>Congratulations!,</p>
                 <p>Your Smart Attendance account has been <strong>approved</strong>.</p>
                 <p>You can now sign in and start using the system.</p>
-                <p> Best Regards,<br/>Manager Operation,
-                    <br/>Sushama 
-                   </p>";
+                   <p> Best Regards,
+                        <br/>Sushama 
+                        <br/>Manager Operation
+                        <br/>Mobile:+8801716093632
+                        <br/>E-Group
+                       </p>";
 
                     try { await _emailService.SendEmailAsync(to, subject, body); } catch { }
                 }
@@ -451,6 +454,7 @@ namespace Smart_Attendance_System.Controllers
             }
             else
             {
+
                 TempData["ErrorMessage"] = "Approval failed.";
             }
 
@@ -470,11 +474,16 @@ namespace Smart_Attendance_System.Controllers
                     var subject = "Your account has been rejected";
                     var safeReason = string.IsNullOrWhiteSpace(reason) ? "Not specified." : reason;
                     var body = $@"
-                <p>Hi,</p>
+                <p>Sorry!,</p>
                 <p>We're sorry to inform you your Smart Attendance account request was <strong>rejected</strong>.</p>
                 <p><strong>Reason:</strong> {System.Net.WebUtility.HtmlEncode(safeReason)}</p>
                 <p>You may re-apply with corrected information.</p>
-                <p>Regards,<br/>Admin Team</p>";
+               <p> Best Regards,
+                    <br/>Sushama 
+                    <br/>Manager Operation,
+                    <br/>Mobile:+8801716093632
+                    <br/>E-Group
+                   </p>";
 
                     try { await _emailService.SendEmailAsync(to, subject, body); } catch { }
                 }
