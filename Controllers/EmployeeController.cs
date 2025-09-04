@@ -8,7 +8,7 @@ using Smart_Attendance_System.Services.Repositores;
 
 namespace Smart_Attendance_System.Controllers
 {
-    [Authorize(Roles = "2")] // Restrict access to only Employee users (UserType 2)
+    [Authorize(Roles = "Employee")] // Restrict access to only Employee users (UserType 2)
     public class EmployeeController : Controller
     {
         private readonly IEmployeeRepository _employeeRepository;

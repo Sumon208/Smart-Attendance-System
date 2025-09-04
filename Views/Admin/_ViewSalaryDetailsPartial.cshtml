@@ -1,0 +1,100 @@
+﻿@model Smart_Attendance_System.Models.ViewModel.MonthlySalaryViewModel
+
+<div class="modal-body" id="modalContent">
+    <div class="text-center mb-4">
+        <img src="~/images/user-avatar.png" class="rounded-circle mb-2" alt="Employee Photo" width="80" height="80" />
+        <h4 class="text-primary fw-bold" id="employeeName">@Model.EmployeeName</h4>
+        <p class="text-muted" id="employeeCode">@Model.EmployeeCode</p>
+    </div>
+
+    <div class="row g-3">
+        <div class="col-md-6">
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-primary text-white">
+                    <h6 class="mb-0">Salary Info</h6>
+                </div>
+                <div class="card-body">
+                    <p><strong>Gross Salary:</strong> <span id="grossSalary">৳@Model.GrossSalary.ToString("N2")</span></p>
+                    <p><strong>Current Month Salary:</strong> <span id="monthlySalary">৳@Model.MonthlySalary.ToString("N2")</span></p>
+                    <p><strong>Working Days:</strong> <span id="workingDays">@(Model.PresentCount + Model.LateCount + Model.ApprovedLeaveDays)</span></p>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-success text-white">
+                    <h6 class="mb-0">Attendance Summary</h6>
+                </div>
+                <div class="card-body">
+                    <p><strong>Present Days:</strong> <span class="badge bg-success" id="presentCount">@Model.PresentCount</span></p>
+                    <p><strong>Late Days:</strong> <span class="badge bg-warning text-dark" id="lateCount">@Model.LateCount</span></p>
+                    <p><strong>Approved Leave:</strong> <span class="badge bg-info text-dark" id="approvedLeave">@Model.ApprovedLeaveDays</span></p>
+                    <p><strong>Absent:</strong> <span class="badge bg-danger" id="absentCount">@Model.AbsentCount</span></p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="mt-4 text-center">
+        <button class="btn btn-danger me-2" id="downloadModalPdf">
+            <i class="fas fa-file-pdf"></i> Download PDF
+        </button>
+        <button class="btn btn-info" id="printModalBtn">
+            <i class="fas fa-print"></i> Print
+        </button>
+    </div>
+</div>
+
+<script>
+    (function () {
+        const modalContent = document.getElementById("modalContent");
+        if (!modalContent) return;
+
+        const downloadBtn = document.getElementById("downloadModalPdf");
+        const printBtn = document.getElementById("printModalBtn");
+
+        if (downloadBtn) {
+            downloadBtn.onclick = function () {
+                const contentClone = modalContent.cloneNode(true);
+                const tempDiv = document.createElement("div");
+                tempDiv.style.display = "block";
+                tempDiv.innerHTML = `<link rel="stylesheet" href="/css/bootstrap.min.css"/>` + contentClone.outerHTML;
+                document.body.appendChild(tempDiv);
+
+                const filename = modalContent.querySelector("#employeeName").innerText.replace(/\s+/g, "_") + "_Salary.pdf";
+
+                html2pdf().set({
+                    margin: 0.5,
+                    filename: filename,
+                    html2canvas: { scale: 2, useCORS: true },
+                    jsPDF: { unit: "in", format: "a4", orientation: "portrait" }
+                }).from(tempDiv).save().then(() => tempDiv.remove());
+            };
+        }
+
+        if (printBtn) {
+            printBtn.onclick = function () {
+                const contentClone = modalContent.cloneNode(true);
+                const printWindow = window.open('', '', 'width=900,height=600');
+                printWindow.document.write(`
+                        <html>
+                            <head>
+                                <link rel="stylesheet" href="/css/bootstrap.min.css"/>
+                                <style>
+                                    body { padding: 20px; font-family: Arial, sans-serif; }
+                                    .card { margin-bottom: 15px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
+                                    .badge { font-size: 0.9rem; }
+                                </style>
+                            </head>
+                            <body>${contentClone.outerHTML}</body>
+                        </html>
+                    `);
+                printWindow.document.close();
+                printWindow.focus();
+                printWindow.print();
+                printWindow.close();
+            };
+        }
+    })();
+</script>

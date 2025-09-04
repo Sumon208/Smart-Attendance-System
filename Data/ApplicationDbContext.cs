@@ -14,6 +14,8 @@ namespace Smart_Attendance_System.Data
         public DbSet<SystemUser> SystemUsers { get; set; }
         public DbSet<Attendance> Attendances { get; set; }
         public DbSet<Leave> Leaves { get; set; }
+        public DbSet<Notification> Notifications { get; set; }
+
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

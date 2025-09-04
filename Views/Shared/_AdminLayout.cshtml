@@ -1,7 +1,5 @@
-<<<<<<< Updated upstream
-﻿<!DOCTYPE html>
-=======
-﻿@using Smart_Attendance_System.Models.ViewModel
+
+@using Smart_Attendance_System.Models.ViewModel
 @inject Smart_Attendance_System.Services.Interfaces.IAdminRepository AdminRepository
 
 @{
@@ -16,12 +14,16 @@
     var employeeEmail = currentUser?.Email ?? User.Claims.FirstOrDefault(c => c.Type == System.Security.Claims.ClaimTypes.Email)?.Value ?? "user@example.com";
     var employeePhoto = currentUser?.EmployeePhotoPath ?? User.Claims.FirstOrDefault(c => c.Type == "EmployeePhotoPath")?.Value ?? "/images/default-user.png";
 
+
     var currentController = ViewContext.RouteData.Values["controller"]?.ToString();
     var currentAction = ViewContext.RouteData.Values["action"]?.ToString();
 }
 
+
+}
+
 <!DOCTYPE html>
->>>>>>> Stashed changes
+
 <html lang="en">
 <head>
     <meta charset="utf-8" />
@@ -30,18 +32,18 @@
     <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" />
     <style>
+        /* --- SIDEBAR --- */
         .sidebar {
-           /*  height: 100vh; */
             background-color: #343a40;
             padding-top: 20px;
             color: white;
-<<<<<<< Updated upstream
+
         }
         .sidebar .nav-link {
             color: #adb5bd;
             font-size: 1.1em;
             padding: 10px 15px;
-=======
+
             height: 100vh;
             position: fixed;
             top: 60px; /* sits below the fixed header */
@@ -50,6 +52,15 @@
             overflow-y: auto;
             z-index: 999; /* below header (header is 1000) */
         }
+
+            height: 100vh;
+            position: fixed;
+            top: 60px;
+            left: 0;
+            width: 220px;
+            overflow-y: auto;
+        }
+
 
             .sidebar .nav-link {
                 color: #adb5bd;
@@ -61,6 +72,7 @@
                     color: #fff;
                     background-color: #495057;
                 }
+
 
                 /* Active state */
                 .sidebar .nav-link.active {
@@ -75,6 +87,7 @@
                 border-radius: 4px;
             }
 
+
         /* --- HEADER --- */
         .header {
             position: fixed;
@@ -88,21 +101,41 @@
             justify-content: flex-end;
             align-items: center;
             padding: 0 20px;
+
             z-index: 1000; /* above sidebar */
             box-shadow: 0 2px 5px rgba(0,0,0,0.1);
->>>>>>> Stashed changes
+
+            z-index: 1000;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+
         }
-        .sidebar .nav-link:hover {
-            color: #fff;
-            background-color: #495057;
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
         }
+
+            .user-info img {
+                width: 50px;
+                height: 50px;
+                border-radius: 50%;
+                object-fit: cover;
+                border: 2px solid #c82333;
+            }
+
+            .user-info a.btn-danger {
+                border: none;
+            }
+
+        /* --- MAIN CONTENT --- */
         .main-content {
-<<<<<<< Updated upstream
+
             padding: 20px;
         }
         .card-custom {
             min-height: 150px;
-=======
+
             margin-left: 220px;
             width: calc(100% - 220px);
             padding: 80px 20px 20px 20px;
@@ -114,17 +147,56 @@
             width: 6px;
         }
 
+            margin-left: 220px;
+            padding: 80px 20px 20px 20px;
+        }
+
+        /* Make sidebar scrollable */
+        .sidebar::-webkit-scrollbar {
+            width: 6px;
+        }
+
+
         .sidebar::-webkit-scrollbar-thumb {
             background-color: rgba(255,255,255,0.2);
             border-radius: 3px;
->>>>>>> Stashed changes
+
         }
     </style>
 </head>
 <body>
+    <!-- HEADER -->
+    <div class="header">
+        <!-- Notifications -->
+        <div class="dropdown mr-3">
+            <a href="#" class="text-white position-relative" id="notificationDropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                <i class="fas fa-bell fa-lg"></i>
+                <span id="notificationBadge" class="badge badge-danger position-absolute" style="top: -8px; right: -8px; display:none;">0</span>
+            </a>
+            <div class="dropdown-menu dropdown-menu-right shadow" aria-labelledby="notificationDropdown" style="width: 300px; max-height: 400px; overflow-y: auto;">
+                <h6 class="dropdown-header">Notifications</h6>
+                <div id="notificationList">
+                    <p class="dropdown-item text-muted">No new notifications</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- User Info -->
+        <div class="user-info">
+            <img src="@employeePhoto" alt="User Photo" />
+            <div>
+                <strong>@employeeName</strong><br />
+                <small>@employeeEmail</small>
+            </div>
+            <a href="/Account/Logout" class="btn btn-sm btn-danger ml-3 p-2" title="Logout">
+                <i class="fas fa-sign-out-alt"></i>
+            </a>
+        </div>
+    </div>
+
     <div class="container-fluid">
         <div class="row">
-<<<<<<< Updated upstream
+
             <nav id="sidebar" class="col-md-2 col-lg-2 d-md-block sidebar">
                 <div class="position-sticky pt-3">
                     <h4 class="text-center text-light mb-4">Admin Panel</h4>
@@ -197,18 +269,23 @@
                         </li>
                     </ul>
                 </div>
-=======
+
             <!-- SIDEBAR -->
             <nav id="sidebar" class="sidebar">
                 <h4 class="text-center text-light mb-4">Admin Panel</h4>
                 <ul class="nav flex-column">
                     <li class="nav-item">
+
                         <a class="nav-link @(currentController == "Admin" && currentAction == "Dashboard" ? "active" : "")"
                            asp-controller="Admin" asp-action="Dashboard">
+
+                        <a class="nav-link active" asp-controller="Admin" asp-action="Dashboard">
+
                             <i class="fas fa-chart-line mr-2"></i> Dashboard
                         </a>
                     </li>
                     <li class="nav-item">
+
                         <a class="nav-link" data-toggle="collapse" href="#employeeSubmenu"
                            aria-expanded="@(currentController == "Admin" || currentController == "EmployeeManagement" ? "true" : "false")"
                            aria-controls="employeeSubmenu">
@@ -219,12 +296,25 @@
                                 <li class="nav-item">
                                     <a class="nav-link @(currentAction == "EmployeeAppointment" ? "active" : "")"
                                        asp-controller="Admin" asp-action="EmployeeAppointment">
+
+                        <a class="nav-link collapsed" data-toggle="collapse" href="#employeeSubmenu" aria-expanded="false" aria-controls="employeeSubmenu">
+                            <i class="fas fa-users mr-2"></i> Employees
+                        </a>
+                        <div class="collapse" id="employeeSubmenu">
+                            <ul class="flex-column nav pl-4">
+                                <li class="nav-item">
+                                    <a class="nav-link" asp-controller="Admin" asp-action="EmployeeAppointment">
+
                                         <i class="fas fa-user-clock mr-2"></i> Employee Appointment
                                     </a>
                                 </li>
                                 <li class="nav-item">
+
                                     <a class="nav-link @(currentController == "EmployeeManagement" ? "active" : "")"
                                        asp-controller="EmployeeManagement" asp-action="Index">
+
+                                    <a class="nav-link" asp-controller="EmployeeManagement" asp-action="Index">
+
                                         <i class="fas fa-list-alt mr-2"></i> Total Employees
                                     </a>
                                 </li>
@@ -232,18 +322,27 @@
                         </div>
                     </li>
                     <li class="nav-item">
+
                         <a class="nav-link @(currentController == "Department" ? "active" : "")"
                            asp-controller="Department" asp-action="Index">
+
+                        <a class="nav-link" asp-controller="Department" asp-action="Index">
+
                             <i class="fas fa-building mr-2"></i> Departments
                         </a>
                     </li>
                     <li class="nav-item">
+
                         <a class="nav-link @(currentController == "Admin" && currentAction == "Leave" ? "active" : "")"
                            asp-controller="Admin" asp-action="Leave">
+
+                        <a class="nav-link" asp-controller="Admin" asp-action="Leave">
+
                             <i class="fas fa-calendar-check mr-2"></i> Leave
                         </a>
                     </li>
                     <li class="nav-item">
+
                         <a class="nav-link" data-toggle="collapse" href="#attendanceSubmenu"
                            aria-expanded="@(currentAction == "AttendanceReport" || currentAction == "MonthlyAttendanceReport" ? "true" : "false")"
                            aria-controls="attendanceSubmenu">
@@ -255,18 +354,37 @@
                                 <li class="nav-item">
                                     <a class="nav-link @(currentAction == "AttendanceReport" ? "active" : "")"
                                        asp-controller="Admin" asp-action="AttendanceReport">
+
+                        <a class="nav-link" asp-controller="Admin" asp-action="MonthlySalaryReport">
+                            <i class="fas fa-money-bill-wave mr-2"></i> Salary
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link collapsed" data-toggle="collapse" href="#attendanceSubmenu" aria-expanded="false" aria-controls="attendanceSubmenu">
+                            <i class="fas fa-clipboard-list mr-2"></i> Attendance Report
+                        </a>
+                        <div class="collapse" id="attendanceSubmenu">
+                            <ul class="flex-column nav pl-4">
+                                <li class="nav-item">
+                                    <a class="nav-link" asp-controller="Admin" asp-action="AttendanceReport">
+
                                         <i class="fas fa-calendar-day mr-2"></i> Daily
                                     </a>
                                 </li>
                                 <li class="nav-item">
+
                                     <a class="nav-link @(currentAction == "MonthlyAttendanceReport" ? "active" : "")"
                                        asp-controller="Admin" asp-action="MonthlyAttendanceReport">
+
+                                    <a class="nav-link" asp-controller="Admin" asp-action="MonthlyAttendanceReport">
+
                                         <i class="fas fa-calendar-alt mr-2"></i> Monthly
                                     </a>
                                 </li>
                             </ul>
                         </div>
                     </li>
+
                     <li class="nav-item">
                         <a class="nav-link @(currentAction == "MonthlySalaryReport" ? "active" : "")"
                            asp-controller="Admin" asp-action="MonthlySalaryReport">
@@ -274,10 +392,14 @@
                         </a>
                     </li>
                 </ul>
->>>>>>> Stashed changes
+
+
+                </ul>
+
             </nav>
 
-            <main class="col-md-10 ml-sm-auto col-lg-10 px-md-4 main-content">
+            <!-- MAIN CONTENT -->
+            <main class="main-content">
                 @RenderBody()
             </main>
         </div>
@@ -286,8 +408,6 @@
     <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.bundle.min.js"></script>
     @await RenderSectionAsync("Scripts", required: false)
-<<<<<<< Updated upstream
-=======
 
     <script>
         async function loadNotifications() {
@@ -300,16 +420,30 @@
                 list.innerHTML = "";
 
                 if (data.length > 0) {
+
+                    // ✅ unread count comes directly from backend
+
                     badge.style.display = "inline-block";
                     badge.innerText = data.length;
 
                     data.forEach(n => {
                         list.innerHTML += `
+
                             <a class="dropdown-item notification-item" href="${n.linkUrl}" data-id="${n.id}">
                                 <strong>${n.title}</strong><br/>
                                 <small>${n.message}</small>
                             </a>
                             <div class="dropdown-divider"></div>`;
+
+                                <a class="dropdown-item notification-item"
+                                   href="${n.linkUrl}"
+                                   data-id="${n.id}">
+                                    <strong>${n.title}</strong><br/>
+                                    <small>${n.message}</small>
+                                </a>
+                                <div class="dropdown-divider"></div>
+                            `;
+
                     });
                 } else {
                     badge.style.display = "none";
@@ -319,6 +453,7 @@
                 console.error("Error loading notifications", err);
             }
         }
+
         setInterval(loadNotifications, 30000);
         loadNotifications();
 
@@ -328,15 +463,35 @@
             var linkUrl = $(this).attr("href");
             var item = $(this);
 
+
+        // Load notifications every 30s
+        setInterval(loadNotifications, 30000);
+        loadNotifications();
+
+        // 🔹 Mark as Read when clicked
+        $(document).on("click", ".notification-item", function (e) {
+            e.preventDefault();
+
+            var notifId = $(this).attr("data-id");
+            var linkUrl = $(this).attr("href");
+            var item = $(this); // store reference to clicked item
+
+
             $.ajax({
                 url: '/Admin/MarkAsRead',
                 type: "POST",
                 data: { id: notifId },
                 success: function (response) {
                     if (response.success) {
+
+                        // ✅ remove clicked notification from the list
+
                         var divider = item.next(".dropdown-divider");
                         item.remove();
                         divider.remove();
+
+
+                        // ✅ update badge count
 
                         var badge = $("#notificationBadge");
                         var count = parseInt(badge.text());
@@ -347,6 +502,7 @@
                                 $("#notificationList").html('<p class="dropdown-item text-muted">No new notifications</p>');
                             }
                         }
+
                         window.location.href = linkUrl;
                     }
                 },
@@ -354,6 +510,18 @@
             });
         });
     </script>
->>>>>>> Stashed changes
+
+                        // redirect after updating UI
+                        window.location.href = linkUrl;
+                    }
+                },
+                error: function () {
+                    window.location.href = linkUrl;
+                }
+            });
+        });
+    </script>
+
+
 </body>
 </html>
