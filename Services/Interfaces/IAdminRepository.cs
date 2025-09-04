@@ -30,6 +30,7 @@ namespace Smart_Attendance_System.Services.Interfaces
         Task<IEnumerable<Leave>> GetAllLeaveApplicationsAsync();
         Task<Leave> GetLeaveByIdAsync(int leaveId);
         Task UpdateLeaveStatusAsync(int leaveId, LeaveStatus status);
+        Task<Leave?> GetLeaveIdAsync(int leaveId);
 
         // Attendance
         Task<IEnumerable<Attendance>> GetEmployeeAttendanceAsync(int employeeId);

@@ -29,7 +29,7 @@
                         <div class="col-md-6">
                             <label asp-for="JoiningDate" class="form-label"></label>
                             <input asp-for="JoiningDate" type="date" class="form-control"
-                                   value="@(Model.JoiningDate.HasValue? Model.JoiningDate.Value.ToString("yyyy-MM-dd") : "")" />
+                                   value="@(Model.JoiningDate.HasValue ? Model.JoiningDate.Value.ToString("yyyy-MM-dd") : "")" />
                             <span asp-validation-for="JoiningDate" class="text-danger"></span>
                         </div>
 
@@ -37,9 +37,9 @@
                             <label asp-for="Gender" class="form-label"></label>
                             <select asp-for="Gender" class="form-select">
                                 <option value="">Select Gender</option>
-                                <option value="Male" @@(Model.Gender= ="Male" ?"selected":"")>Male</option>
-                                <option value="Female" @@(Model.Gender= ="Female" ?"selected":"")>Female</option>
-                                <option value="Other" @@(Model.Gender= ="Other" ?"selected":"")>Other</option>
+                               @*  <option value="Male" @(Model.Gender == "Male" ? "selected" : "")>Male</option>
+                                <option value="Female" @(Model.Gender == "Female" ? "selected" : "")>Female</option>
+                                <option value="Other" @(Model.Gender == "Other" ? "selected" : "")>Other</option> *@
                             </select>
                             <span asp-validation-for="Gender" class="text-danger"></span>
                         </div>
@@ -95,17 +95,17 @@
                     <div class="row g-3 mt-3">
                         <div class="col-md-6">
                             <label asp-for="BloodGroup" class="form-label"></label>
-                            <select asp-for="BloodGroup" class="form-select" required>
+                            @* <select asp-for="BloodGroup" class="form-select" required>
                                 <option value="">Select Blood Group</option>
-                                <option value="A+" @@(Model.BloodGroup= ="A+" ?"selected":"")>A+</option>
-                                <option value="A-" @@(Model.BloodGroup= ="A-" ?"selected":"")>A-</option>
-                                <option value="B+" @@(Model.BloodGroup= ="B+" ?"selected":"")>B+</option>
-                                <option value="B-" @@(Model.BloodGroup= ="B-" ?"selected":"")>B-</option>
-                                <option value="O+" @@(Model.BloodGroup= ="O+" ?"selected":"")>O+</option>
-                                <option value="O-" @@(Model.BloodGroup= ="O-" ?"selected":"")>O-</option>
-                                <option value="AB+" @@(Model.BloodGroup= ="AB+" ?"selected":"")>AB+</option>
-                                <option value="AB-" @@(Model.BloodGroup= ="AB-" ?"selected":"")>AB-</option>
-                            </select>
+                                <option value="A+" @(Model.BloodGroup == "A+" ? "selected" : "")>A+</option>
+                                <option value="A-" @(Model.BloodGroup == "A-" ? "selected" : "")>A-</option>
+                                <option value="B+" @(Model.BloodGroup == "B+" ? "selected" : "")>B+</option>
+                                <option value="B-" @(Model.BloodGroup == "B-" ? "selected" : "")>B-</option>
+                                <option value="O+" @(Model.BloodGroup == "O+" ? "selected" : "")>O+</option>
+                                <option value="O-" @(Model.BloodGroup == "O-" ? "selected" : "")>O-</option>
+                                <option value="AB+" @(Model.BloodGroup == "AB+" ? "selected" : "")>AB+</option>
+                                <option value="AB-" @(Model.BloodGroup == "AB-" ? "selected" : "")>AB-</option>
+                            </select> *@
                             <span asp-validation-for="BloodGroup" class="text-danger"></span>
                         </div>
                         <div class="col-md-6">
@@ -215,13 +215,13 @@
         // Show success modal if TempData["Success"] exists
         @if (TempData["Success"] != null)
         {
-                <text>
+            <text>
                 var successModal = new bootstrap.Modal(document.getElementById('successModal'));
                 successModal.show();
                 document.getElementById('okButton').addEventListener('click', function(){
                     window.location.href = '@Url.Action("Index", "EmployeeManagement")';
                 });
-                </text>
+            </text>
         }
     </script>
 }

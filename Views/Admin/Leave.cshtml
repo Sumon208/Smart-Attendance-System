@@ -120,16 +120,17 @@
                                     @if (item.Status == LeaveStatus.Pending)
                                     {
                                         <div class="btn-group" role="group">
-                                            <form asp-action="UpdateLeaveStatus" method="post" style="display:inline;">
+                                            <!-- Approve -->
+                                            <form asp-action="ApproveLeave" method="post" style="display:inline;">
                                                 <input type="hidden" name="leaveId" value="@item.LeaveId" />
-                                                <input type="hidden" name="status" value="@((int)LeaveStatus.Approved)" />
                                                 <button type="submit" class="btn btn-sm btn-success" onclick="return confirm('Approve this leave request?')">
                                                     <i class="fas fa-check"></i> Approve
                                                 </button>
                                             </form>
-                                            <form asp-action="UpdateLeaveStatus" method="post" style="display:inline;">
+
+                                            <!-- Reject -->
+                                            <form asp-action="RejectLeave" method="post" style="display:inline;">
                                                 <input type="hidden" name="leaveId" value="@item.LeaveId" />
-                                                <input type="hidden" name="status" value="@((int)LeaveStatus.Rejected)" />
                                                 <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Reject this leave request?')">
                                                     <i class="fas fa-times"></i> Reject
                                                 </button>
@@ -140,6 +141,7 @@
                                     {
                                         <span class="text-muted">—</span>
                                     }
+
                                 </td>
                             </tr>
                         }

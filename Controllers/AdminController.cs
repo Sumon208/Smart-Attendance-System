@@ -159,6 +159,105 @@ namespace Smart_Attendance_System.Controllers
             return View(leaves);
         }
 
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ApproveLeave(int leaveId)
+        {
+            var leave = await _adminRepository.GetLeaveIdAsync(leaveId);
+            if (leave == null)
+            {
+                TempData["ErrorMessage"] = "Leave request not found.";
+                return RedirectToAction(nameof(Leave));
+            }
+
+            await _adminRepository.UpdateLeaveStatusAsync(leaveId, LeaveStatus.Approved);
+
+            await _notificationRepository.AddNotificationAsync(new Notification
+            {
+                EmployeeId = leave.EmployeeId,
+                Title = "Leave Approved",
+                Message = $"Your leave request ({leave.LeaveType}, {leave.StartDate:dd MMM}-{leave.EndDate:dd MMM}) was approved.",
+                LinkUrl = Url.Action("LeaveHistory", "Leave", null, Request.Scheme)
+            });
+
+            var subject = "Leave Approved";
+            var body = $@"
+                <p>Hello {leave.Employee?.EmployeeName},</p>
+                <p>Your leave request (<b>{leave.LeaveType}</b>) 
+                from <b>{leave.StartDate:dd MMM yyyy}</b> to <b>{leave.EndDate:dd MMM yyyy}</b> 
+                has been <span style='color:green;font-weight:bold'>approved</span>.</p>
+                <p>Enjoy your time off!</p>
+                <p>Best Regards,<br/>
+                    Sushama<br/>
+                    Manager Operation<br/>
+                    Mobile: +8801716093632<br/>
+                    E-Group
+                </p>";
+
+            // 🔑 Fix: fetch email from SystemUsers
+            var employeeEmail = await _adminRepository.GetUserEmailForEmployeeAsync(leave.EmployeeId);
+            if (!string.IsNullOrWhiteSpace(employeeEmail))
+            {
+                try { await _emailService.SendEmailAsync(employeeEmail, subject, body); } catch { }
+            }
+
+            TempData["SuccessMessage"] = "Leave approved and employee notified.";
+            return RedirectToAction(nameof(Leave));
+        }
+
+
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> RejectLeave(int leaveId, string? reason)
+        {
+            var leave = await _adminRepository.GetLeaveIdAsync(leaveId);
+            if (leave == null)
+            {
+                TempData["ErrorMessage"] = "Leave request not found.";
+                return RedirectToAction(nameof(Leave));
+            }
+
+            await _adminRepository.UpdateLeaveStatusAsync(leaveId, LeaveStatus.Rejected);
+
+            await _notificationRepository.AddNotificationAsync(new Notification
+            {
+                EmployeeId = leave.EmployeeId,
+                Title = "Leave Rejected",
+                Message = $"Your leave request ({leave.LeaveType}, {leave.StartDate:dd MMM}-{leave.EndDate:dd MMM}) was rejected. Reason: {reason ?? "Not specified."}",
+                LinkUrl = Url.Action("LeaveHistory", "Leave", null, Request.Scheme)
+            });
+
+            var subject = "Leave Rejected";
+            var safeReason = string.IsNullOrWhiteSpace(reason) ? "Not specified." : reason;
+            var body = $@"
+                <p>Hello {leave.Employee?.EmployeeName},</p>
+                <p>Unfortunately, your leave request (<b>{leave.LeaveType}</b>) 
+                from <b>{leave.StartDate:dd MMM yyyy}</b> to <b>{leave.EndDate:dd MMM yyyy}</b> 
+                has been <span style='color:red;font-weight:bold'>rejected</span>.</p>
+                <p><b>Reason:</b> {System.Net.WebUtility.HtmlEncode(safeReason)}</p>
+                <p>You may re-apply with corrected information if necessary or contact the HR Team.</p>
+                <p>Best Regards,<br/>
+                    Sushama<br/>
+                    Manager Operation<br/>
+                    Mobile: +8801716093632<br/>
+                    E-Group
+                </p>";
+
+            // 🔑 Fix: fetch email from SystemUsers
+            var employeeEmail = await _adminRepository.GetUserEmailForEmployeeAsync(leave.EmployeeId);
+            if (!string.IsNullOrWhiteSpace(employeeEmail))
+            {
+                try { await _emailService.SendEmailAsync(employeeEmail, subject, body); } catch { }
+            }
+            else
+            {
+                TempData["ErrorMessage"] = "Employee email not found in SystemUsers.";
+            }
+
+            TempData["SuccessMessage"] = "Leave rejected and employee notified.";
+            return RedirectToAction(nameof(Leave));
+        }
 
 
 
@@ -168,34 +267,70 @@ namespace Smart_Attendance_System.Controllers
         {
             await _adminRepository.UpdateLeaveStatusAsync(leaveId, status);
 
-            var leave = await _adminRepository.GetLeaveByIdAsync(leaveId);
+            var leave = await _adminRepository.GetLeaveIdAsync(leaveId);
             if (leave != null)
             {
+                string title;
+                string message;
+                string subject;
+                string body;
+
+                if (status == LeaveStatus.Approved)
+                {
+                    title = "Leave Approved ✅";
+                    message = $"Your leave ({leave.LeaveType}, {leave.StartDate:dd MMM}-{leave.EndDate:dd MMM}) was approved ✅";
+
+                    subject = "Leave Approved ✅";
+                    body = $@"
+                <p>Hello {leave.Employee?.EmployeeName},</p>
+                <p>Your leave request (<b>{leave.LeaveType}</b>) 
+                from <b>{leave.StartDate:dd MMM yyyy}</b> to <b>{leave.EndDate:dd MMM yyyy}</b> 
+                has been <span style='color:green;font-weight:bold'>APPROVED</span>.</p>
+                <p><b>Reason:</b> {leave.Reason}</p>
+                <p>Enjoy your time off! 🎉</p>
+                <p>Regards,<br/>Smart Attendance System</p>
+            ";
+                }
+                else if (status == LeaveStatus.Rejected)
+                {
+                    title = "Leave Rejected ❌";
+                    message = $"Your leave ({leave.LeaveType}, {leave.StartDate:dd MMM}-{leave.EndDate:dd MMM}) was rejected ❌";
+
+                    subject = "Leave Rejected ❌";
+                    body = $@"
+                <p>Hello {leave.Employee?.EmployeeName},</p>
+                <p>Your leave request (<b>{leave.LeaveType}</b>) 
+                from <b>{leave.StartDate:dd MMM yyyy}</b> to <b>{leave.EndDate:dd MMM yyyy}</b> 
+                has been <span style='color:red;font-weight:bold'>REJECTED</span>.</p>
+                <p><b>Reason Provided:</b> {leave.Reason}</p>
+                <p>Please contact HR/Admin for clarification.</p>
+                <p>Regards,<br/>Smart Attendance System</p>
+            ";
+                }
+                else
+                {
+                    title = $"Leave {status}";
+                    message = $"Your leave request ({leave.LeaveType}) was {status}";
+                    subject = $"Leave {status}";
+                    body = $"<p>Your leave request was {status}.</p>";
+                }
+
                 // 🔔 Notify employee in-app
                 await _notificationRepository.AddNotificationAsync(new Notification
                 {
                     EmployeeId = leave.EmployeeId,
-                    Title = $"Leave {status}",
-                    Message = $"Your leave request ({leave.LeaveType}, {leave.StartDate:dd MMM}-{leave.EndDate:dd MMM}) was {status}",
+                    Title = title,
+                    Message = message,
                     LinkUrl = Url.Action("LeaveHistory", "Leave", null, Request.Scheme)
                 });
 
-                // 📧 Send email to employee
-                var subject = $"Leave {status}";
-                var body = $@"
-                                <p>Hello {leave.Employee?.EmployeeName},</p>
-                                <p>Your leave request (<b>{leave.LeaveType}</b>) 
-                                from <b>{leave.StartDate:dd MMM yyyy}</b> to <b>{leave.EndDate:dd MMM yyyy}</b> 
-                                has been <span style='color:blue;font-weight:bold'>{status}</span>.</p>
-                                <p><b>Reason:</b> {leave.Reason}</p>
-                                <p>Regards,<br/>Smart Attendance System</p>
-                            ";
-
+                // 📧 Email
                 // await _emailService.SendEmailAsync(leave.Employee.Email, subject, body);
             }
 
             return RedirectToAction(nameof(Leave));
         }
+
 
         // GET: /Admin/GetNotifications
         [HttpGet]

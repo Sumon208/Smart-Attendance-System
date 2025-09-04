@@ -99,7 +99,7 @@ namespace Smart_Attendance_System.Services.Repositories
                 await _context.SaveChangesAsync();
             }
         }
-
+        
         public async Task DeleteEmployeeWithRelatedDataAsync(int employeeId)
         {
             var employee = await _context.Employees.FindAsync(employeeId);
@@ -113,6 +113,14 @@ namespace Smart_Attendance_System.Services.Repositories
                 _context.Employees.Remove(employee);
                 await _context.SaveChangesAsync();
             }
+        }
+        // Leave Actions
+        public async Task<Leave?> GetLeaveIdAsync(int leaveId)
+        {
+            return await _context.Leaves
+                .Include(l => l.Employee)
+                .ThenInclude(e => e.Department)
+                .FirstOrDefaultAsync(l => l.LeaveId == leaveId);
         }
 
         public async Task<IEnumerable<Leave>> GetAllLeaveApplicationsAsync()
