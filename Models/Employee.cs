@@ -33,6 +33,7 @@ namespace Smart_Attendance_System.Models
         public string? Gender { get; set; }
         public string? Email { get; set; }
         public string? Address { get; set; }
+        [DataType(DataType.Date)]
         public DateTime? JoiningDate { get; set; }
 
         public int? DepartmentId { get; set; }

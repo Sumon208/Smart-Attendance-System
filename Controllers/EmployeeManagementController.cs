@@ -105,7 +105,10 @@ namespace Smart_Attendance_System.Controllers
                 return View(employee);
             }
 
-            return RedirectToAction(nameof(Index));
+            TempData["Success"] = true;
+
+            // redirect back to Edit page so modal can show
+            return RedirectToAction(nameof(Update), new { id = employee.Id });
         }
 
 

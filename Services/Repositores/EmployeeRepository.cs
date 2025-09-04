@@ -243,12 +243,11 @@ namespace Smart_Attendance_System.Services.Repositories
         {
             try
             {
-              
                 var existingEmployee = await GetEmployeeByIdAsync(employee.Id);
                 if (existingEmployee == null)
                     return false;
 
-             
+                // Check duplicate EmployeeId
                 var isDuplicate = await _context.Employees
                     .AnyAsync(e => e.EmployeeId.ToLower() == employee.EmployeeId.ToLower()
                                 && e.Id != employee.Id);
@@ -303,10 +302,12 @@ namespace Smart_Attendance_System.Services.Repositories
 
                     existingEmployee.CertificateFilePath = "/uploads/certificates/" + certFileName;
                 }
-                else
+                else if (string.IsNullOrEmpty(existingEmployee.CertificateFilePath))
                 {
-                    return false; // certificate required
+                    // আগের certificate নেই এবং নতুনও নেই -> fail
+                    return false;
                 }
+                // অন্যথায়: আগের certificate preserve হবে
 
                 await _context.SaveChangesAsync();
                 return true;
@@ -316,6 +317,7 @@ namespace Smart_Attendance_System.Services.Repositories
                 return false;
             }
         }
+
 
     }
 }

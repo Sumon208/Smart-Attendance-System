@@ -36,65 +36,12 @@
         </div>
     </div>
 
-    <div class="mt-4 text-center">
-        <button class="btn btn-danger me-2" id="downloadModalPdf">
+    @* <div class="mt-4 text-center">
+        <button class="btn btn-danger me-2 print-pdf-btn" data-action="pdf">
             <i class="fas fa-file-pdf"></i> Download PDF
         </button>
-        <button class="btn btn-info" id="printModalBtn">
+        <button class="btn btn-info print-pdf-btn" data-action="print">
             <i class="fas fa-print"></i> Print
         </button>
-    </div>
+    </div> *@
 </div>
-
-<script>
-    (function () {
-        const modalContent = document.getElementById("modalContent");
-        if (!modalContent) return;
-
-        const downloadBtn = document.getElementById("downloadModalPdf");
-        const printBtn = document.getElementById("printModalBtn");
-
-        if (downloadBtn) {
-            downloadBtn.onclick = function () {
-                const contentClone = modalContent.cloneNode(true);
-                const tempDiv = document.createElement("div");
-                tempDiv.style.display = "block";
-                tempDiv.innerHTML = `<link rel="stylesheet" href="/css/bootstrap.min.css"/>` + contentClone.outerHTML;
-                document.body.appendChild(tempDiv);
-
-                const filename = modalContent.querySelector("#employeeName").innerText.replace(/\s+/g, "_") + "_Salary.pdf";
-
-                html2pdf().set({
-                    margin: 0.5,
-                    filename: filename,
-                    html2canvas: { scale: 2, useCORS: true },
-                    jsPDF: { unit: "in", format: "a4", orientation: "portrait" }
-                }).from(tempDiv).save().then(() => tempDiv.remove());
-            };
-        }
-
-        if (printBtn) {
-            printBtn.onclick = function () {
-                const contentClone = modalContent.cloneNode(true);
-                const printWindow = window.open('', '', 'width=900,height=600');
-                printWindow.document.write(`
-                        <html>
-                            <head>
-                                <link rel="stylesheet" href="/css/bootstrap.min.css"/>
-                                <style>
-                                    body { padding: 20px; font-family: Arial, sans-serif; }
-                                    .card { margin-bottom: 15px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
-                                    .badge { font-size: 0.9rem; }
-                                </style>
-                            </head>
-                            <body>${contentClone.outerHTML}</body>
-                        </html>
-                    `);
-                printWindow.document.close();
-                printWindow.focus();
-                printWindow.print();
-                printWindow.close();
-            };
-        }
-    })();
-</script>

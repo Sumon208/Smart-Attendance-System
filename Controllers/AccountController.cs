@@ -218,7 +218,7 @@ namespace Smart_Attendance_System.Controllers
                         ForRole = "Admin",
                         Title = "New User Registration",
                         Message = $"User {newEmployee.EmployeeName} has registered and is awaiting approval.",
-                        LinkUrl = Url.Action("PendingUsers", "Admin", null, Request.Scheme), // you’ll need to create PendingUsers action
+                        LinkUrl = Url.Action("EmployeeAppointment", "Admin", null, Request.Scheme), // you’ll need to create PendingUsers action
                         CreatedAt = DateTime.UtcNow,
                         IsRead = false
                     });

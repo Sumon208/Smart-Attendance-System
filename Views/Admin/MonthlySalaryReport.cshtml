@@ -12,7 +12,6 @@
         <small class="text-muted">Generated on @DateTime.Now.ToString("MMMM dd, yyyy 'at' HH:mm")</small>
     </div>
 
-    <!-- Salary Table Card -->
     <div class="card shadow-sm border-0">
         <div class="card-header bg-dark text-white">
             <h5 class="mb-0"><i class="fas fa-table me-2"></i> Employee Salary Details</h5>
@@ -28,7 +27,7 @@
                                 <th>Employee ID</th>
                                 <th>Gross Salary</th>
                                 <th>Working Days</th>
-                                <th> Current Month Salary</th>
+                                <th>Current Month Salary</th>
                                 <th>Action</th>
                             </tr>
                         </thead>
@@ -91,42 +90,85 @@
         </div>
     </div>
 </div>
+
 @section Scripts {
+    <!-- html2pdf for PDF generation -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
     <script>
         const modal = new bootstrap.Modal(document.getElementById('salaryDetailsModal'));
 
         document.addEventListener('click', async function (e) {
-            const btn = e.target.closest('.view-salary-btn');
-            if (!btn) return;
+            // --- View Salary Button ---
+            const viewBtn = e.target.closest('.view-salary-btn');
+            if (viewBtn) {
+                const empId = viewBtn.getAttribute('data-employeeid');
+                modal.show();
 
-            const empId = btn.getAttribute('data-employeeid');
-            modal.show();
+                const container = document.getElementById('modalBodyContainer');
+                container.innerHTML = `<div class="text-center py-3">
+                                            <span class="spinner-border text-primary"></span>
+                                            <p>Loading...</p>
+                                       </div>`;
+                try {
+                    const baseUrl = '@Url.Action("ViewSalaryDetails", "Admin")';
+                    const response = await fetch(`${baseUrl}?id=${empId}`);
+                    if (!response.ok) throw new Error('Failed to fetch data.');
+                    container.innerHTML = await response.text();
 
-            const container = document.getElementById('modalBodyContainer');
-            container.innerHTML = `<div class="text-center py-3">
-                                                <span class="spinner-border text-primary"></span>
-                                                <p>Loading...</p>
-                                           </div>`;
+                    // Append Print and PDF buttons if not exist
+                    if(!document.getElementById('printSalaryBtn')) {
+                        const btnDiv = document.createElement('div');
+                        btnDiv.classList.add('text-center','mt-3');
+                        btnDiv.innerHTML = `
+                            <button id="printSalaryBtn" class="btn btn-info me-2">Print</button>
+                            <button id="downloadPdfBtn" class="btn btn-danger">Download PDF</button>
+                        `;
+                        container.appendChild(btnDiv);
+                    }
 
-            try {
-                // Correct URL with single quotes
-                const baseUrl = '@Url.Action("ViewSalaryDetails", "Admin")';
-                const response = await fetch(baseUrl + '?id=' + empId);
+                } catch (err) {
+                    container.innerHTML = `<div class="text-danger text-center">Error loading salary details.</div>`;
+                    console.error(err);
+                }
+                return;
+            }
 
-                if (!response.ok) throw new Error('Failed to fetch data.');
+            // --- Print Button ---
+            const printBtn = e.target.closest('#printSalaryBtn');
+            if(printBtn){
+                const container = document.getElementById('modalBodyContainer');
+                const printWindow = window.open('', '', 'width=900,height=600');
+                printWindow.document.write(container.innerHTML);
+                printWindow.document.close();
+                printWindow.focus();
+                printWindow.print();
+                printWindow.close();
+                return;
+            }
 
-                container.innerHTML = await response.text();
-                // No need to attach PDF/Print, partial handles it
+            // --- Download PDF Button ---
+            const pdfBtn = e.target.closest('#downloadPdfBtn');
+            if(pdfBtn){
+                const container = document.getElementById('modalBodyContainer');
 
-            } catch (err) {
-                container.innerHTML = `<div class="text-danger text-center">Error loading salary details.</div>`;
-                console.error(err);
+                // Clone content to avoid modifying original
+                const contentClone = container.cloneNode(true);
+
+                // Remove buttons from PDF
+                const btns = contentClone.querySelectorAll('button');
+                btns.forEach(b => b.remove());
+
+                // Generate PDF using html2pdf
+                html2pdf().set({
+                    margin: 0.5,
+                    filename: (contentClone.querySelector('h4')?.innerText || 'Salary').replace(/\s+/g,'_') + '_Salary.pdf',
+                    html2canvas: { scale: 2, useCORS: true },
+                    jsPDF: { unit: "in", format: "a4", orientation: "portrait" }
+                }).from(contentClone).save();
+
+                return;
             }
         });
     </script>
 }
-
-
-
-
-
