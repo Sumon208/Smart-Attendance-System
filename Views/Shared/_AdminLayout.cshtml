@@ -153,11 +153,14 @@
             </li>
             <li class="nav-item">
                 <a class="nav-link" data-toggle="collapse" href="#employeeSubmenu"
-                   aria-expanded="@(currentController == "Admin" || currentController == "EmployeeManagement" ? "true" : "false")"
+                   aria-expanded="@(currentController == "Admin" || currentAction == "EmployeeManagement" ? "true" : "false")"
                    aria-controls="employeeSubmenu">
                     <i class="fas fa-users mr-2"></i> Employees
                 </a>
-                <div class="collapse @(currentController == "Admin" || currentController == "EmployeeManagement" ? "show" : "")" id="employeeSubmenu">
+
+
+
+                <div class="collapse @( currentAction == "EmployeeAppointment" || currentController == "EmployeeManagement" ? "show" : "")" id="employeeSubmenu">
                     <ul class="flex-column nav pl-4">
                         <li class="nav-item">
                             <a class="nav-link @(currentAction == "EmployeeAppointment" ? "active" : "")"
@@ -173,6 +176,7 @@
                         </li>
                     </ul>
                 </div>
+
             </li>
             <li class="nav-item">
                 <a class="nav-link @(currentController == "Department" ? "active" : "")"
