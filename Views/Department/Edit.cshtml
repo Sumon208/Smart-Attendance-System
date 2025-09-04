@@ -14,34 +14,39 @@
                 </div>
                 <div class="card-body">
                     <form asp-action="Edit" method="post" id="editDepartmentForm">
+                        @Html.AntiForgeryToken()
+
                         <input type="hidden" asp-for="DepartmentId" />
-                        
+
                         <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
-                        
+
                         <div class="form-group mb-3">
                             <label asp-for="DepartmentName" class="form-label fw-bold">Department Name</label>
-                            <input asp-for="DepartmentName" class="form-control form-control-lg" 
-                                   placeholder="Enter department name" 
-                                   required maxlength="100" minlength="2" 
-                                   pattern="[A-Za-z\s]+" 
-                                   title="Please enter a valid department name (letters and spaces only)" />
+                            <input asp-for="DepartmentName" class="form-control form-control-lg"
+                                   placeholder="Enter department name"
+                                   required maxlength="100" minlength="2"
+                                   pattern=".{2,100}"
+                                   title="Enter 2–100 characters (letters, numbers, spaces, and special characters allowed)" />
                             <div class="form-text">
-                                <i class="fas fa-info-circle"></i> Enter a unique department name (2-100 characters, letters and spaces only)
+                                <i class="fas fa-info-circle"></i>
+                                Enter a unique department name (2–100 characters; special characters allowed)
                             </div>
                             <span asp-validation-for="DepartmentName" class="text-danger"></span>
                         </div>
 
-                        <div class="form-group d-flex gap-2">
-                            <button type="submit" class="btn btn-warning btn-lg">
+                        <div class="form-group">
+                            <button type="submit" class="btn btn-warning btn-lg me-2">
                                 <i class="fas fa-save"></i> Update Department
                             </button>
-                            <a asp-action="Index" class="btn btn-secondary btn-lg">
+                            <a asp-action="Index" class="btn btn-secondary btn-lg me-2">
                                 <i class="fas fa-arrow-left"></i> Back to List
                             </a>
                             <a asp-action="Details" asp-route-id="@Model.DepartmentId" class="btn btn-info btn-lg">
                                 <i class="fas fa-eye"></i> View Details
                             </a>
                         </div>
+
+
                     </form>
                 </div>
             </div>
@@ -50,62 +55,73 @@
 </div>
 
 @section Scripts {
+    <partial name="_ValidationScriptsPartial" />
     <script>
-        $(document).ready(function() {
-            // Form validation enhancement
-            $('#DepartmentName').on('input', function() {
-                var value = $(this).val();
-                var isValid = value.length >= 2 && value.length <= 100 && /^[A-Za-z\s]+$/.test(value);
-                
-                if (isValid) {
-                    $(this).removeClass('is-invalid').addClass('is-valid');
-                    $(this).next('.form-text').removeClass('text-danger').addClass('text-success');
-                } else {
-                    $(this).removeClass('is-valid').addClass('is-invalid');
-                    $(this).next('.form-text').removeClass('text-success').addClass('text-danger');
-                }
-            });
+        $(function () {
+            var $name = $('#DepartmentName');
+            var debounceHandle;
 
-            // Real-time name existence check (excluding current department)
-            var nameCheckTimer;
-            $('#DepartmentName').on('input', function() {
-                clearTimeout(nameCheckTimer);
-                var departmentName = $(this).val().trim();
-                
-                if (departmentName.length >= 2) {
-                    nameCheckTimer = setTimeout(function() {
-                        checkDepartmentNameExists(departmentName);
-                    }, 500);
-                }
-            });
-
-            function checkDepartmentNameExists(name) {
-                $.post('@Url.Action("CheckNameExists", "Department")', { departmentName: name })
-                    .done(function(data) {
-                        if (data.exists) {
-                            $('#DepartmentName').addClass('is-invalid');
-                            if (!$('#nameExistsError').length) {
-                                $('#DepartmentName').after('<div id="nameExistsError" class="text-danger mt-1"><i class="fas fa-exclamation-triangle"></i> This department name already exists.</div>');
-                            }
-                        } else {
-                            $('#DepartmentName').removeClass('is-invalid');
-                            $('#nameExistsError').remove();
-                        }
-                    });
+            function isLocallyValid(val) {
+                // Accept ANY characters, as long as the length is 2–100
+                return /^.{2,100}$/.test(val);
             }
 
-            // Form submission enhancement
-            $('#editDepartmentForm').on('submit', function(e) {
-                var departmentName = $('#DepartmentName').val().trim();
-                if (departmentName.length < 2) {
+            function setValidity(ok) {
+                $name.toggleClass('is-valid', ok).toggleClass('is-invalid', !ok);
+            }
+
+            function antiForgery() {
+                return $('input[name="__RequestVerificationToken"]').val();
+            }
+
+            function checkDepartmentNameExists(name) {
+                return $.ajax({
+                    url: '@Url.Action("CheckNameExists", "Department")',
+                    type: 'POST',
+                    data: {
+                        departmentName: name,
+                        departmentId: $('#DepartmentId').val() // exclude current department
+                    },
+                    headers: { 'RequestVerificationToken': antiForgery() }
+                });
+            }
+
+            $name.on('input', function () {
+                clearTimeout(debounceHandle);
+                const val = $name.val().trim();
+
+                if (!isLocallyValid(val)) {
+                    setValidity(false);
+                    $('#nameExistsError').remove(); // clear uniqueness hint if present
+                    return;
+                } else {
+                    setValidity(true);
+                }
+
+                debounceHandle = setTimeout(function () {
+                    checkDepartmentNameExists(val).done(function (data) {
+                        if (data && data.exists) {
+                            setValidity(false);
+                            if (!$('#nameExistsError').length) {
+                                $name.after('<div id="nameExistsError" class="text-danger mt-1"><i class="fas fa-exclamation-triangle"></i> This department name already exists.</div>');
+                            }
+                        } else {
+                            $('#nameExistsError').remove();
+                            setValidity(true);
+                        }
+                    });
+                }, 400);
+            });
+
+            $('#editDepartmentForm').on('submit', function (e) {
+                const val = $name.val().trim();
+                if (!isLocallyValid(val)) {
                     e.preventDefault();
-                    alert('Please enter a valid department name (minimum 2 characters)');
-                    $('#DepartmentName').focus();
+                    alert('Please enter a department name using 2–100 characters.');
+                    $name.focus();
                     return false;
                 }
             });
         });
     </script>
 }
-
-

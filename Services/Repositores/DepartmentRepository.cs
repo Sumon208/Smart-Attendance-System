@@ -49,34 +49,74 @@ namespace Smart_Attendance_System.Services.Repositores
 
         }
 
+        //public async Task<bool> UpdateDepartmentAsync(Department department)
+        //{
+        //    try
+        //    {
+        //        var exitsDept = await GetDepartmentByIdASync(department.DepartmentId);
+        //        if (exitsDept == null)
+        //        {
+        //            return false;
+
+        //        }
+        //        var newExits = await _context.Departments.AnyAsync(d => d.DepartmentName.ToLower() == department.DepartmentName.ToLower()
+        //         && d.DepartmentId != department.DepartmentId
+        //        );
+        //        if (newExits)
+        //        {
+        //            return false;
+
+        //        }
+        //        exitsDept.DepartmentName = department.DepartmentName;
+        //        _context.SaveChangesAsync();
+        //        return true;
+
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        return false;
+        //    }
+        //}
+
+
         public async Task<bool> UpdateDepartmentAsync(Department department)
         {
+            if (department == null) return false;
+
             try
             {
-                var exitsDept = await GetDepartmentByIdASync(department.DepartmentId);
-                if (exitsDept == null)
-                {
-                    return false;
+                var existingDept = await GetDepartmentByIdASync(department.DepartmentId);
+                if (existingDept == null) return false;
 
-                }
-                var newExits = await _context.Departments.AnyAsync(d => d.DepartmentName.ToLower() == department.DepartmentName.ToLower()
-                 && d.DepartmentId != department.DepartmentId
+                // Normalize input
+                var newName = (department.DepartmentName ?? string.Empty).Trim();
+                if (newName.Length == 0) return false;
+
+                // Case-insensitive uniqueness check, excluding the current record
+                var normalized = newName.ToUpper();
+                var exists = await _context.Departments.AnyAsync(d =>
+                    d.DepartmentId != department.DepartmentId &&
+                    d.DepartmentName.ToUpper() == normalized
                 );
-                if (newExits)
-                {
-                    return false;
 
-                }
-                exitsDept.DepartmentName = department.DepartmentName;
-                _context.SaveChangesAsync();
-                return true;
+                if (exists) return false;
 
+                // Apply and persist
+                existingDept.DepartmentName = newName;
+
+                var rows = await _context.SaveChangesAsync(); // <-- await the async call
+                return rows > 0;
             }
-            catch (Exception ex)
+            catch
             {
+                // TODO: add logging if needed
                 return false;
             }
         }
+
+
+
+
         public async Task<bool> DeleteDepartmentASync(int id)
         {
             try
