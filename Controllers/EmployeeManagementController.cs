@@ -23,12 +23,37 @@ namespace Smart_Attendance_System.Controllers
             _attendanceRepository = attendanceRepository;
         }
 
-        // Employee Details Action
+       // Employee Details Action
         public async Task<IActionResult> Index()
         {
             var employees = await _employeeRepository.GetAllEmployeesAsync();
             return View(employees);
         }
+
+
+        // Employee List with Search
+        public async Task<IActionResult> EmployeeList(string? searchTerm)
+        {
+            var employees = await _employeeRepository.GetAllEmployeesAsync();
+
+            if (!string.IsNullOrWhiteSpace(searchTerm))
+            {
+                searchTerm = searchTerm.Trim().ToLower();
+
+                employees = employees
+                    .Where(e =>
+                        (!string.IsNullOrEmpty(e.EmployeeId) &&
+                         e.EmployeeId.ToLower().Contains(searchTerm)) ||
+                        (!string.IsNullOrEmpty(e.EmployeeName) &&
+                         e.EmployeeName.ToLower().Contains(searchTerm))
+                    )
+                    .ToList();
+            }
+
+            ViewBag.SearchTerm = searchTerm;
+            return View("Index", employees);
+        }
+
 
         //Employee Details(View + Update)
         [HttpGet]

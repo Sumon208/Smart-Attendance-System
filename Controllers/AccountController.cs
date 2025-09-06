@@ -153,6 +153,85 @@ namespace Smart_Attendance_System.Controllers
             return View();
         }
 
+        //[HttpPost]
+        //[ValidateAntiForgeryToken]
+        //public async Task<IActionResult> Register(RegistrationViewModel model)
+        //{
+        //    var departments = await _accountRepository.GetAllDepartmentsAsync();
+        //    var employees = await _accountRepository.GetAllEmployeesAsync();
+
+        //    ViewBag.Departments = new SelectList(departments, "DepartmentId", "DepartmentName");
+        //    ViewBag.Employees = employees;
+
+        //    if (ModelState.IsValid)
+        //    {
+        //        if (!string.IsNullOrEmpty(model.EmployeeId))
+        //        {
+        //            var existingEmployee = await _accountRepository.GetEmployeeByEmployeeIdAsync(model.EmployeeId);
+        //            if (existingEmployee != null)
+        //            {
+        //                ModelState.AddModelError("EmployeeId", "An account with this Employee ID already exists.");
+        //                return View(model);
+        //            }
+        //        }
+        //        else
+        //        {
+        //            ModelState.AddModelError("EmployeeId", "Employee ID is required.");
+        //            return View(model);
+        //        }
+
+        //        var existingUser = await _accountRepository.GetUserByEmailAsync(model.Email);
+        //        if (existingUser != null)
+        //        {
+        //            ModelState.AddModelError("Email", "An account with this email already exists.");
+        //            return View(model);
+        //        }
+
+        //        var newEmployee = new Employee
+        //        {
+        //            EmployeeName = model.EmployeeName,
+        //            EmployeeId = model.EmployeeId,
+        //            DepartmentId = model.DepartmentId,
+        //            EmployeePhotoPath = "/images/default.jpg",
+        //            Gender = "N/A",
+        //            Nationality = "N/A",
+        //            DateOfBirth = DateTime.Now,
+        //            Salary = 0,
+        //            Description = "New User",
+        //            Status = EmployeeStatus.Pending // 👈 still pending until admin approves
+        //        };
+
+        //        var newSystemUser = new SystemUser
+        //        {
+        //            Email = model.Email,
+        //            PasswordHash = BCrypt.Net.BCrypt.HashPassword(model.Password),
+        //            UserType = 2,
+        //        };
+
+        //        var result = await _accountRepository.RegisterUserAsync(newEmployee, newSystemUser);
+
+        //        if (result)
+        //        {
+        //            // ✅ Add notification for Admin
+        //            await _notificationRepository.AddNotificationAsync(new Notification
+        //            {
+        //                ForRole = "Admin",
+        //                Title = "New User Registration",
+        //                Message = $"User {newEmployee.EmployeeName} has registered and is awaiting approval.",
+        //                LinkUrl = Url.Action("EmployeeAppointment", "Admin", null, Request.Scheme), // you’ll need to create PendingUsers action
+        //                CreatedAt = DateTime.UtcNow,
+        //                IsRead = false
+        //            });
+
+        //            TempData["SuccessMessage"] = "Registration successful! Please wait for Admin approval before login.";
+        //            return RedirectToAction("Login");
+        //        }
+
+        //        ModelState.AddModelError(string.Empty, "Registration failed. Please try again.");
+        //    }
+
+        //    return View(model);
+        //}
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Register(RegistrationViewModel model)
@@ -187,18 +266,23 @@ namespace Smart_Attendance_System.Controllers
                     return View(model);
                 }
 
+                // ✅ Call helper methods for file upload
+                string photoPath = await SaveEmployeePhotoAsync(model.EmployeePhotoFile);
+                string certificatePath = await SaveCertificateAsync(model.CertificateFile);
+
                 var newEmployee = new Employee
                 {
                     EmployeeName = model.EmployeeName,
                     EmployeeId = model.EmployeeId,
                     DepartmentId = model.DepartmentId,
-                    EmployeePhotoPath = "/images/default.jpg",
+                    EmployeePhotoPath = photoPath,
+                    CertificateFilePath = certificatePath,
                     Gender = "N/A",
                     Nationality = "N/A",
                     DateOfBirth = DateTime.Now,
                     Salary = 0,
                     Description = "New User",
-                    Status = EmployeeStatus.Pending // 👈 still pending until admin approves
+                    Status = EmployeeStatus.Pending
                 };
 
                 var newSystemUser = new SystemUser
@@ -212,13 +296,12 @@ namespace Smart_Attendance_System.Controllers
 
                 if (result)
                 {
-                    // ✅ Add notification for Admin
                     await _notificationRepository.AddNotificationAsync(new Notification
                     {
                         ForRole = "Admin",
                         Title = "New User Registration",
                         Message = $"User {newEmployee.EmployeeName} has registered and is awaiting approval.",
-                        LinkUrl = Url.Action("EmployeeAppointment", "Admin", null, Request.Scheme), // you’ll need to create PendingUsers action
+                        LinkUrl = Url.Action("EmployeeAppointment", "Admin", null, Request.Scheme),
                         CreatedAt = DateTime.UtcNow,
                         IsRead = false
                     });
@@ -232,6 +315,55 @@ namespace Smart_Attendance_System.Controllers
 
             return View(model);
         }
+
+        #region Private Methods
+
+        private async Task<string> SaveEmployeePhotoAsync(IFormFile? photoFile)
+        {
+            if (photoFile != null && photoFile.Length > 0)
+            {
+                var uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/uploads/photos");
+                if (!Directory.Exists(uploadsFolder))
+                    Directory.CreateDirectory(uploadsFolder);
+
+                string uniqueFileName = Guid.NewGuid().ToString() + Path.GetExtension(photoFile.FileName);
+                string filePath = Path.Combine(uploadsFolder, uniqueFileName);
+
+                using (var stream = new FileStream(filePath, FileMode.Create))
+                {
+                    await photoFile.CopyToAsync(stream);
+                }
+
+                return "/uploads/photos/" + uniqueFileName;
+            }
+
+            // default placeholder
+            return "/images/default.jpg";
+        }
+
+        private async Task<string?> SaveCertificateAsync(IFormFile? certificateFile)
+        {
+            if (certificateFile != null && certificateFile.Length > 0)
+            {
+                var uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/uploads/certificates");
+                if (!Directory.Exists(uploadsFolder))
+                    Directory.CreateDirectory(uploadsFolder);
+
+                string uniqueFileName = Guid.NewGuid().ToString() + Path.GetExtension(certificateFile.FileName);
+                string filePath = Path.Combine(uploadsFolder, uniqueFileName);
+
+                using (var stream = new FileStream(filePath, FileMode.Create))
+                {
+                    await certificateFile.CopyToAsync(stream);
+                }
+
+                return "/uploads/certificates/" + uniqueFileName;
+            }
+
+            return null;
+        }
+
+        #endregion
 
         [HttpGet]
         public async Task<IActionResult> Logout()

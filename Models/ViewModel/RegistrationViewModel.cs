@@ -30,5 +30,13 @@ namespace Smart_Attendance_System.Models.ViewModel
         [Required]
         [Display(Name = "Department")]
         public int DepartmentId { get; set; }
+
+
+        [Display(Name = "Employee Photo")]
+        public IFormFile? EmployeePhotoFile { get; set; }
+
+        // New: Certificate Upload
+        [Display(Name = "Offer Letter")]
+        public IFormFile? CertificateFile { get; set; }
     }
 }
