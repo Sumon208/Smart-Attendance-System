@@ -275,6 +275,7 @@ namespace Smart_Attendance_System.Controllers
                     EmployeeName = model.EmployeeName,
                     EmployeeId = model.EmployeeId,
                     DepartmentId = model.DepartmentId,
+                    Email = model.Email,
                     EmployeePhotoPath = photoPath,
                     CertificateFilePath = certificatePath,
                     Gender = "N/A",

@@ -4,7 +4,6 @@ namespace Smart_Attendance_System.Services.Interfaces
 {
     public interface IAttendanceRepository
     {
-        // Attendance methods
         Task<Attendance?> GetTodayAttendanceAsync(int employeeId);
         Task<Attendance> CreateAttendanceAsync(Attendance attendance);
         Task UpdateAttendanceAsync(Attendance attendance);
@@ -12,8 +11,6 @@ namespace Smart_Attendance_System.Services.Interfaces
         Task<bool> IsEmployeeCheckedInTodayAsync(int employeeId);
         Task<bool> IsEmployeeCheckedOutTodayAsync(int employeeId);
         Task<Employee?> GetEmployeeByIdAsync(int id);
-
-        // Monthly attendance report method
         Task<IEnumerable<Attendance>> GetMonthlyAttendanceReportAsync(string? employeeSearch = null, DateTime? dateFrom = null, DateTime? dateTo = null);
     }
 }
