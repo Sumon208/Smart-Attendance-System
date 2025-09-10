@@ -6,39 +6,104 @@
 }
 
 <div class="d-flex justify-content-between align-items-center mb-4">
-    <h2><i class="fas fa-clock text-primary"></i> Attendance</h2>
-    <div class="text-muted">
-        <i class="far fa-calendar-alt"></i> @DateTime.Now.ToString("dddd, MMMM dd, yyyy")
-        <span class="mx-2">|</span>
-        <i class="far fa-clock"></i> <span id="currentTime"></span>
+    <div class="card p-3 shadow-sm" style="border-left:5px solid #007bff; flex-grow: 1; margin-right: 15px;">
+        <h2 class="mb-0"><i class="fas fa-clock text-primary"></i> Attendance</h2>
+    </div>
+    <div class="card p-3 shadow-sm" style="border-left:5px solid #28a745;">
+        <div class="text-muted">
+            <h5 class="mb-0 text-success"><i class="far fa-calendar-alt"></i> @DateTime.Now.ToString("dddd, MMMM dd, yyyy")</h5>
+        </div>
     </div>
 </div>
 
-<!-- Current Status Card -->
 <div class="row mb-4">
-    <div class="col-12">
-        <div class="card border-0 shadow-sm">
+    <div class="col-md-5">
+        <div class="card border-0 shadow-sm h-100">
             <div class="card-body text-center py-4">
-                <div class="row align-items-center">
-                    <div class="col-md-4">
-                        <h4 class="text-muted mb-2">Today's Status</h4>
-                        <div class="d-flex align-items-center justify-content-center">
-                            <div class="status-indicator @(Model.IsCheckedIn ? "bg-success" : "bg-secondary") rounded-circle d-inline-block mr-3"></div>
-                            <h3 class="mb-0 @(Model.IsCheckedIn ? "text-success" : "text-secondary")">
+                <h4 class="text-muted mb-3"><i class="far fa-clock"></i> Live Time</h4>
+                <canvas id="analogClock" width="200" height="200" style="border:5px solid #ddd; border-radius:50%;"></canvas>
+                <h4 class="mt-3 text-primary">
+                    <span id="digitalClock"></span>
+                    <span id="currentTime"></span>
+                </h4>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-7">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body py-3 d-flex flex-column justify-content-center">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <div class="d-flex align-items-center flex-grow-1">
+                        <h4 class="text-muted mb-0">Today's Status</h4>
+                        <div class="d-flex align-items-center ml-4">
+                            <div class="status-indicator @(Model.IsCheckedIn ? "bg-success" : "bg-secondary") rounded-circle d-inline-block mr-2"></div>
+                            <h3 class="mb-0 @(Model.IsCheckedIn ? "text-success" : "text-secondary")" style="font-size: 1.25rem;">
                                 @(Model.IsCheckedIn ? "Checked In" : "Not Checked In")
                             </h3>
                         </div>
                     </div>
-                    <div class="col-md-4">
-                        <div class="text-center">
-                            <small class="text-muted d-block">Check In Time</small>
-                            <strong class="h4">@(Model.CheckInTime?.ToString("hh:mm tt") ?? "—")</strong>
+                </div>
+                <div class="row text-center mb-4">
+                    <div class="col-6">
+                        <small class="text-muted d-block">Check In Time</small>
+                        <h4 class="mb-0">@(Model.CheckInTime?.ToString("hh:mm tt") ?? "—")</h4>
+                    </div>
+                    <div class="col-6">
+                        <small class="text-muted d-block">Check Out Time</small>
+                        <h4 class="mb-0">@(Model.CheckOutTime?.ToString("hh:mm tt") ?? "—")</h4>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-6">
+                        <div class="card text-center card-custom h-100">
+                            <div class="card-body py-4 d-flex flex-column justify-content-center">
+                                <i class="fas fa-sign-in-alt fa-3x text-success mb-3"></i>
+                                <h4 class="card-title">Check In</h4>
+                                <p class="card-text">Mark your arrival for today's work.</p>
+                                @if (!Model.IsCheckedIn)
+                                {
+                                    <form asp-action="CheckIn" method="post" class="d-inline mt-auto">
+                                        <button type="submit" class="btn btn-success btn-lg" @(Model.IsCheckedIn ? "disabled" : "")>
+                                            <i class="fas fa-fingerprint mr-2"></i>Check In Now
+                                        </button>
+                                    </form>
+                                }
+                                else
+                                {
+                                    <button class="btn btn-success btn-lg mt-auto" disabled>
+                                        <i class="fas fa-check mr-2"></i>Already Checked In
+                                    </button>
+                                }
+                            </div>
                         </div>
                     </div>
-                    <div class="col-md-4">
-                        <div class="text-center">
-                            <small class="text-muted d-block">Check Out Time</small>
-                            <strong class="h4">@(Model.CheckOutTime?.ToString("hh:mm tt") ?? "—")</strong>
+                    <div class="col-6">
+                        <div class="card text-center card-custom h-100">
+                            <div class="card-body py-4 d-flex flex-column justify-content-center">
+                                <i class="fas fa-sign-out-alt fa-3x text-danger mb-3"></i>
+                                <h4 class="card-title">Check Out</h4>
+                                <p class="card-text">Mark your departure from work.</p>
+                                @if (Model.IsCheckedIn && !Model.IsCheckedOut)
+                                {
+                                    <form asp-action="CheckOut" method="post" class="d-inline mt-auto">
+                                        <button type="submit" class="btn btn-danger btn-lg">
+                                            <i class="fas fa-fingerprint mr-2"></i>Check Out Now
+                                        </button>
+                                    </form>
+                                }
+                                else if (Model.IsCheckedOut)
+                                {
+                                    <button class="btn btn-danger btn-lg mt-auto" disabled>
+                                        <i class="fas fa-check mr-2"></i>Already Checked Out
+                                    </button>
+                                }
+                                else
+                                {
+                                    <button class="btn btn-danger btn-lg mt-auto" disabled>
+                                        <i class="fas fa-info-circle mr-2"></i>Check In First
+                                    </button>
+                                }
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -47,64 +112,6 @@
     </div>
 </div>
 
-<!-- Action Buttons -->
-<div class="row mb-4">
-    <div class="col-md-6">
-        <div class="card text-center card-custom">
-            <div class="card-body py-5">
-                <i class="fas fa-sign-in-alt fa-4x text-success mb-3"></i>
-                <h4 class="card-title">Check In</h4>
-                <p class="card-text">Mark your arrival for today's work.</p>
-                @if (!Model.IsCheckedIn)
-                {
-                    <form asp-action="CheckIn" method="post" class="d-inline">
-                        <button type="submit" class="btn btn-success btn-lg" @(Model.IsCheckedIn ? "disabled" : "")>
-                            <i class="fas fa-fingerprint mr-2"></i>Check In Now
-                        </button>
-                    </form>
-                }
-                else
-                {
-                    <button class="btn btn-success btn-lg" disabled>
-                        <i class="fas fa-check mr-2"></i>Already Checked In
-                    </button>
-                }
-            </div>
-        </div>
-    </div>
-
-    <div class="col-md-6">
-        <div class="card text-center card-custom">
-            <div class="card-body py-5">
-                <i class="fas fa-sign-out-alt fa-4x text-danger mb-3"></i>
-                <h4 class="card-title">Check Out</h4>
-                <p class="card-text">Mark your departure from work.</p>
-                @if (Model.IsCheckedIn && !Model.IsCheckedOut)
-                {
-                    <form asp-action="CheckOut" method="post" class="d-inline">
-                        <button type="submit" class="btn btn-danger btn-lg">
-                            <i class="fas fa-fingerprint mr-2"></i>Check Out Now
-                        </button>
-                    </form>
-                }
-                else if (Model.IsCheckedOut)
-                {
-                    <button class="btn btn-danger btn-lg" disabled>
-                        <i class="fas fa-check mr-2"></i>Already Checked Out
-                    </button>
-                }
-                else
-                {
-                    <button class="btn btn-danger btn-lg" disabled>
-                        <i class="fas fa-info-circle mr-2"></i>Check In First
-                    </button>
-                }
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Today's Summary -->
 <div class="row mb-4">
     <div class="col-12">
         <div class="card card-custom">
@@ -143,7 +150,6 @@
     </div>
 </div>
 
-<!-- Recent Attendance History -->
 <div class="row">
     <div class="col-12">
         <div class="card card-custom">
@@ -219,9 +225,17 @@
     }
 
     @@keyframes pulse {
-        0% { transform: scale(1); }
-        50% { transform: scale(1.1); }
-        100% { transform: scale(1); }
+        0% {
+            transform: scale(1);
+        }
+
+        50% {
+            transform: scale(1.1);
+        }
+
+        100% {
+            transform: scale(1);
+        }
     }
 
     .card-custom {
@@ -242,7 +256,7 @@
 </style>
 
 <script>
-    // Update current time every second
+    // Small top-right clock
     function updateTime() {
         const now = new Date();
         const timeString = now.toLocaleTimeString('en-US', {
@@ -253,7 +267,94 @@
         });
         document.getElementById('currentTime').textContent = timeString;
     }
-
     updateTime();
     setInterval(updateTime, 1000);
+
+    // Main Digital Clock
+    // function updateDigitalClock() {
+    //     const now = new Date();
+    //     document.getElementById("digitalClock").textContent = now.toLocaleTimeString('en-US');
+    // }
+    // setInterval(updateDigitalClock, 1000);
+    // updateDigitalClock();
+
+    // Analog Clock
+    function drawClock() {
+        const canvas = document.getElementById("analogClock");
+        const ctx = canvas.getContext("2d");
+        const radius = canvas.height / 2;
+        ctx.translate(radius, radius);
+
+        setInterval(() => {
+            drawFace(ctx, radius);
+            drawNumbers(ctx, radius);
+            drawTime(ctx, radius);
+        }, 1000);
+    }
+
+    function drawFace(ctx, radius) {
+        ctx.beginPath();
+        ctx.arc(0, 0, radius, 0, 2 * Math.PI);
+        ctx.fillStyle = "white";
+        ctx.fill();
+
+        ctx.strokeStyle = "#333";
+        ctx.lineWidth = radius * 0.05;
+        ctx.stroke();
+
+        ctx.beginPath();
+        ctx.arc(0, 0, radius * 0.05, 0, 2 * Math.PI);
+        ctx.fillStyle = "#333";
+        ctx.fill();
+    }
+
+    function drawNumbers(ctx, radius) {
+        ctx.font = radius * 0.15 + "px arial";
+        ctx.textBaseline = "middle";
+        ctx.textAlign = "center";
+        for (let num = 1; num < 13; num++) {
+            let ang = num * Math.PI / 6;
+            ctx.rotate(ang);
+            ctx.translate(0, -radius * 0.85);
+            ctx.rotate(-ang);
+            ctx.fillText(num.toString(), 0, 0);
+            ctx.rotate(ang);
+            ctx.translate(0, radius * 0.85);
+            ctx.rotate(-ang);
+        }
+    }
+
+    function drawTime(ctx, radius) {
+        const now = new Date();
+        let hour = now.getHours();
+        let minute = now.getMinutes();
+        let second = now.getSeconds();
+
+        // hour
+        hour = hour % 12;
+        hour = (hour * Math.PI / 6) + (minute * Math.PI / (6 * 60)) + (second * Math.PI / (360 * 60));
+        drawHand(ctx, hour, radius * 0.5, radius * 0.07);
+
+        // minute
+        minute = (minute * Math.PI / 30) + (second * Math.PI / (30 * 60));
+        drawHand(ctx, minute, radius * 0.8, radius * 0.07);
+
+        // second
+        second = (second * Math.PI / 30);
+        drawHand(ctx, second, radius * 0.9, radius * 0.02, "red");
+    }
+
+    function drawHand(ctx, pos, length, width, color = "#333") {
+        ctx.beginPath();
+        ctx.lineWidth = width;
+        ctx.lineCap = "round";
+        ctx.strokeStyle = color;
+        ctx.moveTo(0, 0);
+        ctx.rotate(pos);
+        ctx.lineTo(0, -length);
+        ctx.stroke();
+        ctx.rotate(-pos);
+    }
+
+    drawClock();
 </script>
