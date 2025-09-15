@@ -200,6 +200,18 @@ namespace Smart_Attendance_System.Services.Repositories
             }
         }
 
+        public async Task UpdateSalaryStatusByEmployeeIdAsync(int employeeId, EmployeeStatus status)
+        {
+            var salary = await _context.Salaries.FirstOrDefaultAsync(s => s.EmployeeId == employeeId);
+            if (salary != null)
+            {
+                salary.Status = status;
+                salary.UpdatedAt = DateTime.UtcNow;
+                await _context.SaveChangesAsync();
+            }
+        }
+
+
         public async Task<IEnumerable<Attendance>> GetAttendanceByDateAsync(DateTime date)
         {
             return await _context.Attendances
@@ -340,7 +352,7 @@ namespace Smart_Attendance_System.Services.Repositories
                     EmployeeCode = emp.EmployeeId,
                     EmployeeName = emp.EmployeeName,
                     GrossSalary = grossSalary,
-                    MonthlySalary = monthlySalary,   // accurate, not rounded
+                    NetSalary = monthlySalary,   // accurate, not rounded
                     PresentCount = present,
                     LateCount = late,
                     AbsentCount = absent,

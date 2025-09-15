@@ -13,6 +13,13 @@ namespace Smart_Attendance_System.Services.Interfaces
 
         Task<SystemUser?> GetUserByEmployeeIdAsync(int employeeRecordId);
         Task<SystemUser?> GetUserByEmailWithEmployeeAsync(string email);
+        Task<bool> InitializeEmployeeSalaryAsync(Employee employee);
 
+
+        // for reset password functionalities
+        Task SavePasswordResetTokenAsync(int userId, string token, DateTime expiry);
+        Task<PasswordResetToken?> GetValidResetTokenAsync(string token);
+        Task InvalidateResetTokenAsync(string token);
+        Task UpdateUserPasswordAsync(int userId, string newPasswordHash);
     }
 }

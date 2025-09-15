@@ -1,0 +1,96 @@
+﻿@model IEnumerable<Smart_Attendance_System.Models.ViewModel.MonthlySalaryViewModel>
+@{
+    ViewBag.Title = "Monthly Salary Report";
+    Layout = "_AdminLayout";
+}
+
+<div class="container-fluid mt-4">
+    <h2 class="mb-4">Monthly Salary Report</h2>
+
+    <form method="get" class="row g-3 mb-4">
+        <div class="col-auto">
+            <input type="month" name="monthYear" class="form-control" value="@ViewBag.MonthYear" />
+        </div>
+        <div class="col-auto">
+            <button type="submit" class="btn btn-primary">Filter</button>
+        </div>
+    </form>
+
+    <div class="table-responsive">
+        <table class="table table-striped table-bordered table-hover align-middle">
+            <thead class="table-dark text-center">
+                <tr>
+                    <th>#</th>
+                    <th>Employee Code</th>
+                    <th>Employee Name</th>
+                    <th>Gross Salary</th>
+                    <th>Net Salary</th>
+                    <th>Present</th>
+                    <th>Late</th>
+                    <th>Absent</th>
+                    <th>Approved Leave</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (!Model.Any())
+                {
+                    <tr>
+                        <td colspan="10" class="text-center">No records found for selected month.</td>
+                    </tr>
+                }
+                else
+                {
+                    int i = 1;
+                    foreach (var item in Model)
+                    {
+                        <tr>
+                            <td class="text-center">@i</td>
+                            <td class="text-center">@item.EmployeeCode</td>
+                            <td>@item.EmployeeName</td>
+                            <td class="text-end">@item.GrossSalary.ToString("N2")</td>
+                            <td class="text-end">@item.NetSalary.ToString("N2")</td>
+                            <td class="text-center">@item.PresentCount</td>
+                            <td class="text-center">@item.LateCount</td>
+                            <td class="text-center">@item.AbsentCount</td>
+                            <td class="text-center">@item.ApprovedLeaveDays</td>
+                            <td class="text-center">
+                                <a href="@Url.Action("ViewSalaryDetails", "Salary", new { employeeId = item.EmployeeId, monthYear = ViewBag.MonthYear })"
+                                   class="btn btn-sm btn-info" data-bs-toggle="modal" data-bs-target="#salaryDetailsModal">
+                                    View
+                                </a>
+                                <a href="@Url.Action("UpdateSalary", "Salary", new { employeeId = item.EmployeeId, monthYear = ViewBag.MonthYear })" class="btn btn-sm btn-warning">
+                                    Edit
+                                </a>
+                            </td>
+                        </tr>
+                        i++;
+                    }
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Salary Details Modal -->
+<div class="modal fade" id="salaryDetailsModal" tabindex="-1" aria-labelledby="salaryDetailsModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-body">
+                <div id="salaryDetailsContent">
+                    <!-- Partial view will load here -->
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).on("click", "[data-bs-target='#salaryDetailsModal']", function (e) {
+            e.preventDefault();
+            var url = $(this).attr("href");
+            $("#salaryDetailsContent").load(url);
+        });
+    </script>
+}

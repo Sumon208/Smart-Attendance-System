@@ -11,5 +11,6 @@ namespace Smart_Attendance_System.Models.ViewModel
         [Required]
         [DataType(DataType.Password)]
         public required string Password { get; set; }
+        public bool RememberMe { get; set; }    
     }
 }

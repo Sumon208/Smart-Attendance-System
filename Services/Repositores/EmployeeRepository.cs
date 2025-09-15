@@ -239,6 +239,84 @@ namespace Smart_Attendance_System.Services.Repositories
             return await _context.Employees
                                  .FirstOrDefaultAsync(e => e.Id == id);
         }
+        //public async Task<bool> UpdateEmployeeAsyn(Employee employee)
+        //{
+        //    try
+        //    {
+        //        var existingEmployee = await GetEmployeeByIdAsync(employee.Id);
+        //        if (existingEmployee == null)
+        //            return false;
+
+        //        // Check duplicate EmployeeId
+        //        var isDuplicate = await _context.Employees
+        //            .AnyAsync(e => e.EmployeeId.ToLower() == employee.EmployeeId.ToLower()
+        //                        && e.Id != employee.Id);
+        //        if (isDuplicate)
+        //            return false;
+
+        //        // Basic fields update
+        //        existingEmployee.EmployeeId = employee.EmployeeId;
+        //        existingEmployee.EmployeeName = employee.EmployeeName;
+        //        existingEmployee.DateOfBirth = employee.DateOfBirth;
+        //        existingEmployee.Gender = employee.Gender;
+        //        existingEmployee.Email = employee.Email;
+        //        existingEmployee.Address = employee.Address;
+        //        existingEmployee.JoiningDate = employee.JoiningDate;
+        //        existingEmployee.DepartmentId = employee.DepartmentId;
+        //        existingEmployee.Salary = employee.Salary;
+        //        existingEmployee.Nationality = employee.Nationality;
+        //        existingEmployee.Description = employee.Description;
+        //        existingEmployee.MobileNumber = employee.MobileNumber;
+        //        existingEmployee.BloodGroup = employee.BloodGroup;
+
+        //        // Photo upload
+        //        if (employee.EmployeePhotoFile != null && employee.EmployeePhotoFile.Length > 0)
+        //        {
+        //            var photoFileName = Guid.NewGuid() + Path.GetExtension(employee.EmployeePhotoFile.FileName);
+        //            var photoPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/uploads/photos", photoFileName);
+
+        //            using (var stream = new FileStream(photoPath, FileMode.Create))
+        //            {
+        //                await employee.EmployeePhotoFile.CopyToAsync(stream);
+        //            }
+
+        //            existingEmployee.EmployeePhotoPath = "/uploads/photos/" + photoFileName;
+        //        }
+
+        //        // Certificate upload
+        //        if (employee.CertificateFile != null && employee.CertificateFile.Length > 0)
+        //        {
+        //            var allowedExtensions = new[] { ".pdf", ".jpg", ".jpeg", ".png", ".gif" };
+        //            var ext = Path.GetExtension(employee.CertificateFile.FileName).ToLower();
+
+        //            if (!allowedExtensions.Contains(ext))
+        //                return false;
+
+        //            var certFileName = Guid.NewGuid() + ext;
+        //            var certPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/uploads/certificates", certFileName);
+
+        //            using (var stream = new FileStream(certPath, FileMode.Create))
+        //            {
+        //                await employee.CertificateFile.CopyToAsync(stream);
+        //            }
+
+        //            existingEmployee.CertificateFilePath = "/uploads/certificates/" + certFileName;
+        //        }
+        //        else if (string.IsNullOrEmpty(existingEmployee.CertificateFilePath))
+        //        {
+        //            // আগের certificate নেই এবং নতুনও নেই -> fail
+        //            return false;
+        //        }
+        //        // অন্যথায়: আগের certificate preserve হবে
+
+        //        await _context.SaveChangesAsync();
+        //        return true;
+        //    }
+        //    catch
+        //    {
+        //        return false;
+        //    }
+        //}
         public async Task<bool> UpdateEmployeeAsyn(Employee employee)
         {
             try
@@ -254,7 +332,7 @@ namespace Smart_Attendance_System.Services.Repositories
                 if (isDuplicate)
                     return false;
 
-                // Basic fields update
+                // --- Update Employee fields ---
                 existingEmployee.EmployeeId = employee.EmployeeId;
                 existingEmployee.EmployeeName = employee.EmployeeName;
                 existingEmployee.DateOfBirth = employee.DateOfBirth;
@@ -263,7 +341,7 @@ namespace Smart_Attendance_System.Services.Repositories
                 existingEmployee.Address = employee.Address;
                 existingEmployee.JoiningDate = employee.JoiningDate;
                 existingEmployee.DepartmentId = employee.DepartmentId;
-                existingEmployee.Salary = employee.Salary;
+                existingEmployee.Salary = employee.Salary; // <-- Gross Salary
                 existingEmployee.Nationality = employee.Nationality;
                 existingEmployee.Description = employee.Description;
                 existingEmployee.MobileNumber = employee.MobileNumber;
@@ -304,10 +382,30 @@ namespace Smart_Attendance_System.Services.Repositories
                 }
                 else if (string.IsNullOrEmpty(existingEmployee.CertificateFilePath))
                 {
-                    // আগের certificate নেই এবং নতুনও নেই -> fail
+                    // Certificate missing
                     return false;
                 }
-                // অন্যথায়: আগের certificate preserve হবে
+
+                // --- Update Salary Table ---
+                var salaryRecord = await _context.Salaries.FirstOrDefaultAsync(s => s.EmployeeId == employee.Id);
+                if (salaryRecord != null)
+                {
+                    salaryRecord.GrossSalary = employee.Salary ?? 0; // update Salary table
+                    salaryRecord.UpdatedAt = DateTime.UtcNow;
+                }
+                else
+                {
+                    // Salary record does not exist yet → create new
+                    var newSalary = new Salary
+                    {
+                        EmployeeId = employee.Id,
+                        GrossSalary = employee.Salary ?? 0,
+                        Status = EmployeeStatus.Pending, // initially pending
+                        CreatedAt = DateTime.UtcNow,
+                        UpdatedAt = DateTime.UtcNow
+                    };
+                    await _context.Salaries.AddAsync(newSalary);
+                }
 
                 await _context.SaveChangesAsync();
                 return true;

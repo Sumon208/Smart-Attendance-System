@@ -15,7 +15,9 @@ namespace Smart_Attendance_System.Data
         public DbSet<Attendance> Attendances { get; set; }
         public DbSet<Leave> Leaves { get; set; }
         public DbSet<Notification> Notifications { get; set; }
+        public DbSet<PasswordResetToken> PasswordResetTokens { get; set; }
 
+        public DbSet<Salary> Salaries { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

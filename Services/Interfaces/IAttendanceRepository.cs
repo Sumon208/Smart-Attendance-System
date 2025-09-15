@@ -1,4 +1,5 @@
 ﻿using Smart_Attendance_System.Models;
+using Smart_Attendance_System.Models.ViewModel;
 
 namespace Smart_Attendance_System.Services.Interfaces
 {
@@ -11,6 +12,12 @@ namespace Smart_Attendance_System.Services.Interfaces
         Task<bool> IsEmployeeCheckedInTodayAsync(int employeeId);
         Task<bool> IsEmployeeCheckedOutTodayAsync(int employeeId);
         Task<Employee?> GetEmployeeByIdAsync(int id);
+       
         Task<IEnumerable<Attendance>> GetMonthlyAttendanceReportAsync(string? employeeSearch = null, DateTime? dateFrom = null, DateTime? dateTo = null);
+
+ 
+       
     }
+
+
 }
