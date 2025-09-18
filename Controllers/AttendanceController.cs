@@ -15,10 +15,12 @@ namespace Smart_Attendance_System.Controllers
     {
 
         private readonly IAttendanceRepository _attendancerepository;
+        private readonly ISalaryRepository _salaryRepository;
 
-        public AttendanceController(IAttendanceRepository attendanceRepository)
+        public AttendanceController(IAttendanceRepository attendanceRepository,ISalaryRepository salaryRepository)
         {
             _attendancerepository = attendanceRepository;
+            _salaryRepository = salaryRepository;
         }
 
         public async Task<IActionResult> Attendance()
@@ -55,56 +57,113 @@ namespace Smart_Attendance_System.Controllers
             return View(vm);
         }
 
+        //[HttpPost]
+        //[ValidateAntiForgeryToken]
+        //public async Task<IActionResult> CheckIn()
+        //{
+        //    var employeeIdStr = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        //    if (string.IsNullOrEmpty(employeeIdStr))
+        //        return RedirectToAction("Login", "Account");
+
+        //    var employeeId = int.Parse(employeeIdStr);
+
+        //    try
+        //    {
+        //        var todayAttendance = await _attendancerepository.GetTodayAttendanceAsync(employeeId);
+        //        if (todayAttendance != null && todayAttendance.CheckInTime.HasValue)
+        //        {
+        //            TempData["ErrorMessage"] = "You have already checked in today.";
+        //            return RedirectToAction("Attendance");
+        //        }
+
+        //        var now = DateTime.Now;
+        //        var isLate = now.TimeOfDay > new TimeSpan(9, 30, 0);
+
+        //        if (todayAttendance == null)
+        //        {
+        //            todayAttendance = new Attendance
+        //            {
+        //                EmployeeId = employeeId,
+        //                AttendanceDate = DateTime.Today,
+        //                CheckInTime = now,
+        //                Status = isLate ? "Late" : "Present"
+        //            };
+        //            await _attendancerepository.CreateAttendanceAsync(todayAttendance);
+        //        }
+        //        else
+        //        {
+        //            todayAttendance.CheckInTime = now;
+        //            todayAttendance.Status = isLate ? "Late" : "Present";
+        //            await _attendancerepository.UpdateAttendanceAsync(todayAttendance);
+        //        }
+
+        //        // Update salary for this month
+
+
+        //        await _salaryRepository.UpdateEmployeeMonthlySalaryAsync(employeeId, DateTime.Today);
+
+        //        TempData["SuccessMessage"] = isLate ?
+        //            "Check-in successful! You arrived late today." :
+        //            "Check-in successful! Welcome to work.";
+
+        //        return RedirectToAction("Attendance");
+        //    }
+        //    catch (Exception)
+        //    {
+        //        TempData["ErrorMessage"] = "Check-in failed. Please try again.";
+        //        return RedirectToAction("Attendance");
+        //    }
+        //}
+
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> CheckIn()
         {
-            var employeeId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            
-            if (string.IsNullOrEmpty(employeeId))
-            {
+            var employeeIdStr = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(employeeIdStr))
                 return RedirectToAction("Login", "Account");
-            }
+
+            var employeeId = int.Parse(employeeIdStr);
 
             try
             {
-                var employeeIdInt = int.Parse(employeeId);
-                
-                // Check if already checked in today
-                var todayAttendance = await _attendancerepository.GetTodayAttendanceAsync(employeeIdInt);
-                
+                var todayAttendance = await _attendancerepository.GetTodayAttendanceAsync(employeeId);
+
                 if (todayAttendance != null && todayAttendance.CheckInTime.HasValue)
                 {
                     TempData["ErrorMessage"] = "You have already checked in today.";
                     return RedirectToAction("Attendance");
                 }
 
-                var currentTime = DateTime.Now;
-                var isLate = currentTime.TimeOfDay > new TimeSpan(9, 30, 0); // After 9:30 AM
-                
+                var now = DateTime.Now;
+                var isLate = now.TimeOfDay > new TimeSpan(9, 30, 0);
+
                 if (todayAttendance == null)
                 {
-                    // Create new attendance record
-                    var newAttendance = new Attendance
+                    todayAttendance = new Attendance
                     {
-                        EmployeeId = employeeIdInt,
+                        EmployeeId = employeeId,
                         AttendanceDate = DateTime.Today,
-                        CheckInTime = currentTime,
+                        CheckInTime = now,
                         Status = isLate ? "Late" : "Present"
                     };
-                    
-                    await _attendancerepository.CreateAttendanceAsync(newAttendance);
+                    await _attendancerepository.CreateAttendanceAsync(todayAttendance);
                 }
                 else
                 {
-                    // Update existing record
-                    todayAttendance.CheckInTime = currentTime;
+                    todayAttendance.CheckInTime = now;
                     todayAttendance.Status = isLate ? "Late" : "Present";
                     await _attendancerepository.UpdateAttendanceAsync(todayAttendance);
                 }
-                
-                var message = isLate ? "Check-in successful! You arrived late today." : "Check-in successful! Welcome to work.";
-                TempData["SuccessMessage"] = message;
+
+                // 🔑 Update salary for this month including approved leaves
+                DateTime salaryMonth = new DateTime(DateTime.Today.Year, DateTime.Today.Month, 1);
+                await _salaryRepository.UpdateEmployeeMonthlySalaryAsync(employeeId, salaryMonth);
+
+                TempData["SuccessMessage"] = isLate ?
+                    "Check-in successful! You arrived late today." :
+                    "Check-in successful! Welcome to work.";
+
                 return RedirectToAction("Attendance");
             }
             catch (Exception)
@@ -114,53 +173,153 @@ namespace Smart_Attendance_System.Controllers
             }
         }
 
+
+
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> CheckOut()
         {
-            var employeeId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            
-            if (string.IsNullOrEmpty(employeeId))
-            {
+            var employeeIdStr = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(employeeIdStr))
                 return RedirectToAction("Login", "Account");
-            }
 
-            try
+            var employeeId = int.Parse(employeeIdStr);
+            var todayAttendance = await _attendancerepository.GetTodayAttendanceAsync(employeeId);
+
+            if (todayAttendance == null || !todayAttendance.CheckInTime.HasValue)
             {
-                var employeeIdInt = int.Parse(employeeId);
-                
-                // Check if checked in today
-                var todayAttendance = await _attendancerepository.GetTodayAttendanceAsync(employeeIdInt);
-                
-                if (todayAttendance == null || !todayAttendance.CheckInTime.HasValue)
-                {
-                    TempData["ErrorMessage"] = "You must check in before checking out.";
-                    return RedirectToAction("Attendance");
-                }
-                
-                if (todayAttendance.CheckOutTime.HasValue)
-                {
-                    TempData["ErrorMessage"] = "You have already checked out today.";
-                    return RedirectToAction("Attendance");
-                }
-
-                var currentTime = DateTime.Now;
-                todayAttendance.CheckOutTime = currentTime;
-                
-                // Calculate working hours
-                var workingHours = (currentTime - todayAttendance.CheckInTime.Value).TotalHours;
-                
-                await _attendancerepository.UpdateAttendanceAsync(todayAttendance);
-                
-                TempData["SuccessMessage"] = $"Check-out successful! You worked for {workingHours:F1} hours today. Have a great day!";
+                TempData["ErrorMessage"] = "You must check in before checking out.";
                 return RedirectToAction("Attendance");
             }
-            catch (Exception)
+
+            if (todayAttendance.CheckOutTime.HasValue)
             {
-                TempData["ErrorMessage"] = "Check-out failed. Please try again.";
+                TempData["ErrorMessage"] = "You have already checked out today.";
                 return RedirectToAction("Attendance");
             }
+
+            var now = DateTime.Now;
+            todayAttendance.CheckOutTime = now;
+
+            // Calculate working hours and store in DB
+            todayAttendance.WorkingHours = (now - todayAttendance.CheckInTime.Value).TotalHours;
+
+            await _attendancerepository.UpdateAttendanceAsync(todayAttendance);
+
+            TempData["SuccessMessage"] = $"Check-out successful! You worked for {todayAttendance.WorkingHours:F1} hours today. Have a great day!";
+            return RedirectToAction("Attendance");
         }
+
+
+
+
+
+        //[HttpPost]
+        //[ValidateAntiForgeryToken]
+        //public async Task<IActionResult> CheckIn()
+        //{
+        //    var employeeId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+        //    if (string.IsNullOrEmpty(employeeId))
+        //    {
+        //        return RedirectToAction("Login", "Account");
+        //    }
+
+        //    try
+        //    {
+        //        var employeeIdInt = int.Parse(employeeId);
+
+        //        // Check if already checked in today
+        //        var todayAttendance = await _attendancerepository.GetTodayAttendanceAsync(employeeIdInt);
+
+        //        if (todayAttendance != null && todayAttendance.CheckInTime.HasValue)
+        //        {
+        //            TempData["ErrorMessage"] = "You have already checked in today.";
+        //            return RedirectToAction("Attendance");
+        //        }
+
+        //        var currentTime = DateTime.Now;
+        //        var isLate = currentTime.TimeOfDay > new TimeSpan(9, 30, 0); // After 9:30 AM
+
+        //        if (todayAttendance == null)
+        //        {
+        //            // Create new attendance record
+        //            var newAttendance = new Attendance
+        //            {
+        //                EmployeeId = employeeIdInt,
+        //                AttendanceDate = DateTime.Today,
+        //                CheckInTime = currentTime,
+        //                Status = isLate ? "Late" : "Present"
+        //            };
+
+        //            await _attendancerepository.CreateAttendanceAsync(newAttendance);
+        //        }
+        //        else
+        //        {
+        //            // Update existing record
+        //            todayAttendance.CheckInTime = currentTime;
+        //            todayAttendance.Status = isLate ? "Late" : "Present";
+        //            await _attendancerepository.UpdateAttendanceAsync(todayAttendance);
+        //        }
+
+        //        var message = isLate ? "Check-in successful! You arrived late today." : "Check-in successful! Welcome to work.";
+        //        TempData["SuccessMessage"] = message;
+        //        return RedirectToAction("Attendance");
+        //    }
+        //    catch (Exception)
+        //    {
+        //        TempData["ErrorMessage"] = "Check-in failed. Please try again.";
+        //        return RedirectToAction("Attendance");
+        //    }
+        //}
+
+        //[HttpPost]
+        //[ValidateAntiForgeryToken]
+        //public async Task<IActionResult> CheckOut()
+        //{
+        //    var employeeId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+        //    if (string.IsNullOrEmpty(employeeId))
+        //    {
+        //        return RedirectToAction("Login", "Account");
+        //    }
+
+        //    try
+        //    {
+        //        var employeeIdInt = int.Parse(employeeId);
+
+        //        // Check if checked in today
+        //        var todayAttendance = await _attendancerepository.GetTodayAttendanceAsync(employeeIdInt);
+
+        //        if (todayAttendance == null || !todayAttendance.CheckInTime.HasValue)
+        //        {
+        //            TempData["ErrorMessage"] = "You must check in before checking out.";
+        //            return RedirectToAction("Attendance");
+        //        }
+
+        //        if (todayAttendance.CheckOutTime.HasValue)
+        //        {
+        //            TempData["ErrorMessage"] = "You have already checked out today.";
+        //            return RedirectToAction("Attendance");
+        //        }
+
+        //        var currentTime = DateTime.Now;
+        //        todayAttendance.CheckOutTime = currentTime;
+
+        //        // Calculate working hours
+        //        var workingHours = (currentTime - todayAttendance.CheckInTime.Value).TotalHours;
+
+        //        await _attendancerepository.UpdateAttendanceAsync(todayAttendance);
+
+        //        TempData["SuccessMessage"] = $"Check-out successful! You worked for {workingHours:F1} hours today. Have a great day!";
+        //        return RedirectToAction("Attendance");
+        //    }
+        //    catch (Exception)
+        //    {
+        //        TempData["ErrorMessage"] = "Check-out failed. Please try again.";
+        //        return RedirectToAction("Attendance");
+        //    }
+        //}
 
         public async Task<IActionResult> AttendanceHistory(int page = 1, int pageSize = 5, string status = "", string dateFrom = "", string dateTo = "")
         {

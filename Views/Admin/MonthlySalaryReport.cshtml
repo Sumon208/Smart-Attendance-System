@@ -20,7 +20,7 @@
             @if (Model.Any())
             {
                 <div class="table-responsive">
-                    <table class="table table-hover table-striped align-middle mb-0">
+                    <table class="table table-hover table-striped align-middle mb-0" id="datatbl">
                         <thead class="table-dark">
                             <tr>
                                 <th>Employee Name</th>
@@ -39,7 +39,7 @@
                                     <td><span class="badge bg-secondary">@item.EmployeeCode</span></td>
                                     <td class="text-success fw-semibold">৳@item.GrossSalary.ToString("N2")</td>
                                     <td>@(item.PresentCount + item.LateCount + item.ApprovedLeaveDays)</td>
-                                    <td class="fw-bold text-primary">৳@item.MonthlySalary.ToString("N2")</td>
+                                    <td class="fw-bold text-primary">৳@item.NetSalary.ToString("N2")</td>
                                     <td>
                                         <a asp-action="UpdateSalary" asp-route-id="@item.EmployeeId" class="btn btn-sm btn-warning me-1">
                                             <i class="fas fa-edit"></i> Update
@@ -55,7 +55,7 @@
                         <tfoot class="table-light">
                             <tr>
                                 <th colspan="4" class="text-end">Total Salary:</th>
-                                <th class="text-primary fw-bold">৳@Model.Sum(x => x.MonthlySalary).ToString("N2")</th>
+                                <th class="text-primary fw-bold">৳@Model.Sum(x => x.NetSalary).ToString("N2")</th>
                                 <th></th>
                             </tr>
                         </tfoot>
@@ -96,6 +96,9 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
     <script>
+        $(document).ready(function () {
+            $('#datatbl').DataTable();
+        });
         const modal = new bootstrap.Modal(document.getElementById('salaryDetailsModal'));
 
         document.addEventListener('click', async function (e) {

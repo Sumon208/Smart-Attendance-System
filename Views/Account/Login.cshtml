@@ -148,9 +148,41 @@
                 <span asp-validation-for="Password" class="text-danger validation-message"></span>
             </div>
 
+
             @* <a href="#" class="forgot-password">Forgot password?</a> *@ 
 
             <button type="submit" class="btn-gradient mt-4">Login</button>
+
+                <div class="form-group mb-4">
+                    <label asp-for="Password" class="fw-bold"></label>
+                    <input asp-for="Password" class="form-control" type="password" placeholder="Enter your password" />
+                    <span asp-validation-for="Password" class="text-danger small"></span>
+                </div>
+
+                <!-- Remember Me + Forgot Password Row -->
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <!-- Left side: Remember Me -->
+                    <div class="form-check">
+                        <input asp-for="RememberMe" class="form-check-input" type="checkbox" id="rememberMe" />
+                        <label for="rememberMe" class="form-check-label text-muted small">
+                            Remember me
+                        </label>
+                    </div>
+
+                    <!-- Right side: Forgot Password -->
+                    <div>
+                        <a asp-action="ForgotPassword" class="text-decoration-none text-primary small">
+                            Forgot your password?
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Login Button -->
+                <button type="submit" class="btn btn-primary w-100">Log In</button>
+
+
+               
+
 
             <div class="login-footer">
                 <a asp-action="Register" class="text-decoration-none">Don't have an account? <strong>Register here</strong></a>

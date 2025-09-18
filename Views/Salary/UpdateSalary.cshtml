@@ -1,0 +1,48 @@
+﻿@model Smart_Attendance_System.Models.ViewModel.MonthlySalaryViewModel
+@{
+    ViewBag.Title = "Update Salary";
+}
+
+<div class="container mt-4">
+    <h2>Update Salary for @Model.EmployeeName (@Model.EmployeeCode)</h2>
+
+    <form asp-action="UpdateSalary" method="post" class="mt-3">
+        <div class="mb-3">
+            <label class="form-label">Gross Salary</label>
+            <input asp-for="GrossSalary" class="form-control" />
+            <span asp-validation-for="GrossSalary" class="text-danger"></span>
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Net Salary</label>
+            <input asp-for="NetSalary" class="form-control" />
+            <span asp-validation-for="NetSalary" class="text-danger"></span>
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Present Days</label>
+            <input asp-for="PresentCount" class="form-control" />
+            <span asp-validation-for="PresentCount" class="text-danger"></span>
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Late Days</label>
+            <input asp-for="LateCount" class="form-control" />
+            <span asp-validation-for="LateCount" class="text-danger"></span>
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Absent Days</label>
+            <input asp-for="AbsentCount" class="form-control" />
+            <span asp-validation-for="AbsentCount" class="text-danger"></span>
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Approved Leaves</label>
+            <input asp-for="ApprovedLeaveDays" class="form-control" />
+            <span asp-validation-for="ApprovedLeaveDays" class="text-danger"></span>
+        </div>
+
+        <button type="submit" class="btn btn-success">Update Salary</button>
+        <a asp-action="MonthlySalaryReport" class="btn btn-secondary">Cancel</a>
+    </form>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}
