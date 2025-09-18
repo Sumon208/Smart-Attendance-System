@@ -1,0 +1,188 @@
+﻿@model IEnumerable<Smart_Attendance_System.Models.EmployeeTask>
+
+@{
+    ViewData["Title"] = "Task Management";
+    Layout = "_EmployeeLayout";
+}
+
+<div class="container-fluid py-4">
+    <!-- Top Actions -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <!-- Today Task -->
+        <a href="@Url.Action("Create", "Task")" class="btn btn-gradient btn-lg shadow-sm px-4">
+            <i class="fas fa-plus me-2"></i> Today Task
+        </a>
+
+        <!-- Total Tasks -->
+        <span class="badge bg-gradient text-white px-4 py-3 rounded-pill shadow-lg fs-6">
+            <i class="fas fa-list-check me-2"></i> Total Tasks: @Model.Count()
+        </span>
+    </div>
+
+    <!-- Card -->
+    <div class="card border-0 rounded-4 shadow-lg overflow-hidden">
+        <div class="card-header bg-gradient text-white border-0 py-3 px-4 d-flex justify-content-between align-items-center">
+            <h4 class="mb-0 fw-bold">
+                <i class="fas fa-tasks me-2"></i> Task History
+            </h4>
+        </div>
+
+        <div class="card-body bg-light p-4">
+            <!-- Filters Section -->
+            <div class="filter-box rounded-4 p-3 mb-4 shadow-sm">
+                <div class="row g-3">
+                    <div class="col-md-3">
+                        <select id="statusFilter" class="form-select form-select-lg shadow-sm border-0 rounded-3">
+                            <option value="">-- Filter by Status --</option>
+                            <option value="Pending">Pending</option>
+                            <option value="In Progress">In Progress</option>
+                            <option value="Completed">Completed</option>
+                            <option value="Cancelled">Cancelled</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <input type="text" id="projectFilter" class="form-control form-control-lg shadow-sm border-0 rounded-3" placeholder="🔎 Search Project..." />
+                    </div>
+                    <div class="col-md-3">
+                        <input type="text" id="employeeFilter" class="form-control form-control-lg shadow-sm border-0 rounded-3" placeholder="👤 Search Employee..." />
+                    </div>
+                    <div class="col-md-3">
+                        <!-- Date Picker -->
+                        <input type="date" id="dateFilter" class="form-control form-control-lg shadow-sm border-0 rounded-3" />
+                    </div>
+                </div>
+            </div>
+
+            <!-- Data Table -->
+            <div class="table-responsive">
+                <table id="taskTable" class="table table-hover align-middle text-center mb-0 shadow-sm rounded-4 overflow-hidden">
+                    <thead class="bg-dark text-white text-uppercase">
+                        <tr>
+                            <th>#</th>
+                            <th>Employee</th>
+                            <th>Project</th>
+                            <th>Shift</th>
+                            <th class="text-start">Activity</th>
+                            <th>Status</th>
+                            <th>Due Date</th>
+                            <th>Submit Date</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (!Model.Any())
+                        {
+                            <tr>
+                                <td colspan="8" class="text-center text-muted py-5 fs-5">
+                                    <i class="fas fa-info-circle me-2"></i> No tasks available.
+                                </td>
+                            </tr>
+                        }
+                        else
+                        {
+                            int count = 1;
+                            foreach (var task in Model)
+                            {
+                                <tr class="table-row-hover">
+                                    <td class="fw-semibold">@count</td>
+                                    <td class="fw-semibold text-secondary">@task.Employee?.EmployeeName</td>
+                                    <td class="fw-semibold text-primary">@task.Project</td>
+                                    <td>
+                                        <span class="badge bg-info text-dark rounded-pill px-3 py-2 shadow-sm">@task.Shift</span>
+                                    </td>
+                                    <td class="text-start">@task.TodaysActivity</td>
+                                    <td>
+                                        @if (task.Status == Smart_Attendance_System.Models.TaskStatus.Pending)
+                                        {
+                                            <span class="badge bg-warning text-dark px-3 py-2 rounded-pill shadow-sm">Pending</span>
+                                        }
+                                        else if (task.Status == Smart_Attendance_System.Models.TaskStatus.InProgress)
+                                        {
+                                            <span class="badge bg-primary px-3 py-2 rounded-pill shadow-sm">In Progress</span>
+                                        }
+                                        else if (task.Status == Smart_Attendance_System.Models.TaskStatus.Completed)
+                                        {
+                                            <span class="badge bg-success px-3 py-2 rounded-pill shadow-sm">Completed</span>
+                                        }
+                                        else if (task.Status == Smart_Attendance_System.Models.TaskStatus.Cancelled)
+                                        {
+                                            <span class="badge bg-danger px-3 py-2 rounded-pill shadow-sm">Cancelled</span>
+                                        }
+                                    </td>
+                                    <!-- Format DueDate for date filter -->
+                                    <td>@task.DueDate?.ToString("yyyy-MM-dd")</td>
+                                    <td>@task.SubmitDate.ToString("dd-MMM-yyyy")</td>
+                                </tr>
+                                count++;
+                            }
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.datatables.net/1.13.5/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.5/js/dataTables.bootstrap5.min.js"></script>
+
+    <script>
+        $(document).ready(function () {
+            var table = $('#taskTable').DataTable({
+                "pageLength": 10,
+                "lengthMenu": [5, 10, 20, 50],
+                "order": [],
+                "language": {
+                    "search": "Global Search:",
+                    "lengthMenu": "Show _MENU_ entries"
+                }
+            });
+
+            // Custom Filters
+            $('#statusFilter').on('change', function () {
+                table.column(5).search(this.value).draw();
+            });
+            $('#projectFilter').on('keyup', function () {
+                table.column(2).search(this.value).draw();
+            });
+            $('#employeeFilter').on('keyup', function () {
+                table.column(1).search(this.value).draw();
+            });
+            $('#dateFilter').on('change', function () {
+                var selectedDate = $(this).val(); // yyyy-mm-dd
+                table.column(6).search(selectedDate).draw();
+            });
+        });
+    </script>
+}
+
+<link rel="stylesheet" href="https://cdn.datatables.net/1.13.5/css/dataTables.bootstrap5.min.css" />
+
+<style>
+    .btn-gradient {
+        background: linear-gradient(135deg, #007bff, #00c6ff);
+        color: #fff !important;
+        border: none;
+        transition: 0.3s;
+    }
+
+        .btn-gradient:hover {
+            background: linear-gradient(135deg, #0056b3, #0090cc);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+        }
+
+    .bg-gradient {
+        background: linear-gradient(135deg, #1d3557, #457b9d);
+    }
+
+    .filter-box {
+        background: rgba(255, 255, 255, 0.8);
+        backdrop-filter: blur(12px);
+    }
+
+    .table-row-hover:hover {
+        background-color: #f8f9fa !important;
+        transition: 0.3s ease-in-out;
+    }
+</style>

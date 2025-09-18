@@ -12,66 +12,109 @@
     }
 
     .login-container {
+        display: flex;
+        justify-content: center;
+        align-items: center;
         min-height: 100vh;
-        display: flex;
-    }
-
-    /* Left side image/branding */
-    .login-left {
-        flex: 1;
-        background: linear-gradient(135deg, #004aad, #007bff);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        color: white;
-        flex-direction: column;
-        padding: 40px;
-        text-align: center;
-    }
-
-        .login-left h1 {
-            font-size: 2.2rem;
-            font-weight: bold;
-            margin-bottom: 15px;
-        }
-
-        .login-left p {
-            font-size: 1.1rem;
-            opacity: 0.9;
-            max-width: 400px;
-        }
-
-    /* Right side form */
-    .login-right {
-        flex: 1;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        padding: 40px;
-        background-color: white;
-        box-shadow: -5px 0 20px rgba(0, 0, 0, 0.05);
+        padding: 20px;
     }
 
     .login-card {
         width: 100%;
         max-width: 400px;
+        background-color: #fff;
+        padding: 40px;
+        border-radius: 15px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+        text-align: center;
     }
 
         .login-card h2 {
-            font-weight: 600;
-            margin-bottom: 25px;
+            font-weight: 700;
+            font-size: 2.2rem;
+            color: #333;
+            margin-bottom: 40px;
         }
 
-    .form-control {
-        padding: 12px;
-        border-radius: 8px;
-        border: 1px solid #ddd;
+    .form-group {
+        text-align: left;
+        margin-bottom: 25px;
     }
 
-    .btn-primary {
-        padding: 12px;
-        border-radius: 8px;
+    .form-label {
+        font-weight: 500;
+        color: #555;
+        margin-bottom: 5px;
+        display: block;
+    }
+
+    .form-control {
+        width: 100%;
+        padding: 12px 15px 12px 45px;
+        border-radius: 10px;
+        border: 1px solid #e0e0e0;
+        font-size: 1rem;
+        background-color: #f9f9f9;
+        transition: border-color 0.3s;
+    }
+
+        .form-control:focus {
+            border-color: #a6c1ee;
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(166, 193, 238, 0.3);
+        }
+
+    .input-group {
+        position: relative;
+    }
+
+    .input-icon {
+        position: absolute;
+        left: 15px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #aaa;
+    }
+
+    .btn-gradient {
+        width: 100%;
+        padding: 15px;
+        border: none;
+        border-radius: 30px;
         font-weight: 600;
+        font-size: 1.1rem;
+        color: white;
+        background: linear-gradient(to right, #6a11cb, #2575fc);
+        cursor: pointer;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+
+        .btn-gradient:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
+        }
+
+    .forgot-password {
+        display: block;
+        text-align: right;
+        font-size: 0.9rem;
+        color: #555;
+        margin-top: 10px;
+        text-decoration: none;
+        transition: color 0.3s;
+    }
+
+        .forgot-password:hover {
+            color: #6a11cb;
+        }
+
+    .validation-message {
+        font-size: 0.85rem;
+        color: #e74c3c;
+        margin-top: 5px;
+        text-align: left;
     }
 
     .login-footer {
@@ -79,109 +122,40 @@
         text-align: center;
     }
 
-    .social-login {
-        display: flex;
-        flex-direction: column;
-        gap: 10px;
-        margin-top: 20px;
-    }
-
-    .social-btn {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        border: 1px solid #ddd;
-        border-radius: 8px;
-        padding: 10px;
-        cursor: pointer;
-        transition: 0.3s;
-        font-weight: 500;
-    }
-
-        .social-btn img {
-            width: 22px;
-            height: 22px;
-            margin-right: 10px;
-        }
-
-        .social-btn.google {
-            background-color: #1877f2;
-            color: #fff;
-        }
-
-        .social-btn.facebook {
-            background-color: #1877f2;
-            color: #fff;
-        }
-
-        .social-btn:hover {
-            opacity: 0.85;
-        }
-
-    @@media (max-width: 768px) {
-        .login-container {
-            flex-direction: column;
-        }
-
-        .login-left {
-            padding: 60px 20px;
-        }
-    }
 </style>
 
 <div class="login-container">
-    <!-- Left Branding Section -->
-    <div class="login-left">
-        <h1>Smart Attendance System</h1>
-        <p>Track, manage, and improve attendance with our professional and easy-to-use platform.</p>
-    </div>
+    <div class="login-card">
+        <h2>Login</h2>
+        <form asp-action="Login">
+            <div asp-validation-summary="ModelOnly" class="text-danger validation-message"></div>
 
-    <!-- Right Form Section -->
-    <div class="login-right">
-        <div class="login-card">
-            @if (TempData["SuccessMessage"] != null)
-            {
-                <div class="alert alert-success alert-dismissible fade show" role="alert">
-                    @TempData["SuccessMessage"]
-                    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
+            <div class="form-group">
+                <label for="Email" class="form-label">Username</label>
+                <div class="input-group">
+                    <span class="input-icon">👤</span>
+                    <input asp-for="Email" class="form-control" placeholder="Type your username" />
                 </div>
-            }
+                <span asp-validation-for="Email" class="text-danger validation-message"></span>
+            </div>
 
-            <h2>Login</h2>
-            <form asp-action="Login">
-                <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-
-                <div class="form-group mb-3">
-                    <label asp-for="Email" class="fw-bold"></label>
-                    <input asp-for="Email" class="form-control" placeholder="Enter your email" />
-                    <span asp-validation-for="Email" class="text-danger small"></span>
+            <div class="form-group">
+                <label for="Password" class="form-label">Password</label>
+                <div class="input-group">
+                    <span class="input-icon">🔒</span>
+                    <input asp-for="Password" class="form-control" type="password" placeholder="Type your password" />
                 </div>
+                <span asp-validation-for="Password" class="text-danger validation-message"></span>
+            </div>
 
-                <div class="form-group mb-4">
-                    <label asp-for="Password" class="fw-bold"></label>
-                    <input asp-for="Password" class="form-control" type="password" placeholder="Enter your password" />
-                    <span asp-validation-for="Password" class="text-danger small"></span>
-                </div>
+            @* <a href="#" class="forgot-password">Forgot password?</a> *@ 
 
-                <button type="submit" class="btn btn-primary w-100">Log In</button>
+            <button type="submit" class="btn-gradient mt-4">Login</button>
 
-                <!-- Social Login Buttons -->
-                <!-- <div class="social-login">
-                    <a href="/Account/ExternalLogin?provider=Google" class="social-btn google">
-                        <img src="~/Images/google-logo.png" alt="Google Logo" /> Login with Google
-                    </a>
-                    <a href="/Account/ExternalLogin?provider=Facebook" class="social-btn facebook">
-                        <img src="~/Images/facebook-logo.png" alt="Facebook Logo" /> Login with Facebook
-                    </a>
-                </div> -->
-
-                <div class="login-footer">
-                    <a asp-action="Register" class="text-decoration-none">Don't have an account? <strong>Register here</strong></a>
-                </div>
-            </form>
-        </div>
+            <div class="login-footer">
+                <a asp-action="Register" class="text-decoration-none">Don't have an account? <strong>Register here</strong></a>
+            </div>
+        </form>
     </div>
 </div>
 

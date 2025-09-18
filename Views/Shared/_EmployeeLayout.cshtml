@@ -24,16 +24,22 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" />
     <link rel="stylesheet" href="https://cdn.datatables.net/1.10.24/css/dataTables.bootstrap4.min.css" />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+
     <style>
         body {
-            padding-top: 70px; /* Fixed navbar height adjust */
+            padding-top: 70px;
         }
 
         .sidebar {
-            height: 100vh;
+            position: fixed; 
+            top: 70px; 
+            left: 0;
+            bottom: 0; 
+            height: calc(100vh - 70px); 
             background-color: #2c3e50;
             padding-top: 20px;
             color: white;
+            overflow-y: auto; 
         }
 
         /* Responsive sidebar */
@@ -57,15 +63,20 @@
         }
 
         .sidebar .nav-link {
+            display: flex;
+            align-items: center;
             color: #ecf0f1;
-            font-size: 1.1em;
+            font-size: 1.05em;
             padding: 10px 15px;
             transition: all 0.3s ease;
+            border-radius: 6px;
+            background-color: #2c3e50;
+            margin: 5px 8px;
         }
 
             .sidebar .nav-link:hover {
-                color: #fff;
                 background-color: #34495e;
+                color: #fff;
                 transform: translateX(5px);
             }
 
@@ -147,7 +158,8 @@
         </nav>
 
         <!-- Mobile Overlay -->
-        <div class="d-md-none position-fixed top-0 start-0 w-100 h-100 bg-dark" id="sidebarOverlay" style="z-index: 999; opacity: 0; visibility: hidden; transition: all 0.3s ease;"></div>
+        <div class="d-md-none position-fixed top-0 start-0 w-100 h-100 bg-dark" id="sidebarOverlay"
+             style="z-index: 999; opacity: 0; visibility: hidden; transition: all 0.3s ease;"></div>
 
         <div class="row">
             <!-- Sidebar -->
@@ -156,33 +168,37 @@
                     <ul class="nav flex-column">
                         <li class="nav-item">
                             <a class="nav-link active" asp-controller="Employee" asp-action="Dashboard">
-                                <i class="fas fa-tachometer-alt mr-2"></i> Dashboard
+                                <i class="fas fa-tachometer-alt text-warning me-2"></i> Dashboard
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link " asp-controller="Employee" asp-action="Profile">
-                                <i class="bi bi-person-circle me-2 fs-5"></i> Profile
+                            <a class="nav-link" asp-controller="Employee" asp-action="Profile">
+                                <i class="bi bi-person-circle text-info me-2 fs-5"></i> Profile
                             </a>
                         </li>
-
+                        <li class="nav-item">
+                            <a class="nav-link" asp-controller="Task" asp-action="Index">
+                                <i class="bi bi-list-check text-primary me-2 fs-5"></i> Task Management
+                            </a>
+                        </li>
                         <li class="nav-item">
                             <a class="nav-link" asp-controller="Attendance" asp-action="Attendance">
-                                <i class="fas fa-clock mr-2"></i> Attendance
+                                <i class="fas fa-clock text-success me-2"></i> Attendance
                             </a>
                         </li>
                         <li class="nav-item">
                             <a class="nav-link" asp-controller="Leave" asp-action="LeaveApply">
-                                <i class="fas fa-calendar-plus mr-2"></i> Leave Apply
+                                <i class="fas fa-calendar-plus text-danger me-2"></i> Leave Apply
                             </a>
                         </li>
                         <li class="nav-item">
                             <a class="nav-link" asp-controller="Leave" asp-action="LeaveHistory">
-                                <i class="fas fa-history mr-2"></i> Leave History
+                                <i class="fas fa-history text-secondary me-2"></i> Leave History
                             </a>
                         </li>
                         <li class="nav-item">
                             <a class="nav-link" asp-controller="Attendance" asp-action="AttendanceHistory">
-                                <i class="fas fa-chart-bar mr-2"></i> Attendance History
+                                <i class="fas fa-chart-bar text-warning me-2"></i> Attendance History
                             </a>
                         </li>
                     </ul>

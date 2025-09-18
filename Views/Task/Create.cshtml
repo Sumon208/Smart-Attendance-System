@@ -1,0 +1,90 @@
+﻿@model Smart_Attendance_System.Models.EmployeeTask
+
+@{
+    ViewData["Title"] = "Edit Task";
+    Layout = "_EmployeeLayout";
+}
+
+<div class="container-fluid py-4">
+    <div class="card shadow-sm border-0 rounded-4">
+        <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+            <h3 class="mb-0"><i class="fas fa-plus-circle me-2"></i> New Task</h3>
+            <a asp-action="Index" class="btn btn-light btn-sm"><i class="fas fa-arrow-left me-1"></i> Back</a>
+        </div>
+        <div class="card-body">
+            <form asp-action="Create" method="post">
+
+                <!-- Employee readonly -->
+                <div class="mb-3">
+                    <label class="form-label">Employee</label>
+                    <input type="text" class="form-control" value="@ViewBag.LoggedInEmployeeName" readonly />
+                    <input asp-for="EmployeeId" type="hidden" value="@ViewBag.LoggedInEmployeeId" />
+                    <span asp-validation-for="EmployeeId" class="text-danger"></span>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="Project" class="form-label">Project</label>
+                    <select asp-for="Project" class="form-select">
+                        <option value="">-- Select Project --</option>
+                        <option value="Website Redesign">Website Redesign</option>
+                        <option value="Mobile App Development">Mobile App Development</option>
+                        <option value="CRM Integration">CRM Integration</option>
+                        <option value="API Development">API Development</option>
+                        <option value="Internal Tooling">Internal Tooling</option>
+                    </select>
+                    <span asp-validation-for="Project" class="text-danger"></span>
+                </div>
+
+                <!-- Shift -->
+                <div class="mb-3">
+                    <label asp-for="Shift" class="form-label">Shift</label>
+                    <select asp-for="Shift" class="form-select">
+                        <option value="">-- Select Shift --</option>
+                        @foreach (var s in (List<string>)ViewBag.Shifts)
+                        {
+                            <option value="@s" @@(Model?.Shift == s ? "selected" : "")>@s</option>
+                        }
+                    </select>
+                    <span asp-validation-for="Shift" class="text-danger"></span>
+                </div>
+
+                <!-- Activity -->
+                <div class="mb-3">
+                    <label asp-for="TodaysActivity" class="form-label">Today's Activity</label>
+                    <textarea asp-for="TodaysActivity" class="form-control" rows="4" placeholder="Describe today's activity...">@Model?.TodaysActivity</textarea>
+                    <span asp-validation-for="TodaysActivity" class="text-danger"></span>
+                </div>
+
+                <!-- Status -->
+                <div class="mb-3">
+                    <label asp-for="Status" class="form-label">Status</label>
+                    <select asp-for="Status" class="form-select">
+                        @foreach (var status in Enum.GetValues(typeof(Smart_Attendance_System.Models.TaskStatus)))
+                        {
+                            <option value="@status" @@(Model?.Status == (TaskStatus)status ? "selected" : "")>@status</option>
+                        }
+                    </select>
+                    <span asp-validation-for="Status" class="text-danger"></span>
+                </div>
+
+                <!-- Due Date -->
+                <div class="mb-3">
+                    <label asp-for="DueDate" class="form-label">Due Date</label>
+                    <input asp-for="DueDate" type="date" class="form-control" value="@(Model?.DueDate?.ToString("yyyy-MM-dd"))" />
+                    <span asp-validation-for="DueDate" class="text-danger"></span>
+                </div>
+
+                <!-- Buttons -->
+                <div class="d-flex justify-content-end gap-2">
+                    <button type="submit" class="btn btn-success"><i class="fas fa-save me-1"></i> Save Task</button>
+                    <a asp-action="Index" class="btn btn-secondary"><i class="fas fa-times me-1"></i> Cancel</a>
+                </div>
+
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}
