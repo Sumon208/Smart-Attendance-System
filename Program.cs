@@ -51,6 +51,7 @@ namespace Smart_Attendance_System
             builder.Services.AddScoped<IDepartmentRepository, DepartmentRepository>();
             builder.Services.AddScoped<ISalaryRepository, SalaryRepository>();
             builder.Services.AddScoped<INotificationRepository, NotificationRepository>();
+            builder.Services.AddScoped<ITaskRepository, TaskRepository>();
             builder.Services.AddTransient<EmailService>();
 
 

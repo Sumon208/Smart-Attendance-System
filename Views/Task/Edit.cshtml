@@ -1,0 +1,73 @@
+﻿@model Smart_Attendance_System.Models.EmployeeTask
+
+@{
+    ViewData["Title"] = "Edit Task";
+    Layout = "_EmployeeLayout";
+}
+
+<div class="container-fluid py-4">
+    <h2 class="text-primary mb-3"><i class="fas fa-edit"></i> Edit Task</h2>
+
+    <form asp-action="Edit" method="post">
+        <input type="hidden" asp-for="TaskId" />
+
+        <div class="mb-3">
+            <label asp-for="EmployeeId" class="form-label">Employee</label>
+            <select asp-for="EmployeeId" class="form-select" asp-items="@(ViewBag.Employees ?? new SelectList(new List<Smart_Attendance_System.Models.Employee>(), "EmployeeId", "EmployeeName", Model.EmployeeId))">
+                <option value="">-- Select Employee --</option>
+            </select>
+            <span asp-validation-for="EmployeeId" class="text-danger"></span>
+        </div>
+
+        <div class="mb-3">
+            <label asp-for="Project" class="form-label">Project</label>
+            <input asp-for="Project" class="form-control" placeholder="Optional project name"/>
+            <span asp-validation-for="Project" class="text-danger"></span>
+        </div>
+
+        <div class="mb-3">
+            <label asp-for="Shift" class="form-label">Shift</label>
+            <select asp-for="Shift" class="form-select">
+                <option value="">-- Select Shift --</option>
+                @if (ViewBag.Shifts != null)
+                {
+                    foreach(var s in (List<string>)ViewBag.Shifts)
+                    {
+                        <option value="@s" @@(Model.Shift == s ? "selected" : "")>@s</option>
+                    }
+                }
+            </select>
+            <span asp-validation-for="Shift" class="text-danger"></span>
+        </div>
+
+        <div class="mb-3">
+            <label asp-for="TodaysActivity" class="form-label">Today's Activity</label>
+            <textarea asp-for="TodaysActivity" class="form-control" rows="3">@Model.TodaysActivity</textarea>
+            <span asp-validation-for="TodaysActivity" class="text-danger"></span>
+        </div>
+
+        <div class="mb-3">
+            <label asp-for="Status" class="form-label">Status</label>
+            <select asp-for="Status" class="form-select">
+                @foreach (var status in Enum.GetValues(typeof(Smart_Attendance_System.Models.TaskStatus)))
+                {
+                    <option value="@status" @@(Model.Status == (TaskStatus)status ? "selected" : "")>@status</option>
+                }
+            </select>
+            <span asp-validation-for="Status" class="text-danger"></span>
+        </div>
+
+        <div class="mb-3">
+            <label asp-for="DueDate" class="form-label">Due Date</label>
+            <input asp-for="DueDate" type="date" class="form-control" value="@Model.DueDate?.ToString("yyyy-MM-dd")"/>
+            <span asp-validation-for="DueDate" class="text-danger"></span>
+        </div>
+
+        <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Update Task</button>
+        <a asp-action="Index" class="btn btn-secondary">Cancel</a>
+    </form>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

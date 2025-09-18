@@ -6,256 +6,221 @@
 }
 
 <style>
+    /* Updated styles to match the new design with all fields */
     body {
-        background: #f4f6f9;
+        background-color: #f7f9fc;
         font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     }
 
-    .register-section {
+    .registration-container {
         display: flex;
+        justify-content: center;
+        align-items: center;
         min-height: 100vh;
+        padding: 20px;
     }
 
-    /* Left Side */
-    .register-left {
+    .registration-box {
+        display: flex;
+        width: 100%;
+        max-width: 900px;
+        background-color: #fff;
+        border-radius: 15px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+        overflow: hidden;
+    }
+
+    .registration-form-section {
         flex: 1;
-        background: linear-gradient(135deg, #0d6efd, #0a58ca);
-        color: #fff;
+        padding: 40px;
+    }
+
+    .registration-image-section {
+        flex: 1;
+        background-color: #f7f9fc;
         display: flex;
         flex-direction: column;
         justify-content: center;
         align-items: center;
-        padding: 40px 20px;
-        text-align: center;
+        padding: 40px;
         position: relative;
         overflow: hidden;
     }
 
-        .register-left::before {
-            content: "";
+        .registration-image-section .illustration {
+            width: 100%;
+            height: auto;
+            max-width: 400px;
+        }
+
+        .registration-image-section::before,
+        .registration-image-section::after {
+            content: '';
             position: absolute;
-            width: 120%;
-            height: 120%;
-            background: rgba(255,255,255,0.05);
-            transform: rotate(25deg);
-            top: -10%;
-            left: -10%;
+            border-radius: 50%;
+            opacity: 0.1;
         }
 
-        .register-left h1 {
-            font-size: 2.5rem;
-            font-weight: 700;
-            z-index: 1;
+        .registration-image-section::before {
+            width: 300px;
+            height: 300px;
+            background-color: #0d6efd;
+            top: -50px;
+            right: -50px;
         }
 
-        .register-left p {
-            font-size: 1.1rem;
-            margin-top: 15px;
-            z-index: 1;
+        .registration-image-section::after {
+            width: 200px;
+            height: 200px;
+            background-color: #0d6efd;
+            bottom: -30px;
+            left: -30px;
         }
 
-        .register-left img {
-            max-width: 250px;
-            margin-top: 30px;
-            z-index: 1;
-        }
-
-    /* Right Side */
-    .register-right {
-        flex: 1;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        padding: 40px 30px;
-        background: #f4f6f9;
+    h2.title {
+        color: #333;
+        font-weight: 600;
+        margin-bottom: 5px;
     }
 
-    .register-card {
-        width: 100%;
-        max-width: 480px;
-        background: #fff;
-        border-radius: 15px;
-        padding: 40px 30px;
-        box-shadow: 0 12px 35px rgba(0,0,0,0.15);
-        position: relative;
-        overflow: hidden;
+    p.subtitle {
+        color: #777;
+        margin-bottom: 30px;
     }
-
-        .register-card h2 {
-            text-align: center;
-            color: #0d6efd;
-            font-weight: 700;
-            margin-bottom: 35px;
-        }
 
     .form-group {
         position: relative;
-        margin-bottom: 25px;
+        margin-bottom: 20px;
     }
 
-        .form-group input,
-        .form-group select {
-            width: 100%;
-            padding: 14px 15px 14px 45px;
-            border-radius: 8px;
-            border: 1px solid #ced4da;
-            transition: all 0.3s;
+    .form-control-with-icon {
+        padding-left: 45px;
+    }
+
+    .form-group .icon {
+        position: absolute;
+        left: 15px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #6c757d;
+        font-size: 18px;
+        pointer-events: none; /* Make the icon un-clickable */
+    }
+
+    .form-group input:focus + .icon,
+    .form-group select:focus + .icon {
+        color: #0d6efd;
+    }
+
+    .form-group label {
+        display: block;
+        font-weight: 500;
+        color: #333;
+        margin-bottom: 5px;
+    }
+
+    .form-group input[type="file"] {
+        padding-left: 15px;
+    }
+
+        .form-group input[type="file"] + label {
+            margin-bottom: 5px;
         }
 
-            .form-group input:focus,
-            .form-group select:focus {
-                border-color: #0d6efd;
-                box-shadow: 0 0 10px rgba(13,110,253,0.2);
-                outline: none;
-            }
-
-        .form-group i {
-            position: absolute;
-            top: 50%;
-            left: 15px;
-            transform: translateY(-50%);
-            color: #0d6efd;
-            font-size: 16px;
-        }
-
-        /* Floating labels */
-        .form-group input::placeholder {
-            color: transparent;
-        }
-
-        .form-group input:placeholder-shown + label {
-            top: 50%;
-            left: 45px;
-            transform: translateY(-50%);
-            font-size: 14px;
-            color: #aaa;
-            transition: 0.3s;
-            position: absolute;
-            pointer-events: none;
-        }
-
-        .form-group input:focus + label,
-        .form-group input:not(:placeholder-shown) + label {
-            top: -10px;
-            left: 40px;
-            font-size: 12px;
-            color: #0d6efd;
-            background: #fff;
-            padding: 0 5px;
-        }
-
-    .btn-register {
+    .btn-custom {
         width: 100%;
-        padding: 14px;
-        background: linear-gradient(90deg, #0d6efd, #0a58ca);
-        border: none;
+        padding: 12px;
         border-radius: 8px;
-        font-weight: 600;
+        background-color: #f08d3e;
         color: #fff;
-        font-size: 16px;
-        transition: 0.3s;
+        font-weight: 600;
+        border: none;
+        transition: background-color 0.3s;
     }
 
-        .btn-register:hover {
-            background: linear-gradient(90deg, #0a58ca, #084298);
+        .btn-custom:hover {
+            background-color: #e07b2b;
         }
 
-    .text-center-link {
+    .login-link {
         text-align: center;
         margin-top: 20px;
         font-size: 0.9rem;
     }
 
-        .text-center-link a {
-            color: #0d6efd;
+        .login-link a {
+            color: #f08d3e;
             text-decoration: none;
+            font-weight: 600;
         }
 
-            .text-center-link a:hover {
+            .login-link a:hover {
                 text-decoration: underline;
             }
 
     #photoPreview {
-        display: block;
-        margin-top: 10px;
-        max-width: 120px;
+        max-width: 100px;
         border-radius: 8px;
+        margin-top: 10px;
+        display: none;
     }
 
-    @@media(max - width: 992px)
-
-    {
-        .register-section
+    @@media (max-width: 768px) {
+        .registration-box
 
     {
         flex-direction: column;
     }
 
-    .register-left, .register-right {
-        flex: unset;
-        width: 100%;
-    }
-
-    .register-left {
-        padding: 30px 20px;
+    .registration-image-section {
+        display: none;
     }
 
     }
 </style>
 
-<div class="register-section">
-    <!-- Left Side -->
-    <div class="register-left">
-        <h1>Smart Attendance System</h1>
-        <p>Efficiently manage employee attendance with ease and precision.</p>
-        <img src="~/images/register-illustration.jpg" alt="Register Illustration" />
-    </div>
+<div class="registration-container">
+    <div class="registration-box">
+        <div class="registration-form-section">
+            <h2 class="title">Create Account</h2>
+            <p class="subtitle">Please fill your personal details to register.</p>
 
-    <!-- Right Side -->
-    <div class="register-right">
-        <div class="register-card">
-            <h2>Create Account</h2>
             <form asp-action="Register" enctype="multipart/form-data">
                 <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
 
                 <div class="form-group">
-                    <i class="fas fa-user"></i>
-                    <input asp-for="EmployeeName" class="form-control" placeholder="Full Name" />
-                    <label for="EmployeeName">Full Name</label>
+                    <span class="icon fas fa-user"></span>
+                    <input asp-for="EmployeeName" class="form-control form-control-with-icon" placeholder="Full Name" />
                     <span asp-validation-for="EmployeeName" class="text-danger small"></span>
                 </div>
 
                 <div class="form-group">
-                    <i class="fas fa-id-badge"></i>
-                    <input asp-for="EmployeeId" class="form-control" placeholder="Employee ID" />
-                    <label for="EmployeeId">Employee ID</label>
+                    <span class="icon fas fa-id-badge"></span>
+                    <input asp-for="EmployeeId" class="form-control form-control-with-icon" placeholder="Employee ID" />
                     <span asp-validation-for="EmployeeId" class="text-danger small"></span>
                 </div>
 
                 <div class="form-group">
-                    <i class="fas fa-envelope"></i>
-                    <input asp-for="Email" type="email" class="form-control" placeholder="Email" />
-                    <label for="Email">Email</label>
+                    <span class="icon fas fa-envelope"></span>
+                    <input asp-for="Email" type="email" class="form-control form-control-with-icon" placeholder="Email Address" />
                     <span asp-validation-for="Email" class="text-danger small"></span>
                 </div>
 
                 <div class="form-group">
-                    <i class="fas fa-lock"></i>
-                    <input asp-for="Password" type="password" class="form-control" placeholder="Password" />
-                    <label for="Password">Password</label>
+                    <span class="icon fas fa-lock"></span>
+                    <input asp-for="Password" type="password" class="form-control form-control-with-icon" placeholder="Password" />
                     <span asp-validation-for="Password" class="text-danger small"></span>
                 </div>
 
                 <div class="form-group">
-                    <i class="fas fa-lock"></i>
-                    <input asp-for="ConfirmPassword" type="password" class="form-control" placeholder="Confirm Password" />
-                    <label for="ConfirmPassword">Confirm Password</label>
+                    <span class="icon fas fa-lock"></span>
+                    <input asp-for="ConfirmPassword" type="password" class="form-control form-control-with-icon" placeholder="Confirm Password" />
                     <span asp-validation-for="ConfirmPassword" class="text-danger small"></span>
                 </div>
 
                 <div class="form-group">
-                    <i class="fas fa-building"></i>
-                    <select asp-for="DepartmentId" class="form-select" asp-items="ViewBag.Departments">
+                    <span class="icon fas fa-building"></span>
+                    <select asp-for="DepartmentId" class="form-select form-control-with-icon" asp-items="ViewBag.Departments">
                         <option value="">Select Department</option>
                     </select>
                     <span asp-validation-for="DepartmentId" class="text-danger small"></span>
@@ -263,21 +228,24 @@
 
                 <div class="form-group">
                     <label for="EmployeePhotoFile">Upload Photo</label>
-                    <input type="file" name="EmployeePhotoFile" class="" accept="image/*" onchange="previewPhoto(event)" />
-                    <img id="photoPreview" class="d-none" />
+                    <input type="file" name="EmployeePhotoFile" class="form-control" accept="image/*" onchange="previewPhoto(event)" />
+                    <img id="photoPreview" class="d-none" alt="Photo Preview" />
                 </div>
 
                 <div class="form-group">
                     <label for="CertificateFile">Upload Offer Letter</label>
-                    <input type="file" name="CertificateFile" class="" accept=".pdf,.jpg,.jpeg,.png" />
+                    <input type="file" name="CertificateFile" class="form-control" accept=".pdf,.jpg,.jpeg,.png" />
                 </div>
 
-                <button type="submit" class="btn-register">Register</button>
+                <button type="submit" class="btn-custom">Register</button>
 
-                <div class="text-center-link">
+                <div class="login-link">
                     <a asp-action="Login">Already have an account? Log in</a>
                 </div>
             </form>
+        </div>
+        <div class="registration-image-section">
+            <img class="illustration" src="~/images/register-illustration.jpg" alt="Register Illustration" />
         </div>
     </div>
 </div>
@@ -286,4 +254,16 @@
     @{
         await Html.RenderPartialAsync("_ValidationScriptsPartial");
     }
+
+    <script>
+        function previewPhoto(event) {
+            var reader = new FileReader();
+            reader.onload = function(){
+                var output = document.getElementById('photoPreview');
+                output.src = reader.result;
+                output.classList.remove('d-none');
+            };
+            reader.readAsDataURL(event.target.files[0]);
+        }
+    </script>
 }
