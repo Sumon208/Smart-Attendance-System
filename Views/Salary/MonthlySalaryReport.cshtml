@@ -17,7 +17,7 @@
     </form>
 
     <div class="table-responsive">
-        <table class="table table-striped table-bordered table-hover align-middle">
+        <table class="table table-striped table-bordered table-hover align-middle" id="datatbl">
             <thead class="table-dark text-center">
                 <tr>
                     <th>#</th>
@@ -56,9 +56,10 @@
                             <td class="text-center">@item.ApprovedLeaveDays</td>
                             <td class="text-center">
                                 <a href="@Url.Action("ViewSalaryDetails", "Salary", new { employeeId = item.EmployeeId, monthYear = ViewBag.MonthYear })"
-                                   class="btn btn-sm btn-info" data-bs-toggle="modal" data-bs-target="#salaryDetailsModal">
+                                   class="btn btn-sm btn-info view-salary">
                                     View
                                 </a>
+
                                 <a href="@Url.Action("UpdateSalary", "Salary", new { employeeId = item.EmployeeId, monthYear = ViewBag.MonthYear })" class="btn btn-sm btn-warning">
                                     Edit
                                 </a>
@@ -87,10 +88,28 @@
 
 @section Scripts {
     <script>
-        $(document).on("click", "[data-bs-target='#salaryDetailsModal']", function (e) {
+
+        $(document).ready(function () {
+            
+            $('#datatbl').DataTable({
+                pageLength: 10,
+                lengthMenu: [5, 10, 25, 50],
+                pagingType: "full_numbers"
+            });
+        });
+
+        $(document).on("click", ".view-salary", function (e) {
             e.preventDefault();
             var url = $(this).attr("href");
-            $("#salaryDetailsContent").load(url);
+
+            $("#salaryDetailsContent").html("<p class='text-center p-3'>Loading...</p>");
+
+            $("#salaryDetailsContent").load(url, function () {
+                var modal = new bootstrap.Modal(document.getElementById("salaryDetailsModal"));
+                modal.show();
+            });
         });
     </script>
 }
+
+
