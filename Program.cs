@@ -4,7 +4,7 @@ using Smart_Attendance_System.Services.Interfaces;
 using Smart_Attendance_System.Services.Repositories;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Smart_Attendance_System.Services.Repositores;
-using Smart_Attendance_System.Data.SMTP_Service;
+
 using Smart_Attendance_System.Services.MessageService;
 using Smart_Attendance_System.EmailSettings;
 using Microsoft.Extensions.DependencyInjection;
@@ -49,6 +49,7 @@ namespace Smart_Attendance_System
             builder.Services.AddScoped<IEmployeeRepository, EmployeeRepository>();
             builder.Services.AddScoped<IAttendanceRepository, AttendanceRepository>();
             builder.Services.AddScoped<IDepartmentRepository, DepartmentRepository>();
+            builder.Services.AddScoped<ISalaryRepository, SalaryRepository>();
             builder.Services.AddScoped<INotificationRepository, NotificationRepository>();
             builder.Services.AddScoped<ITaskRepository, TaskRepository>();
             builder.Services.AddTransient<EmailService>();

@@ -21,6 +21,8 @@ namespace Smart_Attendance_System.Models
         [DataType(DataType.Time)]
         public DateTime? CheckOutTime { get; set; }
 
+        public double? WorkingHours { get; set; }
+
         public required string Status { get; set; }
     }
 }

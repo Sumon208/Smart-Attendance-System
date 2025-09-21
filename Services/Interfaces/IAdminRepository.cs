@@ -16,6 +16,7 @@ namespace Smart_Attendance_System.Services.Interfaces
         Task UpdateEmployeeAsync(Employee employee);
         Task DeleteEmployeeAsync(int id);
         Task DeleteEmployeeWithRelatedDataAsync(int employeeId);
+        Task UpdateSalaryStatusByEmployeeIdAsync(int employeeId, EmployeeStatus status);
 
         // Departments
         Task<IEnumerable<Department>> GetAllDepartmentsAsync();

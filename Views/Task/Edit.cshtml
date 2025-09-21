@@ -25,20 +25,7 @@
             <span asp-validation-for="Project" class="text-danger"></span>
         </div>
 
-        <div class="mb-3">
-            <label asp-for="Shift" class="form-label">Shift</label>
-            <select asp-for="Shift" class="form-select">
-                <option value="">-- Select Shift --</option>
-                @if (ViewBag.Shifts != null)
-                {
-                    foreach(var s in (List<string>)ViewBag.Shifts)
-                    {
-                        <option value="@s" @@(Model.Shift == s ? "selected" : "")>@s</option>
-                    }
-                }
-            </select>
-            <span asp-validation-for="Shift" class="text-danger"></span>
-        </div>
+        
 
         <div class="mb-3">
             <label asp-for="TodaysActivity" class="form-label">Today's Activity</label>
@@ -46,7 +33,7 @@
             <span asp-validation-for="TodaysActivity" class="text-danger"></span>
         </div>
 
-        <div class="mb-3">
+       @*  <div class="mb-3">
             <label asp-for="Status" class="form-label">Status</label>
             <select asp-for="Status" class="form-select">
                 @foreach (var status in Enum.GetValues(typeof(Smart_Attendance_System.Models.TaskStatus)))
@@ -55,7 +42,7 @@
                 }
             </select>
             <span asp-validation-for="Status" class="text-danger"></span>
-        </div>
+        </div> *@
 
         <div class="mb-3">
             <label asp-for="DueDate" class="form-label">Due Date</label>

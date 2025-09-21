@@ -46,6 +46,9 @@ namespace Smart_Attendance_System.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<double?>("WorkingHours")
+                        .HasColumnType("float");
+
                     b.HasKey("AttendanceId");
 
                     b.HasIndex("EmployeeId");
@@ -141,6 +144,66 @@ namespace Smart_Attendance_System.Migrations
                     b.ToTable("Employees");
                 });
 
+            modelBuilder.Entity("Smart_Attendance_System.Models.EmployeeTask", b =>
+                {
+                    b.Property<int>("TaskId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("TaskId"));
+
+                    b.Property<DateTime?>("DueDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int?>("EmployeeId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Project")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<string>("Shift")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("SubmitDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("TodaysActivity")
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
+                    b.HasKey("TaskId");
+
+                    b.HasIndex("EmployeeId");
+
+                    b.ToTable("EmployeeTasks");
+                });
+
+            modelBuilder.Entity("Smart_Attendance_System.Models.EnumValue", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("EnumType")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Enum");
+                });
+
             modelBuilder.Entity("Smart_Attendance_System.Models.Leave", b =>
                 {
                     b.Property<int>("LeaveId")
@@ -212,6 +275,94 @@ namespace Smart_Attendance_System.Migrations
                     b.ToTable("Notifications");
                 });
 
+            modelBuilder.Entity("Smart_Attendance_System.Models.PasswordResetToken", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("ExpiryDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Token")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("PasswordResetTokens");
+                });
+
+            modelBuilder.Entity("Smart_Attendance_System.Models.Salary", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int?>("AbsentCount")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("ApprovedLeaveDays")
+                        .HasColumnType("int");
+
+                    b.Property<string>("CountedLeaveIds")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("CreatedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("EmployeeCode")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("EmployeeId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("EmployeeName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<decimal?>("GrossSalary")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<int?>("LateCount")
+                        .HasColumnType("int");
+
+                    b.Property<decimal?>("NetSalary")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<int?>("PresentCount")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("SalaryMonth")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int?>("WorkingDays")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Salaries");
+                });
+
             modelBuilder.Entity("Smart_Attendance_System.Models.SystemUser", b =>
                 {
                     b.Property<int>("Id")
@@ -268,6 +419,15 @@ namespace Smart_Attendance_System.Migrations
                     b.Navigation("Department");
                 });
 
+            modelBuilder.Entity("Smart_Attendance_System.Models.EmployeeTask", b =>
+                {
+                    b.HasOne("Smart_Attendance_System.Models.Employee", "Employee")
+                        .WithMany()
+                        .HasForeignKey("EmployeeId");
+
+                    b.Navigation("Employee");
+                });
+
             modelBuilder.Entity("Smart_Attendance_System.Models.Leave", b =>
                 {
                     b.HasOne("Smart_Attendance_System.Models.Employee", "Employee")
@@ -277,6 +437,17 @@ namespace Smart_Attendance_System.Migrations
                         .IsRequired();
 
                     b.Navigation("Employee");
+                });
+
+            modelBuilder.Entity("Smart_Attendance_System.Models.PasswordResetToken", b =>
+                {
+                    b.HasOne("Smart_Attendance_System.Models.SystemUser", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("Smart_Attendance_System.Models.SystemUser", b =>

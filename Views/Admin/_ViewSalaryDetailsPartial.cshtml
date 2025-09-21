@@ -15,7 +15,7 @@
                 </div>
                 <div class="card-body">
                     <p><strong>Gross Salary:</strong> <span id="grossSalary">৳@Model.GrossSalary.ToString("N2")</span></p>
-                    <p><strong>Current Month Salary:</strong> <span id="monthlySalary">৳@Model.MonthlySalary.ToString("N2")</span></p>
+                    <p><strong>Current Month Salary:</strong> <span id="monthlySalary">৳@Model.NetSalary.ToString("N2")</span></p>
                     <p><strong>Working Days:</strong> <span id="workingDays">@(Model.PresentCount + Model.LateCount + Model.ApprovedLeaveDays)</span></p>
                 </div>
             </div>

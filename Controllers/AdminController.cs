@@ -10,7 +10,6 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Smart_Attendance_System.Data;
-using Smart_Attendance_System.Data.SMTP_Service;
 using Smart_Attendance_System.EmailSettings;
 using Smart_Attendance_System.Models;
 using Smart_Attendance_System.Models.ViewModel;
@@ -30,17 +29,20 @@ namespace Smart_Attendance_System.Controllers
         private readonly INotificationRepository _notificationRepository;
         private readonly IAdminRepository _adminRepository;
         private readonly IAccountRepository _accountRepository;
+        private readonly ISalaryRepository _salaryRepository;
 
         public AdminController(
             EmailService emailService,
             INotificationRepository notificationRepository,
             IAdminRepository adminRepository,
-            IAccountRepository accountRepository)
+            IAccountRepository accountRepository,
+            ISalaryRepository salaryRepository) 
         {
             _emailService = emailService;
             _notificationRepository = notificationRepository;
             _adminRepository = adminRepository;
             _accountRepository = accountRepository;
+            _salaryRepository = salaryRepository;
         }
 
         // 1. Dashboard Action
@@ -172,6 +174,9 @@ namespace Smart_Attendance_System.Controllers
 
             await _adminRepository.UpdateLeaveStatusAsync(leaveId, LeaveStatus.Approved);
 
+            
+
+
             await _notificationRepository.AddNotificationAsync(new Notification
             {
                 EmployeeId = leave.EmployeeId,
@@ -194,12 +199,16 @@ namespace Smart_Attendance_System.Controllers
                     E-Group
                 </p>";
 
+
             // 🔑 Fix: fetch email from SystemUsers
             var employeeEmail = await _adminRepository.GetUserEmailForEmployeeAsync(leave.EmployeeId);
             if (!string.IsNullOrWhiteSpace(employeeEmail))
             {
                 try { await _emailService.SendEmailAsync(employeeEmail, subject, body); } catch { }
             }
+
+            DateTime salaryMonth = new DateTime(leave.StartDate.Year, leave.StartDate.Month, 1);
+            await _salaryRepository.UpdateEmployeeMonthlySalaryAsync(leave.EmployeeId, salaryMonth);
 
             TempData["SuccessMessage"] = "Leave approved and employee notified.";
             return RedirectToAction(nameof(Leave));
@@ -556,6 +565,7 @@ namespace Smart_Attendance_System.Controllers
             var ok = await _adminRepository.SetEmployeeStatusAsync(id, EmployeeStatus.Approved);
             if (ok)
             {
+                await _adminRepository.UpdateSalaryStatusByEmployeeIdAsync(id, EmployeeStatus.Approved);
                 var to = await _adminRepository.GetUserEmailForEmployeeAsync(id);
                 if (!string.IsNullOrWhiteSpace(to))
                 {
@@ -603,6 +613,7 @@ namespace Smart_Attendance_System.Controllers
             var ok = await _adminRepository.SetEmployeeStatusAsync(id, EmployeeStatus.Rejected);
             if (ok)
             {
+                await _adminRepository.UpdateSalaryStatusByEmployeeIdAsync(id, EmployeeStatus.Rejected);
                 var to = await _adminRepository.GetUserEmailForEmployeeAsync(id);
                 if (!string.IsNullOrWhiteSpace(to))
                 {

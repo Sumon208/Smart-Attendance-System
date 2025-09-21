@@ -1,0 +1,33 @@
+﻿@model Smart_Attendance_System.Models.ViewModel.MonthlySalaryViewModel
+
+<div class="p-3">
+    <h5>Salary Details for @Model.EmployeeName (@Model.EmployeeCode)</h5>
+    <table class="table table-bordered table-striped mt-3">
+        <tbody>
+            <tr>
+                <th>Gross Salary</th>
+                <td>@Model.GrossSalary.ToString("N2")</td>
+            </tr>
+            <tr>
+                <th>Net Salary</th>
+                <td>@Model.NetSalary.ToString("N2")</td>
+            </tr>
+            <tr>
+                <th>Present Days</th>
+                <td>@Model.PresentCount</td>
+            </tr>
+            <tr>
+                <th>Late Days</th>
+                <td>@Model.LateCount</td>
+            </tr>
+            <tr>
+                <th>Absent Days</th>
+                <td>@Model.AbsentCount</td>
+            </tr>
+            <tr>
+                <th>Approved Leaves</th>
+                <td>@Model.ApprovedLeaveDays</td>
+            </tr>
+        </tbody>
+    </table>
+</div>

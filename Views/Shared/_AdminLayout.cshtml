@@ -23,8 +23,14 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Admin - Smart Attendance System</title>
+    
+   
     <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" />
+
+    <!-- DataTables Bootstrap4 CSS (use this, not default DataTables CSS) -->
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap4.min.css" />
+
     <style>
         /* --- SIDEBAR --- */
         .sidebar {
@@ -290,7 +296,7 @@
             </li>
             <li class="nav-item">
                 <a class="nav-link @(currentAction == "MonthlySalaryReport" ? "active" : "")"
-                   asp-controller="Admin" asp-action="MonthlySalaryReport">
+                   asp-controller="Salary" asp-action="MonthlySalaryReport">
                     <i class="fas fa-money-bill-wave mr-2"></i> Salary
                 </a>
             </li>
@@ -331,8 +337,18 @@
         @RenderBody()
     </main>
 
-    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+
+    <!-- jQuery -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+    <!-- Bootstrap (requires jQuery) -->
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.bundle.min.js"></script>
+
+    <!-- DataTables core + Bootstrap4 integration -->
+    <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap4.min.js"></script>
+
+
     @await RenderSectionAsync("Scripts", required: false)
 
     <script>
