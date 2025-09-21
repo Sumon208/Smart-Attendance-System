@@ -10,7 +10,6 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Smart_Attendance_System.Data;
-using Smart_Attendance_System.Data.SMTP_Service;
 using Smart_Attendance_System.EmailSettings;
 using Smart_Attendance_System.Models;
 using Smart_Attendance_System.Models.ViewModel;

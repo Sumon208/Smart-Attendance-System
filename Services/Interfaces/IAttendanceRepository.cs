@@ -14,9 +14,8 @@ namespace Smart_Attendance_System.Services.Interfaces
         Task<Employee?> GetEmployeeByIdAsync(int id);
        
         Task<IEnumerable<Attendance>> GetMonthlyAttendanceReportAsync(string? employeeSearch = null, DateTime? dateFrom = null, DateTime? dateTo = null);
+        Task<bool> HasApprovedLeaveTodayAsync(int employeeId);
 
- 
-       
     }
 
 

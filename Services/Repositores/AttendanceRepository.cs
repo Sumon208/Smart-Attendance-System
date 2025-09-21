@@ -33,6 +33,16 @@ namespace Smart_Attendance_System.Services.Repositores
             _context.Attendances.Update(attendance);
             await _context.SaveChangesAsync();
         }
+        public async Task<bool> HasApprovedLeaveTodayAsync(int employeeId)
+        {
+            var today = DateTime.Today;
+            return await _context.Leaves.AnyAsync(l =>
+                l.EmployeeId == employeeId &&
+                l.Status == LeaveStatus.Approved &&
+                l.StartDate <= today &&
+                l.EndDate >= today);
+        }
+
 
         public async Task<IEnumerable<Attendance>> GetEmployeeAttendanceHistoryAsync(int employeeId, int days = 30)
         {
