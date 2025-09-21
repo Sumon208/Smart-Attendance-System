@@ -30,13 +30,13 @@
             </div>
         </div>
     </div>
-    <div class="col-md-7">
+    <div class="col-12 col-md-7">
         <div class="card border-0 shadow-sm h-100">
             <div class="card-body py-3 d-flex flex-column justify-content-center">
-                <div class="d-flex justify-content-between align-items-center mb-3">
-                    <div class="d-flex align-items-center flex-grow-1">
-                        <h4 class="text-muted mb-0">Today's Status</h4>
-                        <div class="d-flex align-items-center ml-4">
+                <div class="d-flex flex-column flex-md-row justify-content-between align-items-center mb-3 text-center text-md-left">
+                    <div class="d-flex align-items-center flex-grow-1 justify-content-center justify-content-md-start mb-2 mb-md-0">
+                        <h4 class="text-muted mb-0 mr-3">Current Status:</h4>
+                        <div class="d-flex align-items-center">
                             <div class="status-indicator @(Model.IsCheckedIn ? "bg-success" : "bg-secondary") rounded-circle d-inline-block mr-2"></div>
                             <h3 class="mb-0 @(Model.IsCheckedIn ? "text-success" : "text-secondary")" style="font-size: 1.25rem;">
                                 @(Model.IsCheckedIn ? "Checked In" : "Not Checked In")
@@ -46,16 +46,17 @@
                 </div>
                 <div class="row text-center mb-4">
                     <div class="col-6">
-                        <small class="text-muted d-block">Check In Time</small>
+                        <small class="text-muted d-block">Last Check In</small>
                         <h4 class="mb-0">@(Model.CheckInTime?.ToString("hh:mm tt") ?? "—")</h4>
                     </div>
                     <div class="col-6">
-                        <small class="text-muted d-block">Check Out Time</small>
+                        <small class="text-muted d-block">Last Check Out</small>
                         <h4 class="mb-0">@(Model.CheckOutTime?.ToString("hh:mm tt") ?? "—")</h4>
                     </div>
                 </div>
-                <div class="row">
-                    <div class="col-6">
+
+                <div class="row mt-3">
+                    <div class="col-12 col-md-6 mb-3 mb-md-0">
                         <div class="card text-center card-custom h-100">
                             <div class="card-body py-4 d-flex flex-column justify-content-center">
                                 <i class="fas fa-sign-in-alt fa-3x text-success mb-3"></i>
@@ -64,7 +65,7 @@
                                 @if (!Model.IsCheckedIn)
                                 {
                                     <form asp-action="CheckIn" method="post" class="d-inline mt-auto">
-                                        <button type="submit" class="btn btn-success btn-lg" @(Model.IsCheckedIn ? "disabled" : "")>
+                                        <button type="submit" class="btn btn-success btn-lg">
                                             <i class="fas fa-fingerprint mr-2"></i>Check In Now
                                         </button>
                                     </form>
@@ -78,7 +79,8 @@
                             </div>
                         </div>
                     </div>
-                    <div class="col-6">
+
+                    <div class="col-12 col-md-6">
                         <div class="card text-center card-custom h-100">
                             <div class="card-body py-4 d-flex flex-column justify-content-center">
                                 <i class="fas fa-sign-out-alt fa-3x text-danger mb-3"></i>

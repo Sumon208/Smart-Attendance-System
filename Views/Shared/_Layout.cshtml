@@ -21,6 +21,7 @@
     <title>@ViewData["Title"] - Smart Attendance System</title>
     <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
 </head>
 <body class="d-flex flex-column min-vh-100">
     <header>
@@ -74,11 +75,110 @@
         </main>
     </div>
 
-    <footer class="border-top footer text-muted mt-auto">
+    <footer class="bg-dark text-light pt-5 pb-4 mt-auto">
         <div class="container">
-            &copy; 2025 - Smart Attendance System - <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
+            <div class="row">
+                <div class="col-md-3 mb-4">
+                    <img src="~/images/about-egroup.png" alt="E-Group Bangladesh Logo" style="width:120px;" />
+                    <p class="mt-2">
+                        Leading Certification & IT solutions provider in Uttara, Dhaka, Bangladesh. Innovative digital services for tomorrow's challenges.
+                    </p>
+                    <div class="d-flex mt-3 social-icons-container">
+                        <a href="https://www.facebook.com/profile.php?id=61579971779873" class="social-icon"><i class="fab fa-facebook-f"></i></a>
+                        <a href="#" class="social-icon"><i class="fab fa-twitter"></i></a>
+                        <a href="https://www.linkedin.com/company/egroupltd/" class="social-icon"><i class="fab fa-linkedin-in"></i></a>
+                        <a href="#" class="social-icon"><i class="fab fa-instagram"></i></a>
+                        <a href="https://wa.me/8801400055289" class="social-icon"><i class="fab fa-whatsapp"></i></a>
+                    </div>
+                </div>
+
+                <div class="col-md-3 mb-4">
+                    <h6 class="text-primary mb-3">E-Group Bangladesh</h6>
+                    <ul class="list-unstyled">
+                        <li><a href="#" class="text-light text-decoration-none">Home</a></li>
+                        <li><a href="#" class="text-light text-decoration-none">About</a></li>
+                        <li><a href="#" class="text-light text-decoration-none">Services</a></li>
+                        <li><a href="#" class="text-light text-decoration-none">Portfolio</a></li>
+                        <li><a href="https://wa.me/8801400055289" class="text-light text-decoration-none">Contact Us</a></li>
+                    </ul>
+                </div>
+
+                <div class="col-md-3 mb-4">
+                    <h6 class="text-primary mb-3">Services in Bangladesh</h6>
+                    <ul class="list-unstyled">
+                        <li><a href="#" class="text-light text-decoration-none">E-Tex Solutions</a></li>
+                        <li><a href="#" class="text-light text-decoration-none">Epic</a></li>
+                        <li><a href="#" class="text-light text-decoration-none">Paradise Interior</a></li>
+                        <li><a href="#" class="text-light text-decoration-none">Epic Pharma</a></li>
+                        <li><a href="#" class="text-light text-decoration-none">E-Builders</a></li>
+                    </ul>
+                </div>
+
+                <div class="col-md-3 mb-4">
+                    <h6 class="text-primary mb-3">Newsletter – E-Group Bangladesh</h6>
+                    <p>Subscribe to our newsletter for latest IT solutions and updates from Uttara, Dhaka.</p>
+                    <form class="d-flex newsletter-form">
+                        <input type="email" class="form-control newsletter-input" style="width:fit-content" placeholder="Your Email Address">
+                        <button type="submit" class="btn btn-info text-dark newsletter-button">Subscribe</button>
+                    </form>
+                </div>
+            </div>
+
+            <div class="text-center mt-4">
+                <p class="mb-0">&copy; 2025 E-Group Bangladesh. All rights reserved. | Uttara, Dhaka, Bangladesh</p>
+            </div>
         </div>
     </footer>
+
+    <style>
+        /* Body full height fix */
+        html, body {
+            height: 100%;
+        }
+
+        body {
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Main content take full remaining height */
+        .content {
+            flex: 1;
+        }
+
+        /* Custom styles for social icons */
+        .social-icons-container .social-icon {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 35px;
+            height: 35px;
+            background-color: #37b79a;
+            color: #fff;
+            border-radius: 50%;
+            margin-right: 10px;
+            text-decoration: none;
+            transition: background-color 0.3s ease;
+        }
+
+            .social-icons-container .social-icon:hover {
+                background-color: #2e9f85;
+            }
+
+        /* Custom styles for newsletter form */
+        .newsletter-form .newsletter-input {
+            border-radius: 5px;
+            border-color: #ced4da;
+            margin-right: 1.5rem;
+        }
+
+        .newsletter-form .newsletter-button {
+            background-color: #37b79a;
+            border-color: #37b79a;
+            border-radius: 5px;
+        }
+    </style>
+
     <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>

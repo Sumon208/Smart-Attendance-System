@@ -44,6 +44,7 @@
             width: 220px;
             overflow-y: auto;
             z-index: 999;
+            transition: all 0.3s ease;
         }
 
             .sidebar .nav-link {
@@ -99,11 +100,48 @@
                 border: 2px solid #c82333;
             }
 
+        /* Notification icon */
+        .notification {
+            position: relative;
+            margin-right: 15px;
+            cursor: pointer;
+        }
+
+            .notification .badge {
+                position: absolute;
+                top: -5px;
+                right: -8px;
+                font-size: 0.7em;
+            }
+
+        /* Toggle Button (Hamburger) */
+        .toggle-btn {
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            width: 35px;
+            height: 30px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            margin-right: auto;
+        }
+
+            .toggle-btn .bar {
+                width: 25px;
+                height: 3px;
+                background-color: white;
+                margin: 3px 0;
+                transition: 0.4s;
+            }
+
         /* --- MAIN CONTENT --- */
         .main-content {
             margin-left: 220px;
             padding: 80px 20px 20px 20px;
             box-sizing: border-box;
+            transition: all 0.3s ease;
         }
 
         /* Sidebar scrollbar */
@@ -115,12 +153,73 @@
             background-color: rgba(255,255,255,0.2);
             border-radius: 3px;
         }
+
+        /* --- FOOTER --- */
+        .footer {
+            background-color: #343a40;
+            color: white;
+            text-align: center;
+            padding: 15px 10px;
+            margin-top: 20px;
+        }
+
+        /* --- MEDIA QUERIES --- */
+        @@media (max-width: 991px) {
+            .sidebar
+
+        {
+            left: -220px;
+            display: block;
+        }
+
+        .sidebar.active {
+            left: 0;
+        }
+
+        .toggle-btn {
+            display: flex;
+        }
+
+        .main-content {
+            margin-left: 0;
+            padding: 80px 10px 20px 10px;
+        }
+
+        }
+
+        @@media (max-width: 575px) {
+            .main-content
+
+        {
+            padding: 70px 5px 10px 5px;
+        }
+
+        .sidebar .nav-link {
+            font-size: 1em;
+            padding: 8px 10px;
+        }
+
+        .footer {
+            font-size: 0.8em;
+            padding: 8px 5px;
+        }
+
+        }
     </style>
+
+
+
+
 </head>
 <body>
-    <!-- HEADER -->
     <div class="header">
-        <!-- Notifications -->
+        <!-- Hamburger toggle -->
+        <button class="toggle-btn" id="sidebarToggle">
+            <span class="bar"></span>
+            <span class="bar"></span>
+            <span class="bar"></span>
+        </button>
+
         <div class="dropdown mr-3">
             <a href="#" class="text-white position-relative" id="notificationDropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                 <i class="fas fa-bell fa-lg"></i>
@@ -134,7 +233,7 @@
             </div>
         </div>
 
-        <!-- User Info -->
+        <!-- User info -->
         <div class="user-info">
             <img src="@employeePhoto" alt="User Photo" />
             <div>
@@ -146,6 +245,9 @@
             </a>
         </div>
     </div>
+
+
+
 
     <!-- SIDEBAR -->
     <nav id="sidebar" class="sidebar">
@@ -316,6 +418,9 @@
                 },
                 error: function () { window.location.href = linkUrl; }
             });
+        });
+                    document.getElementById("sidebarToggle").addEventListener("click", function() {
+            document.querySelector(".sidebar").classList.toggle("active");
         });
     </script>
 </body>
