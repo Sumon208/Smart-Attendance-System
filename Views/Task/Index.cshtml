@@ -6,20 +6,16 @@
 }
 
 <div class="container-fluid py-4">
-    <!-- Top Actions -->
     <div class="d-flex justify-content-between align-items-center mb-4">
-        <!-- Today Task -->
         <a href="@Url.Action("Create", "Task")" class="btn btn-gradient btn-lg shadow-sm px-4">
             <i class="fas fa-plus me-2"></i> Today Task
         </a>
 
-        <!-- Total Tasks -->
         <span class="badge bg-gradient text-white px-4 py-3 rounded-pill shadow-lg fs-6">
             <i class="fas fa-list-check me-2"></i> Total Tasks: @Model.Count()
         </span>
     </div>
 
-    <!-- Card -->
     <div class="card border-0 rounded-4 shadow-lg overflow-hidden">
         <div class="card-header bg-gradient text-white border-0 py-3 px-4 d-flex justify-content-between align-items-center">
             <h4 class="mb-0 fw-bold">
@@ -28,32 +24,35 @@
         </div>
 
         <div class="card-body bg-light p-4">
-            <!-- Filters Section -->
             <div class="filter-box rounded-4 p-3 mb-4 shadow-sm">
                 <div class="row g-3">
                     <div class="col-md-3">
                         <select id="statusFilter" class="form-select form-select-lg shadow-sm border-0 rounded-3">
                             <option value="">-- Filter by Status --</option>
-                            <option value="Pending">Pending</option>
-                            <option value="In Progress">In Progress</option>
-                            <option value="Completed">Completed</option>
-                            <option value="Cancelled">Cancelled</option>
+                            @foreach (var s in (List<string>)ViewBag.Statuses)
+                            {
+                                <option value="@s">@s</option>
+                            }
                         </select>
                     </div>
                     <div class="col-md-3">
-                        <input type="text" id="projectFilter" class="form-control form-control-lg shadow-sm border-0 rounded-3" placeholder="🔎 Search Project..." />
+                        <select id="projectFilter" class="form-select form-select-lg shadow-sm border-0 rounded-3">
+                            <option value="">-- Filter by Project --</option>
+                            @foreach (var p in (List<string>)ViewBag.Projects)
+                            {
+                                <option value="@p">@p</option>
+                            }
+                        </select>
                     </div>
                     <div class="col-md-3">
                         <input type="text" id="employeeFilter" class="form-control form-control-lg shadow-sm border-0 rounded-3" placeholder="👤 Search Employee..." />
                     </div>
                     <div class="col-md-3">
-                        <!-- Date Picker -->
                         <input type="date" id="dateFilter" class="form-control form-control-lg shadow-sm border-0 rounded-3" />
                     </div>
                 </div>
             </div>
 
-            <!-- Data Table -->
             <div class="table-responsive">
                 <table id="taskTable" class="table table-hover align-middle text-center mb-0 shadow-sm rounded-4 overflow-hidden">
                     <thead class="bg-dark text-white text-uppercase">
@@ -62,7 +61,7 @@
                             <th>Employee</th>
                             <th>Project</th>
                             <th>Shift</th>
-                            <th class="text-start">Activity</th>
+                            <th>Activity</th>
                             <th>Status</th>
                             <th>Due Date</th>
                             <th>Submit Date</th>
@@ -85,34 +84,28 @@
                                 <tr class="table-row-hover">
                                     <td class="fw-semibold">@count</td>
                                     <td class="fw-semibold text-secondary">@task.Employee?.EmployeeName</td>
-                                    <td class="fw-semibold text-primary">@task.Project</td>
+                                    <td class="fw-semibold text-primary">@task.Project?.Name</td>
                                     <td>
-                                        <span class="badge bg-info text-dark rounded-pill px-3 py-2 shadow-sm">@task.Shift</span>
-                                    </td>
-                                    <td class="text-start">@task.TodaysActivity</td>
-                                    <td>
-                                        @if (task.Status == Smart_Attendance_System.Models.TaskStatus.Pending)
-                                        {
-                                            <span class="badge bg-warning text-dark px-3 py-2 rounded-pill shadow-sm">Pending</span>
-                                        }
-                                        else if (task.Status == Smart_Attendance_System.Models.TaskStatus.InProgress)
-                                        {
-                                            <span class="badge bg-primary px-3 py-2 rounded-pill shadow-sm">In Progress</span>
-                                        }
-                                        else if (task.Status == Smart_Attendance_System.Models.TaskStatus.Completed)
-                                        {
-                                            <span class="badge bg-success px-3 py-2 rounded-pill shadow-sm">Completed</span>
-                                        }
-                                        else if (task.Status == Smart_Attendance_System.Models.TaskStatus.Cancelled)
-                                        {
-                                            <span class="badge bg-danger px-3 py-2 rounded-pill shadow-sm">Cancelled</span>
-                                        }
-                                    </td>
-                                    <!-- Format DueDate for date filter -->
-                                    <td>@task.DueDate?.ToString("yyyy-MM-dd")</td>
-                                    <td>@task.SubmitDate.ToString("dd-MMM-yyyy")</td>
-                                </tr>
-                                count++;
+                                        <span class="badge rounded-pill px-3 py-2 shadow-sm
+                                                    @(task.Shift?.Name == "Morning" ? "bg-info" :
+                                                                                            task.Shift?.Name == "Evening" ? "bg-primary" : "bg-secondary")">
+                                                                                                                                                        @task.Shift?.Name
+                                                                                                                                                    </span>
+                                                                                                                                                </td>
+                                                                                                                                                <td class="text-start">@task.TodaysActivity</td>
+                                                                                                                                                <td>
+                                                                                                                                                    <span class="badge rounded-pill px-3 py-2 shadow-sm
+                                                    @(task.Status?.Name == "Pending" ? "bg-warning text-dark" :
+                                                                                            task.Status?.Name == "In-Progress" ? "bg-primary" :
+                                                                                            task.Status?.Name == "Completed" ? "bg-success" :
+                                                                                            task.Status?.Name == "Cancelled" ? "bg-danger" : "bg-secondary")">
+                                    @task.Status?.Name
+                                </span>
+                            </td>
+                            <td>@task.DueDate?.ToString("yyyy-MM-dd")</td>
+                            <td>@task.SubmitDate.ToString("dd-MMM-yyyy")</td>
+                        </tr>
+                                                        count++;
                             }
                         }
                     </tbody>
@@ -142,15 +135,14 @@
             $('#statusFilter').on('change', function () {
                 table.column(5).search(this.value).draw();
             });
-            $('#projectFilter').on('keyup', function () {
+            $('#projectFilter').on('change', function () {
                 table.column(2).search(this.value).draw();
             });
             $('#employeeFilter').on('keyup', function () {
                 table.column(1).search(this.value).draw();
             });
             $('#dateFilter').on('change', function () {
-                var selectedDate = $(this).val(); // yyyy-mm-dd
-                table.column(6).search(selectedDate).draw();
+                table.column(6).search(this.value).draw();
             });
         });
     </script>

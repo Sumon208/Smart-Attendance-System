@@ -1,11 +1,10 @@
 ﻿using Microsoft.AspNetCore.Mvc.Rendering;
-using System;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace Smart_Attendance_System.Models
+namespace Smart_Attendance_System.Models.ViewModel
 {
-    public class EmployeeTask
+    public class EmployeeTaskViewModel
     {
         [Key]
         public int TaskId { get; set; }
@@ -23,7 +22,7 @@ namespace Smart_Attendance_System.Models
         [Display(Name = "Shift")]
         public int? ShiftId { get; set; }
         [ForeignKey("ShiftId")]
-        public EnumValue? Shift{ get; set; }
+        public EnumValue? Shift { get; set; }
 
         [Display(Name = "Status")]
         public int? StatusId { get; set; }
@@ -39,7 +38,9 @@ namespace Smart_Attendance_System.Models
 
         [Display(Name = "Submit Date")]
         public DateTime SubmitDate { get; set; } = DateTime.Now;
-
-      
+        //
+        public List<SelectListItem> ShiftList { get; set; }
+        public List<SelectListItem> ProjectList { get; set; }
+        public List<SelectListItem> StatusList { get; set; }
     }
 }

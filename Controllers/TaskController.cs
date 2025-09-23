@@ -4,12 +4,13 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using Smart_Attendance_System.Data;
 using Smart_Attendance_System.Models;
+using Smart_Attendance_System.Models.ViewModel;
 using Smart_Attendance_System.Services.Interfaces;
 using Smart_Attendance_System.Services.Repositories;
 using System.Collections.Generic;
+using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
-
 
 namespace Smart_Attendance_System.Controllers
 {
@@ -21,7 +22,11 @@ namespace Smart_Attendance_System.Controllers
         private readonly IEmployeeRepository _employeeRepo;
         private readonly ApplicationDbContext _context;
 
-        public TaskController(ITaskRepository taskRepository, IAdminRepository adminRepository, IEmployeeRepository employeeRepo,ApplicationDbContext context)
+        public TaskController(
+            ITaskRepository taskRepository,
+            IAdminRepository adminRepository,
+            IEmployeeRepository employeeRepo,
+            ApplicationDbContext context)
         {
             _taskRepository = taskRepository;
             _adminRepository = adminRepository;
@@ -29,88 +34,94 @@ namespace Smart_Attendance_System.Controllers
             _context = context;
         }
 
-        // GET: Task
         [HttpGet]
         public async Task<IActionResult> Index()
         {
+            // Fetch all tasks and eagerly load related data
             var tasks = await _taskRepository.GetAllTasksAsync();
+
+            // Populate Statuses dropdown from EnumValue table
+            ViewBag.Statuses = _context.Enum
+                                       .Where(e => e.EnumType == "Status")
+                                       .OrderBy(e => e.Name)
+                                       .Select(e => e.Name)
+                                       .ToList();
+
+            // Populate Projects dropdown from EnumValue table
+            ViewBag.Projects = _context.Enum
+                                       .Where(e => e.EnumType == "Project")
+                                       .OrderBy(e => e.Name)
+                                       .Select(e => e.Name)
+                                       .ToList();
+
+            // Populate Shifts dropdown if needed
+            ViewBag.Shifts = _context.Enum
+                                     .Where(e => e.EnumType == "Shift")
+                                     .OrderBy(e => e.Name)
+                                     .Select(e => e.Name)
+                                     .ToList();
+
+            // Ensure tasks is not null to avoid view errors
             return View(tasks ?? new List<EmployeeTask>());
         }
 
+
+        // GET: Task/Create
         [HttpGet]
-        public IActionResult Create()
+        public async Task<IActionResult> Create()
         {
-
-            var empName = User.Identity?.Name ?? "Unknown";
-
-
-            var empIdClaim = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
-
-            if (string.IsNullOrEmpty(empIdClaim))
+            var model = new EmployeeTaskViewModel
             {
-                return BadRequest("Employee ID not found in claims.");
-            }
-
-            // ViewBag এ পাঠানো
-            ViewBag.LoggedInEmployeeId = empIdClaim;
-            ViewBag.LoggedInEmployeeName = empName;
-            ViewBag.Shifts = new List<string> { "Morning", "Evening", "Night" };
-
-            // EmployeeTask model এ numeric Id লাগলে
-            int empIdNumeric = 0;
-            if (!int.TryParse(empIdClaim, out empIdNumeric))
-            {
-                empIdNumeric = 0;
-            }
-
-            var model = new EmployeeTask
-            {
-                EmployeeId = empIdNumeric
+                ShiftList = await GetSelectList("Shift"),
+                ProjectList = await GetSelectList("Project"),
+                StatusList = await GetSelectList("Status")
             };
+
+            ViewBag.LoggedInEmployeeId = User.Claims.FirstOrDefault(c => c.Type == "EmployeeId")?.Value;
+            ViewBag.LoggedInEmployeeName = User.Identity?.Name;
+
+            return View(model);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> Create(EmployeeTaskViewModel model)
+        {
+            try
+            {
+
+                // Save data
+                await _taskRepository.AddTaskAsync(model);
+
+                TempData["SuccessMessage"] = "Employee Task created successfully!";
+                return RedirectToAction(nameof(Index));
+
+            }
+            catch (Exception ex)
+            {
+                // Log the error (you can use ILogger or Serilog etc.)
+                TempData["ErrorMessage"] = $"An error occurred while creating the task: {ex.Message}";
+            }
+
+            // If validation fails or an exception occurs → repopulate dropdowns before returning view
+            model.ShiftList = await GetSelectList("Shift");
+            model.ProjectList = await GetSelectList("Project");
+            model.StatusList = await GetSelectList("Status");
 
             return View(model);
         }
 
 
 
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create(EmployeeTask task)
+        private async Task<List<SelectListItem>> GetSelectList(string enumType)
         {
-
-            if (task.EmployeeId == 0)
-            {
-                ModelState.AddModelError("", "EmployeeId is required.");
-            }
-
-            if (ModelState.IsValid)
-            {
-                await _taskRepository.AddTaskAsync(task);
-                return RedirectToAction(nameof(Index));
-            }
-
-            // Post-back: shift & login info set
-            ViewBag.Shifts = new List<string> { "Morning", "Evening", "Night" };
-            ViewBag.LoggedInEmployeeName = User.Identity?.Name;
-            ViewBag.LoggedInEmployeeId = User.Claims.FirstOrDefault(c => c.Type == "EmployeeId")?.Value;
-
-            return View(task);
-        }
-
-
-
-
-        // Helper method to populate dropdowns
-        private async Task PopulateDropdownsAsync()
-        {
-            // Employee dropdown (string EmployeeId)
-            var employees = await _employeeRepo.GetAllEmployeesAsync();
-            ViewBag.Employees = employees
-                .Select(e => new { EmployeeId = e.EmployeeId, Name = e.EmployeeName })
-                .ToList();
-
-            // Shift dropdown
-            ViewBag.Shifts = new List<string> { "Morning", "Evening", "Night" };
+            return await _context.Enum
+                                 .Where(e => e.EnumType == enumType)
+                                 .Select(e => new SelectListItem
+                                 {
+                                     Value = e.Id.ToString(),  // Dropdown value হবে EnumValue.Id
+                                     Text = e.Name             // Dropdown text হবে EnumValue.Name
+                                 })
+                                 .ToListAsync();
         }
 
 
@@ -149,7 +160,25 @@ namespace Smart_Attendance_System.Controllers
             return RedirectToAction(nameof(Index));
         }
 
-        // Helper method to populate dropdowns safely
-     
+        // Helper method to populate dropdowns dynamically from EnumValue table
+        private async Task PopulateDropdownsAsync()
+        {
+            // ... (existing employee dropdown code)
+
+            var allEnums = await _context.Enum
+                                         .Where(e => new[] { "Shift", "Project", "Status" }.Contains(e.EnumType))
+                                         .ToListAsync();
+
+            List<SelectListItem> GetSelectList(string type) =>
+                allEnums
+                    .Where(e => e.EnumType == type)
+                    .Select(e => new SelectListItem { Value = e.Id.ToString(), Text = e.Name })
+                    .ToList();
+
+            ViewBag.Shifts = GetSelectList("Shift");
+            ViewBag.Projects = GetSelectList("Project");
+            ViewBag.Statuses = GetSelectList("Status");
+        }
+
     }
 }

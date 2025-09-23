@@ -7,10 +7,12 @@ namespace Smart_Attendance_System.Services.Interfaces
     {
         Task<List<EmployeeTask>> GetAllTasksAsync();
         Task<EmployeeTask?> GetTaskByIdAsync(int taskId);
-        Task AddTaskAsync(EmployeeTask task);
+        Task AddTaskAsync(EmployeeTaskViewModel model);
         Task UpdateTaskAsync(EmployeeTask task);
         Task DeleteTaskAsync(int taskId);
         Task<List<EmployeeTask>> GetTasksByEmployeeAsync(int employeeId);
+        Task<List<EnumValue>> GetEnumValuesByTypeAsync(string enumType);
+
 
     }
 }
